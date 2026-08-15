@@ -1,0 +1,29 @@
+{
+  "name": "karaa-mobile-demo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "scripts": {
+    "test": "node --test tests/workspace-script-dispatcher.test.mjs && node scripts/run-workspace-script.mjs test",
+    "typecheck": "node scripts/run-workspace-script.mjs typecheck",
+    "dev:api": "npm run dev --workspace=@karaa/api",
+    "dev:mobile": "npm run start --workspace=@karaa/mobile",
+    "seed:reset": "npm run seed:reset --workspace=@karaa/api",
+    "demo:smoke": "tsx scripts/demo-smoke.mts"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

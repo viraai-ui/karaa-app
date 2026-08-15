@@ -1,0 +1,78 @@
+{
+  "project": "fictional Amaravati Solar Commons",
+  "generatedAt": "2026-08-11",
+  "assets": [
+    {
+      "path": "apps/mobile/assets/demo/amaravati-hero.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional solar commons site overview at dawn",
+      "width": 1536,
+      "height": 864,
+      "sha256": "c3891f9d1e088e88af3b3126fca7e71ff206f0b36654fce4db54b98f1e7b0c7b"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-pour.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional drainage and footing pour in progress",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "149b5526fa75c416ac717e22a8231e8006d31beb53b90bd3c6eb182e146c347c"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-structure.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional installed solar-support structure and conduits",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "d5a0a062122fd10994f1c817f3758af2e8599a6120fb374f2287143630f15f75"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-finish.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional completed solar rows and service route",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "942f251f35536e970cfd3a27ae9e7f105a1e029338837bf7f275b2891be6500f"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-inverter-evidence.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional solar inverter installation and cable-tray evidence",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "f4568565f7fcdeb0bcf4c937a3f9061b611043cb5717dc138b65c30c1d13235a"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-solar-hero.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional Amaravati Solar Commons solar-campus overview",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c5657c911a9334f2af752ffb2c039dc2157ae171745cf6d86ca0d6aa7142b9c8"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-inverter-inspection.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional inverter-row inspection and commissioning evidence",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "24fe571c61e4b179bbb764bd6635ffd9a60027b88f5c2f33bce368c76a5a0cec"
+    },
+    {
+      "path": "apps/mobile/assets/demo/amaravati-structure-progress.png",
+      "origin": "generated-for-karaa-demo",
+      "label": "Demo visual",
+      "subject": "fictional Amaravati solar structural-progress evidence",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "152d5468faad855afd17cefd1660b83670cc3ddbdbafb8ee6356106ccfaee82d"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+name: Workspace checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/workspace-script-dispatcher.test.mjs
+      - run: npm run test
+      - run: npm run typecheck
