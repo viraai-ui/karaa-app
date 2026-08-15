@@ -8,6 +8,7 @@ describe('resolveServerConfig', () => {
       host: '0.0.0.0',
       port: 4310,
       allowedWebOrigins: ['http://127.0.0.1:4173'],
+      databasePath: ':memory:',
     });
   });
 
@@ -16,6 +17,7 @@ describe('resolveServerConfig', () => {
       host: '127.0.0.1',
       port: 4310,
       allowedWebOrigins: ['http://127.0.0.1:4173'],
+      databasePath: ':memory:',
     });
   });
 
@@ -23,6 +25,11 @@ describe('resolveServerConfig', () => {
     expect(resolveServerConfig({
       KARAA_WEB_ORIGINS: 'http://127.0.0.1:4177, https://karaa.example, /not-an-origin',
     }).allowedWebOrigins).toEqual(['http://127.0.0.1:4177', 'https://karaa.example']);
+  });
+
+  it('uses an explicitly configured persistent database path', () => {
+    expect(resolveServerConfig({ KARAA_DATABASE_PATH: ' /var/data/karaa.sqlite ' }).databasePath)
+      .toBe('/var/data/karaa.sqlite');
   });
 
   it('uses the documented demo JWT secret before the legacy secret variable', () => {

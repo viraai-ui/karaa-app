@@ -17,6 +17,8 @@ import { maxMediaSizeBytes } from './progress.js';
 
 export interface AppOptions {
   database?: KaraaDatabase;
+  /** SQLite filename. Use a path on a persistent volume outside tests. */
+  databasePath?: string;
   /** Enable the local fictional seed record used by the audience-demo server. */
   includeAudienceEvidence?: boolean;
   jwtSecret?: string;
@@ -48,7 +50,7 @@ export function buildApp(options: AppOptions = {}): KaraaApp {
       parts: 2,
     },
   });
-  const db = options.database ?? createDatabase(':memory:', { includeAudienceEvidence: options.includeAudienceEvidence });
+  const db = options.database ?? createDatabase(options.databasePath ?? ':memory:', { includeAudienceEvidence: options.includeAudienceEvidence });
   const auth = createAuthService(db, jwtSecret);
   const realtime = createRealtimeGateway(app.server, db, jwtSecret);
 

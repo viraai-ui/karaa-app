@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: karaa-api
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --include=dev
+    startCommand: npm run start --workspace=@karaa/api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: KARAA_API_HOST
+        value: 0.0.0.0
+      - key: KARAA_DATABASE_PATH
+        value: /var/data/karaa.sqlite
+      - key: KARAA_WEB_ORIGINS
+        value: https://karaa-global-app.vercel.app
+      - key: KARAA_DEMO_JWT_SECRET
+        generateValue: true
+    disk:
+      name: karaa-data
+      mountPath: /var/data
+      sizeGB: 1

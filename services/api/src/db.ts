@@ -44,6 +44,14 @@ export interface CreateDatabaseOptions {
 export function createDatabase(filename = ':memory:', options: CreateDatabaseOptions = {}): KaraaDatabase {
   const db = new Database(filename);
   db.pragma('foreign_keys = ON');
+  db.pragma('busy_timeout = 5000');
+  if (filename !== ':memory:') db.pragma('journal_mode = WAL');
+
+  // Preserve records when a persistent service restarts. Schema changes must
+  // introduce explicit migrations rather than replaying bootstrap SQL.
+  const existingSchema = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+  if (existingSchema) return db;
+
   db.exec(`
     CREATE TABLE users (
       id TEXT PRIMARY KEY,

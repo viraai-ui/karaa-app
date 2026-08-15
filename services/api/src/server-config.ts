@@ -2,6 +2,7 @@ export type ServerConfig = {
   host: string;
   port: number;
   allowedWebOrigins: string[];
+  databasePath: string;
 };
 
 type ServerEnvironment = Record<string, string | undefined>;
@@ -37,6 +38,7 @@ export function resolveServerConfig(environment: ServerEnvironment): ServerConfi
     .split(',')
     .map((origin) => origin.trim())
     .filter((origin) => /^https?:\/\/[^/]+$/i.test(origin));
+  const databasePath = environment.KARAA_DATABASE_PATH?.trim() || ':memory:';
 
-  return { host, port, allowedWebOrigins };
+  return { host, port, allowedWebOrigins, databasePath };
 }
