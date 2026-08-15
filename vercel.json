@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{apps/mobile/assets/demo/amaravati-inverter-evidence.png,packages/contracts/src/**,packages/demo-data/src/**}",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/health", "destination": "/api?route=/health" },
+    { "source": "/v1/:path*", "destination": "/api?route=/v1/:path*" }
+  ]
+}

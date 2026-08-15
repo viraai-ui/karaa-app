@@ -4,7 +4,7 @@ import multipart from '@fastify/multipart';
 
 import { createAuthService } from './auth.js';
 import { createDatabase, type KaraaDatabase } from './db.js';
-import { createRealtimeGateway } from './realtime.js';
+import { createRealtimeGateway, type RealtimeGateway } from './realtime.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerConversationRoutes } from './routes/conversations.js';
 import { registerLocationRoutes } from './routes/locations.js';
@@ -24,6 +24,8 @@ export interface AppOptions {
   jwtSecret?: string;
   /** Exact browser origins permitted to call this API directly. */
   allowedWebOrigins?: readonly string[];
+  /** Disable Socket.IO for request/response-only serverless runtimes. */
+  realtime?: boolean;
 }
 
 export type KaraaApp = FastifyInstance;
@@ -52,7 +54,13 @@ export function buildApp(options: AppOptions = {}): KaraaApp {
   });
   const db = options.database ?? createDatabase(options.databasePath ?? ':memory:', { includeAudienceEvidence: options.includeAudienceEvidence });
   const auth = createAuthService(db, jwtSecret);
-  const realtime = createRealtimeGateway(app.server, db, jwtSecret);
+  const realtime: RealtimeGateway = options.realtime === false
+    ? {
+        emitCommittedProgress() {},
+        emitCommittedMessage() {},
+        close() {},
+      }
+    : createRealtimeGateway(app.server, db, jwtSecret);
 
   app.get('/health', () => ({ ok: true }));
   registerAuthRoutes(app, db, auth);

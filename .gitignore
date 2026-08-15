@@ -10,3 +10,4 @@ coverage/
 *.log
 *.sqlite
 uploads/
+.vercel

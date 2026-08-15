@@ -1,6 +1,18 @@
 # Karaa web/API deployment
 
-The Vite web build is static and cannot host the Fastify API. The API also uses Socket.IO and writable SQLite, so it must run as one long-lived process with a persistent disk; it is deliberately **not** adapted to a Vercel serverless function. `render.yaml` describes that minimum topology.
+The durable API uses Socket.IO and writable SQLite, so it must run as one long-lived process with a persistent disk. `render.yaml` describes that topology.
+
+## Temporary Vercel demo API
+
+The repository-root `api/[...route].ts` is a temporary request/response adapter for demos while a durable service is unavailable. It exposes the existing routes both at `/api/v1/...` and, via rewrites, `/v1/...`. It stores SQLite (including uploaded media) at `/tmp/karaa-demo.sqlite`: data can reset on any cold start and separate function instances can see different data. Socket.IO is deliberately disabled; clients must refresh/poll for changes. Responses include `x-karaa-demo-storage: ephemeral` and `x-karaa-realtime: disabled`.
+
+Create a separate Vercel project rooted at the **repository root**, set `KARAA_JWT_SECRET` to a long random value and optionally set `KARAA_WEB_ORIGINS` to exact comma-separated HTTPS origins. The default origin is `https://karaa-global-app.vercel.app`. From the repository root, deploy with:
+
+```sh
+npx vercel --prod
+```
+
+Then rebuild the static web project with `VITE_KARAA_API_BASE_URL` set to this API project's HTTPS URL. Do not use this adapter for real/customer data.
 
 ## Deploy sequence
 
