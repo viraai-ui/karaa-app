@@ -2,18 +2,20 @@ import appConfig from '../app.json';
 import mobilePackage from '../package.json';
 
 describe('Android-first native app configuration', () => {
-  it('declares a native deep-link scheme and Android application ID without web support', () => {
+  it('keeps the native Android identity while enabling the mobile web build', () => {
     expect(appConfig.expo.scheme).toBe('karaa');
     expect(appConfig.expo.android?.package).toBe('com.karaa.mobile');
-    expect(appConfig.expo.platforms).toEqual(['android']);
+    expect(appConfig.expo.platforms).toEqual(['android', 'web']);
+    expect(appConfig.expo.web).toEqual({ bundler: 'metro', output: 'single' });
   });
 
   it('uses the release manifest plugin for the documented local HTTP demo API', () => {
     expect(appConfig.expo.plugins).toContain('./plugins/with-release-cleartext-traffic');
   });
 
-  it('does not advertise unsupported platform runtimes', () => {
-    expect('web' in mobilePackage.scripts).toBe(false);
+  it('advertises the supported Android and web runtimes only', () => {
+    expect(mobilePackage.scripts.web).toBe('expo start --web');
+    expect(mobilePackage.scripts['export:web']).toContain('expo export --platform web');
     expect('ios' in mobilePackage.scripts).toBe(false);
   });
 

@@ -4,9 +4,13 @@
     "slug": "karaa-mobile-demo",
     "version": "1.0.0",
     "scheme": "karaa",
-    "platforms": ["android"],
+    "platforms": ["android", "web"],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
     "android": {
       "package": "com.karaa.mobile",
       "blockedPermissions": [
