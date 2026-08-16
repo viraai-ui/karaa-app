@@ -1,4 +1,5 @@
 import { fireEvent, render, within } from "@testing-library/react-native";
+import { Image, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
 import {
   createOfflineDemoState,
@@ -102,6 +103,27 @@ describe("36 sub-vertical project portfolios", () => {
         }),
       ).toBeTruthy();
     });
+  });
+
+  it("uses the shared readable stacked-card mobile composition", () => {
+    const page = subverticalPortfolios.find(
+      (item) => item.title === "Multi-Specialty Hospitals",
+    )!;
+    const rendered = render(
+      <DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />,
+    );
+    const card = rendered.getAllByTestId(/portfolio-project-/)[0];
+    const image = within(card).UNSAFE_getByType(Image);
+    expect(StyleSheet.flatten(image.props.style)).toMatchObject({
+      aspectRatio: 1.78,
+      width: "100%",
+    });
+    expect(StyleSheet.flatten(within(card).getByText(page.projects[0].name).props.style))
+      .toMatchObject({ fontSize: 18, lineHeight: 22 });
+    expect(StyleSheet.flatten(within(card).getByText(page.projects[0].location).props.style))
+      .toMatchObject({ fontSize: 12 });
+    expect(StyleSheet.flatten(within(card).getAllByText(`${page.projects[0].progress}%`)[0].props.style))
+      .toMatchObject({ fontSize: 24 });
   });
 
   it("searches and filters the project cards", () => {
