@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { demoProjects, demoVerticals } from './demo-catalog';
@@ -18,9 +18,9 @@ type Props = {
   onAction: (action: OfflineDemoAction) => void;
 };
 
-type PersonnelFilter = 'All personnel' | 'Field teams' | 'Managers' | 'Alerts';
+type GeoFilter = 'All Projects' | 'On Track' | 'Attention' | 'Location Alerts';
 
-const personnelFilters: readonly PersonnelFilter[] = ['All personnel', 'Field teams', 'Managers', 'Alerts'];
+const geoFilters: readonly GeoFilter[] = ['All Projects', 'On Track', 'Attention', 'Location Alerts'];
 
 export function DemoManagementExperience({ view, state, onAction }: Props) {
   return view === 'command'
@@ -237,124 +237,42 @@ function OperationsPanel({ state }: Pick<Props, 'state'>) {
 }
 
 function GeoLocation({ state, onAction }: Omit<Props, 'view'>) {
-  const [filter, setFilter] = useState<PersonnelFilter>('All personnel');
+  const [filter, setFilter] = useState<GeoFilter>('All Projects');
   const [query, setQuery] = useState('');
-  const projectMatches = offlineProject.name.toLowerCase().includes(query.trim().toLowerCase());
-  const projectSelected = state.selectedMapProjectId === 'amaravati-solar-commons';
-  const employeeSelected = state.selectedEmployeeId === 'dev-employee';
-  const devEmployeeMatchesFilter = filter === 'All personnel' || filter === 'Field teams';
+  const [notice, setNotice] = useState('');
+  const [ascending, setAscending] = useState(false);
+  const projects = [
+    {category:'HEALTHCARE & LIFE SCIENCES',name:'Aarohan Medical City',place:'Pune, Maharashtra',checked:'426',teams:'38',ago:'1 min ago',status:'ON TRACK',live:'LIVE',detail:'All personnel within site',tone:'good',image:require('../../assets/verticals/conceptual-healthcare-campus.webp')},
+    {category:'INFRASTRUCTURE & URBAN',name:'Amaravati Riverfront District',place:'Amaravati, Andhra Pradesh',checked:'782',teams:'64',ago:'now',status:'ON TRACK',live:'LIVE',detail:'2 personnel near boundary',tone:'warn',image:require('../../assets/verticals/conceptual-urban-district.webp')},
+    {category:'ENERGY & UTILITIES',name:'Surya Integrated Energy Park',place:'Kurnool, Andhra Pradesh',checked:'518',teams:'46',ago:'2 min ago',status:'ATTENTION',live:'3 ALERTS',detail:'3 personnel outside geofence',tone:'danger',image:require('../../assets/verticals/conceptual-clean-energy.webp')},
+    {category:'PORTS & LOGISTICS',name:'Amaravati Integrated Logistics Hub',place:'Vijayawada, Andhra Pradesh',checked:'694',teams:'57',ago:'1 min ago',status:'ON TRACK',live:'LIVE',detail:'All personnel within site',tone:'good',image:require('../../assets/verticals/conceptual-logistics-port.webp')},
+    {category:'HEALTHCARE & LIFE SCIENCES',name:'Sanjeevani Advanced Care Hospital',place:'Hyderabad, Telangana',checked:'356',teams:'31',ago:'3 min ago',status:'AT RISK',live:'1 ALERT',detail:'1 device offline',tone:'warn',image:require('../../assets/verticals/multi-specialty-hospitals-user-supplied.webp')},
+    {category:'HOSPITALITY & TOURISM',name:'Karaa Lakeside Resort',place:'Udaipur, Rajasthan',checked:'214',teams:'18',ago:'now',status:'ON TRACK',live:'LIVE',detail:'All personnel within site',tone:'good',image:require('../../assets/verticals/conceptual-hospitality-resort.webp')},
+  ];
+  let visible = projects.filter(p => `${p.name} ${p.place}`.toLowerCase().includes(query.trim().toLowerCase()));
+  if (filter === 'On Track') visible = visible.filter(p => p.status === 'ON TRACK');
+  if (filter === 'Attention') visible = visible.filter(p => p.status === 'ATTENTION' || p.status === 'AT RISK');
+  if (filter === 'Location Alerts') visible = visible.filter(p => p.live.includes('ALERT') || p.tone === 'warn');
+  if (ascending) visible = [...visible].sort((a,b)=>a.name.localeCompare(b.name));
+  const act = (message:string) => setNotice(message);
 
   return (
-    <View style={styles.page}>
-      <Text style={styles.eyebrow}>WORKFORCE COVERAGE</Text>
-      <Text style={styles.title}>Geo Location</Text>
-      <Text style={styles.subtitle}>Project coverage and personnel assignment context for management review.</Text>
-
-      <View style={styles.geoCounters}>
-        <Counter label="Projects" value="09" />
-        <Counter label="Personnel" value="15" />
-        <Counter label="Attention" value="02" />
-      </View>
-
-      <DemoSearchField accessibilityLabel="Search Geo Location" onChangeText={setQuery} placeholder="Search project coverage" value={query} />
-
-      <View accessibilityRole="tablist" style={styles.filterRow} testID="geo-personnel-filters">
-        {personnelFilters.map((item) => {
-          const selected = filter === item;
-          return (
-            <Pressable
-              accessibilityLabel={item}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              key={item}
-              onPress={() => setFilter(item)}
-              style={[styles.filter, selected && styles.filterSelected]}
-            >
-              <Text numberOfLines={2} style={[styles.filterText, selected && styles.filterTextSelected]}>{item}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text style={styles.filterResult}>Showing {filter}</Text>
-
-      <SectionHeading eyebrow="STATE COVERAGE" title="Geo overview" />
-      <View style={styles.stateChips}>
-        <View style={styles.stateChip}><Text style={styles.stateChipText}>Andhra Pradesh · 4</Text></View>
-        <View style={styles.stateChip}><Text style={styles.stateChipText}>Madhya Pradesh · 3</Text></View>
-        <View style={styles.stateChip}><Text style={styles.stateChipText}>Maharashtra · 1</Text></View>
-      </View>
-
-      <View style={styles.alertRow}>
-        <Text style={styles.alertMark}>!</Text>
-        <View style={styles.flex}><Text style={styles.cardTitle}>2 assignments need attention</Text><Text style={styles.cardCopy}>Review availability before the next project milestone.</Text></View>
-      </View>
-
-      <SectionHeading eyebrow="PROJECT COVERAGE" title="Priority coverage" />
-      {projectMatches ? (
-        <Pressable
-          accessibilityLabel="Select Amaravati Solar Commons"
-          accessibilityRole="button"
-          accessibilityState={{ selected: projectSelected }}
-          onPress={() => onAction({ type: 'select-map-project', projectId: 'amaravati-solar-commons' })}
-          style={[styles.coverageCard, projectSelected && styles.selectedCard]}
-        >
-          <View style={styles.flex}>
-            <Text style={styles.cardTitle}>Amaravati Solar Commons</Text>
-            <Text style={styles.cardCopy}>Andhra Pradesh · Energy & Utilities</Text>
-          </View>
-          <Text style={styles.coverageCount}>4 assigned</Text>
-        </Pressable>
-      ) : <Text style={styles.emptyText}>No matching project coverage</Text>}
-
-      {projectMatches && projectSelected ? (
-        <>
-          <View accessible accessibilityLabel="Demo visual" accessibilityRole="image" style={styles.schematic}>
-            <View style={styles.routeOne} />
-            <View style={styles.routeTwo} />
-            <View style={styles.projectMarker}><Text style={styles.projectMarkerText}>AS</Text></View>
-            <View style={styles.employeeMarker}><Text style={styles.employeeMarkerText}>DE</Text></View>
-            <View style={styles.managerMarker}><Text style={styles.managerMarkerText}>MM</Text></View>
-          </View>
-          <Text style={styles.demoVisual}>Demo visual</Text>
-          <View style={styles.legend}>
-            <LegendItem label="Assigned" tone="assigned" />
-            <LegendItem label="Manager" tone="manager" />
-            <LegendItem label="Attention" tone="attention" />
-            <LegendItem label="Unavailable" tone="unavailable" />
-          </View>
-
-          <SectionHeading eyebrow="AMARAVATI" title="Project personnel" />
-          {devEmployeeMatchesFilter ? (
-            <Pressable
-              accessibilityLabel="Select Dev Employee"
-              accessibilityRole="button"
-              accessibilityState={{ selected: employeeSelected }}
-              onPress={() => onAction({ type: 'select-map-employee', employeeId: 'dev-employee' })}
-              style={[styles.employeeRow, employeeSelected && styles.selectedCard]}
-            >
-              <View style={styles.initials}><Text style={styles.initialsText}>DE</Text></View>
-              <View style={styles.flex}><Text style={styles.cardTitle}>Dev Employee</Text><Text style={styles.cardCopy}>Field Employee · Assigned</Text></View>
-              <Text style={styles.chevron}>›</Text>
-            </Pressable>
-          ) : <Text style={styles.emptyText}>No personnel match {filter}</Text>}
-        </>
-      ) : null}
-
-      {projectMatches && employeeSelected && devEmployeeMatchesFilter ? (
-        <View style={styles.employeeDetail}>
-          <View style={styles.employeeIdentity}>
-            <View style={styles.initialsLarge}><Text style={styles.initialsText}>DE</Text></View>
-            <View style={styles.flex}><Text style={styles.cardTitle}>Dev Employee</Text><Text style={styles.cardCopy}>Field Employee · Amaravati assignment</Text></View>
-          </View>
-          <DataRow label="Current work package" value={offlineProject.workPackage} />
-          <DataRow label="Assignment status" value="Assigned · Field team" />
-          <Text style={styles.activityTitle}>Activity sequence</Text>
-          <DataRow label="09:30 AM" value="Commissioning briefing reviewed" />
-          <DataRow label="10:42 AM" value="Inverter cabinet field check" />
-          <DataRow label="11:02 AM" value={state.fieldUpdateReviewed ? '68% field review recorded' : 'Field review ready'} />
-          <DemoAction label="Message Dev Employee" onPress={() => onAction({ type: 'message-map-employee', employeeId: 'dev-employee' })} />
-        </View>
-      ) : null}
+    <View style={styles.geoPage} testID="geo-location-page">
+      <Text style={styles.geoEyebrow}>FIELD OPERATIONS</Text><Text style={styles.geoTitle}>Geo Location</Text>
+      <Text style={styles.geoSubtitle}>Select a project to view live workforce locations and site activity.</Text>
+      <View style={styles.geoService}><Text style={styles.geoGood}>●  Location services active</Text><Text style={styles.geoUpdated}>Updated 10:42 AM</Text><Pressable accessibilityRole="button" accessibilityLabel="Refresh location status" onPress={()=>act('Prototype data refreshed locally at 10:42 AM.')} style={styles.geoIconButton}><Text>↻</Text></Pressable></View>
+      {notice ? <Pressable accessibilityRole="button" accessibilityLabel="Dismiss prototype notice" onPress={()=>setNotice('')} style={styles.geoNotice}><Text style={styles.geoNoticeText}>{notice}</Text></Pressable> : null}
+      <View style={styles.geoOverview}><Text style={styles.geoOverviewTitle}>Live site overview</Text><View style={styles.geoMetrics}>{[['08','Active Sites'],['3,912','Checked In'],['628','Field Teams'],['12','Location Alerts']].map(([v,l])=><View key={l} style={styles.geoMetric}><Text style={styles.geoMetricValue}>{v}</Text><Text style={styles.geoMetricLabel}>{l}</Text></View>)}</View><View style={styles.geoTracking}><Text style={styles.geoGood}>◉  Tracking <Text style={styles.geoTrackingCount}>4,860</Text> authorised personnel</Text><Pressable accessibilityRole="button" accessibilityLabel="Refresh data" onPress={()=>act('Overview refreshed with bundled prototype data.')} style={styles.geoTextButton}><Text style={styles.geoGold}>Refresh data  ↻</Text></Pressable></View></View>
+      <DemoSearchField accessibilityLabel="Search Geo Location" onChangeText={setQuery} placeholder="Search projects or locations" value={query} />
+      <View style={styles.geoTools}><Pressable accessibilityRole="button" accessibilityLabel="Filter projects" onPress={()=>setFilter(filter==='All Projects'?'Location Alerts':'All Projects')} style={styles.geoTool}><Text style={styles.geoToolText}>⌁  Filter</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Sort projects" onPress={()=>setAscending(!ascending)} style={styles.geoTool}><Text style={styles.geoToolText}>⇅  Sort</Text></Pressable></View>
+      <View accessibilityRole="tablist" style={styles.geoChips}>{geoFilters.map(item=><Pressable key={item} accessibilityRole="tab" accessibilityLabel={item} accessibilityState={{selected:filter===item}} onPress={()=>setFilter(item)} style={[styles.geoChip,filter===item&&styles.geoChipActive]}><Text style={[styles.geoChipText,filter===item&&styles.geoChipTextActive]}>{item}</Text></Pressable>)}</View>
+      <View style={styles.geoSectionHead}><View><Text style={styles.geoSectionTitle}>Ongoing Projects</Text><Text style={styles.geoSectionCopy}>Choose a site to open its live workforce map.</Text><Text style={styles.geoSectionMeta}>08 projects</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Change project view" onPress={()=>act('Compact list view is selected for this prototype.')} style={styles.geoIconButton}><Text>☷</Text></Pressable></View>
+      <View>{visible.map(p=><Pressable key={p.name} accessibilityRole="button" accessibilityLabel={`Open ${p.name}`} onPress={()=>act(`${p.name} details opened locally. No live tracking connection is used.`)} style={styles.geoProject}><Image accessibilityLabel={`${p.name} project image`} source={p.image} style={styles.geoProjectImage}/><View style={styles.geoProjectBody}><View style={styles.geoProjectTop}><View style={styles.flex}><Text style={styles.geoCategory}>{p.category}</Text><Text style={styles.geoProjectName}>{p.name}</Text><Text style={styles.geoPlace}>●  {p.place}</Text></View><View><Text style={[styles.geoBadge,p.tone==='danger'?styles.geoBadgeDanger:p.tone==='warn'?styles.geoBadgeWarn:styles.geoBadgeGood]}>{p.status}</Text><Text style={p.live==='LIVE'?styles.geoLive:styles.geoAlertBadge}>●  {p.live}</Text></View></View><View style={styles.geoProjectMeta}><View><Text style={styles.geoStat}>{p.checked}</Text><Text style={styles.geoStatLabel}>Checked in</Text></View><View><Text style={styles.geoStat}>{p.teams}</Text><Text style={styles.geoStatLabel}>Field teams</Text></View><View><Text style={styles.geoStat}>{p.ago}</Text><Text style={styles.geoStatLabel}>Last sync</Text></View></View><View style={styles.geoProjectBottom}><Text style={[styles.geoDetail,p.tone==='danger'&&styles.geoDanger]}>◉  {p.detail}</Text><Text style={styles.geoGold}>Open live map  ➤</Text></View></View></Pressable>)}</View>
+      {!visible.length?<Text style={styles.emptyText}>No matching projects</Text>:null}
+      <View style={styles.geoSectionHead}><View><Text style={styles.geoSectionTitle}>Location alerts</Text><Text style={styles.geoSectionCopy}>Recent exceptions requiring review.</Text></View></View>
+      {[['3 personnel outside geofence','Surya Integrated Energy Park','8 min ago'],['1 tracking device offline','Sanjeevani Advanced Care Hospital','14 min ago'],['2 personnel near site boundary','Amaravati Riverfront District','22 min ago']].map(([title,project,time])=><Pressable key={title} accessibilityRole="button" accessibilityLabel={`Open alert ${title}`} onPress={()=>act(`${title} — prototype alert details only.`)} style={styles.geoAlertRow}><Text style={styles.geoAlertIcon}>!</Text><View style={styles.flex}><Text style={styles.geoAlertTitle}>{title}</Text><Text style={styles.geoPlace}>{project}</Text></View><Text style={styles.geoAgo}>{time}</Text><Text style={styles.geoChevron}>›</Text></Pressable>)}
+      <Pressable accessibilityRole="button" accessibilityLabel="View all 12 alerts" onPress={()=>{setFilter('Location Alerts');act('Showing projects with location alerts.');}} style={styles.geoViewAll}><Text style={styles.geoGold}>View all 12 alerts  →</Text></Pressable>
+      <View style={styles.geoPrivacy}><Text style={styles.geoPrivacyIcon}>⌖</Text><View style={styles.flex}><Text style={styles.geoPrivacyTitle}>Authorised tracking only</Text><Text style={styles.geoPrivacyCopy}>Live location is visible only during assigned work hours.</Text></View><Pressable accessibilityRole="link" accessibilityLabel="Tracking policy" onPress={()=>act('Tracking policy opened locally: this prototype does not collect or transmit location data.')} style={styles.geoTextButton}><Text style={styles.geoGold}>Tracking policy  ›</Text></Pressable></View>
     </View>
   );
 }
@@ -388,6 +306,69 @@ function LegendItem({ label, tone }: { label: string; tone: 'assigned' | 'manage
 }
 
 const styles = StyleSheet.create({
+  geoPage: { backgroundColor:'#FAF7EF', gap:7, paddingBottom:10 },
+  geoEyebrow: { color:'#A56D08', fontSize:8, fontWeight:'900', letterSpacing:1.15 },
+  geoTitle: { color:'#171713', fontFamily:'serif', fontSize:29, fontWeight:'800', lineHeight:32 },
+  geoSubtitle: { color:'#68655E', fontSize:10, lineHeight:14, maxWidth:310 },
+  geoService: { alignItems:'center', borderBottomColor:'#DDD7CB', borderBottomWidth:1, flexDirection:'row', minHeight:44 },
+  geoGood: { color:'#48A360', fontSize:8, fontWeight:'800' },
+  geoTrackingCount: { color:'#5FCB72', fontWeight:'900' },
+  geoUpdated: { color:'#7B776F', flex:1, fontSize:8, marginLeft:8 },
+  geoIconButton: { alignItems:'center', justifyContent:'center', minHeight:44, minWidth:44 },
+  geoTextButton: { justifyContent:'center', minHeight:44 },
+  geoNotice: { backgroundColor:'#FFF1D2', borderLeftColor:'#B37B0B', borderLeftWidth:3, justifyContent:'center', minHeight:44, paddingHorizontal:8 },
+  geoNoticeText: { color:'#5C4517', fontSize:9, lineHeight:13 },
+  geoOverview: { backgroundColor:'#171918', borderRadius:5, padding:10 },
+  geoOverviewTitle: { color:'#F7F2E8', fontFamily:'serif', fontSize:14, fontWeight:'800' },
+  geoMetrics: { flexDirection:'row', marginTop:8 },
+  geoMetric: { borderRightColor:'#3B3D3B', borderRightWidth:1, flex:1, paddingHorizontal:5 },
+  geoMetricValue: { color:'#D39A21', fontFamily:'serif', fontSize:17, fontWeight:'900' },
+  geoMetricLabel: { color:'#C9C5BC', fontSize:7, lineHeight:10 },
+  geoTracking: { alignItems:'center', borderTopColor:'#3B3D3B', borderTopWidth:1, flexDirection:'row', justifyContent:'space-between', marginTop:8 },
+  geoGold: { color:'#B77D0C', fontSize:9, fontWeight:'900' },
+  geoTools: { flexDirection:'row', gap:6 },
+  geoTool: { alignItems:'center', borderColor:'#D7D1C5', borderRadius:3, borderWidth:1, justifyContent:'center', minHeight:44, paddingHorizontal:14 },
+  geoToolText: { color:'#34322D', fontSize:9, fontWeight:'800' },
+  geoChips: { flexDirection:'row', gap:5 },
+  geoChip: { alignItems:'center', borderColor:'#D9D3C7', borderRadius:16, borderWidth:1, flex:1, justifyContent:'center', minHeight:44, paddingHorizontal:3 },
+  geoChipActive: { backgroundColor:'#1A1B19', borderColor:'#1A1B19' },
+  geoChipText: { color:'#625F58', fontSize:8, fontWeight:'800', textAlign:'center' },
+  geoChipTextActive: { color:'#F7F2E8' },
+  geoSectionHead: { alignItems:'center', borderBottomColor:'#DCD6CA', borderBottomWidth:1, flexDirection:'row', justifyContent:'space-between', marginTop:5, minHeight:58 },
+  geoSectionTitle: { color:'#1E1D19', fontFamily:'serif', fontSize:16, fontWeight:'800' },
+  geoSectionCopy: { color:'#4D4A44', fontSize:8, marginTop:2 },
+  geoSectionMeta: { color:'#7A766D', fontSize:8, marginTop:2 },
+  geoProject: { backgroundColor:'#FEFCF7', borderBottomColor:'#DED8CD', borderBottomWidth:1, flexDirection:'row', minHeight:124, paddingVertical:7 },
+  geoProjectImage: { alignSelf:'stretch', backgroundColor:'#DDD5C7', borderRadius:3, resizeMode:'cover', width:116 },
+  geoProjectBody: { flex:1, paddingLeft:9 },
+  geoProjectTop: { flexDirection:'row' },
+  geoCategory: { color:'#77736B', fontSize:7, fontWeight:'900', letterSpacing:.3 },
+  geoProjectName: { color:'#22211D', fontFamily:'serif', fontSize:12, fontWeight:'800', lineHeight:15 },
+  geoPlace: { color:'#77736B', fontSize:7.5, lineHeight:11 },
+  geoProgress: { color:'#B47807', fontFamily:'serif', fontSize:15, fontWeight:'900' },
+  geoProjectMeta: { alignItems:'center', flexDirection:'row', justifyContent:'space-between', marginTop:7, paddingHorizontal:5 },
+  geoStat: { color:'#25231F', fontFamily:'serif', fontSize:12, fontWeight:'900', textAlign:'center' },
+  geoStatLabel: { color:'#77736B', fontSize:7, textAlign:'center' },
+  geoPeople: { color:'#4E4B45', fontSize:8, fontWeight:'700' },
+  geoAgo: { color:'#858077', fontSize:7 },
+  geoProjectBottom: { alignItems:'center', flexDirection:'row', gap:4, marginTop:7, minHeight:30 },
+  geoBadge: { borderRadius:2, fontSize:6.5, fontWeight:'900', overflow:'hidden', paddingHorizontal:4, paddingVertical:3 },
+  geoBadgeGood: { backgroundColor:'#E4F1E5', color:'#2E8943' },
+  geoBadgeWarn: { backgroundColor:'#FFF0D2', color:'#A76900' },
+  geoBadgeDanger: { backgroundColor:'#F9E2DD', color:'#C43D2D' },
+  geoLive: { color:'#35924A', fontSize:6.5, fontWeight:'900' },
+  geoAlertBadge: { color:'#C43D2D', fontSize:6.5, fontWeight:'900' },
+  geoDetail: { color:'#56745B', flex:1, fontSize:7, lineHeight:10 },
+  geoDanger: { color:'#C43D2D' },
+  geoChevron: { color:'#9D988E', fontSize:17 },
+  geoAlertRow: { alignItems:'center', borderBottomColor:'#DED8CD', borderBottomWidth:1, flexDirection:'row', gap:8, minHeight:57 },
+  geoAlertIcon: { backgroundColor:'#F8E3DE', borderRadius:14, color:'#C94232', fontSize:12, fontWeight:'900', height:28, lineHeight:28, textAlign:'center', width:28 },
+  geoAlertTitle: { color:'#292722', fontSize:9, fontWeight:'900' },
+  geoViewAll: { alignItems:'center', justifyContent:'center', minHeight:44 },
+  geoPrivacy: { backgroundColor:'#F6EBCF', borderColor:'#E3D3A9', borderRadius:4, borderWidth:1, flexDirection:'row', gap:9, padding:10 },
+  geoPrivacyIcon: { color:'#A87309', fontSize:20 },
+  geoPrivacyTitle: { color:'#302C23', fontSize:10, fontWeight:'900' },
+  geoPrivacyCopy: { color:'#706857', fontSize:8, marginTop:3 },
   ccPage: { gap: 5 },
   ccGreeting: { color: colors.ink, fontFamily: 'serif', fontSize: 14, fontWeight: '700' },
   ccSmall: { color: '#696760', fontSize: 9, lineHeight: 12 },

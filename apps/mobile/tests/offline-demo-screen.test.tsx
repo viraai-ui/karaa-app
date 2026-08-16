@@ -190,19 +190,13 @@ describe('Karaa Global role demo surfaces', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'assign-blocker', blockerId: 'commissioning-readiness', assignee: 'Mira Management' });
   });
 
-  it('renders the field employee identity and conceptual evidence in Management Geo Location', () => {
-    const state = {
-      ...createOfflineDemoState('management'),
-      selectedTab: 'map' as const,
-      surface: 'map-detail' as const,
-      selectedMapProjectId: 'amaravati-solar-commons',
-      selectedEmployeeId: 'dev-employee',
-    };
+  it('renders the management Geo Location field-operations overview', () => {
+    const state = { ...createOfflineDemoState('management'), selectedTab: 'map' as const };
     const rendered = render(<OfflineManagementViews state={state} onAction={jest.fn()} />);
 
     expect(rendered.getByText('Geo Location')).toBeTruthy();
-    expect(rendered.getAllByText('Dev Employee').length).toBeGreaterThan(0);
-    expect(rendered.getAllByText('Demo visual').length).toBeGreaterThan(0);
-    expect(rendered.getByRole('button', { name: 'Message Dev Employee' })).toBeTruthy();
+    expect(rendered.getByText('FIELD OPERATIONS')).toBeTruthy();
+    expect(rendered.getByText('Aarohan Medical City')).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Refresh data' })).toBeTruthy();
   });
 });
