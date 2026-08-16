@@ -10,7 +10,7 @@ describe('Karaa Power-of-9 demo catalog', () => {
   it('defines all nine distinct Power-of-9 verticals with browseable scenario projects', () => {
     expect(demoVerticals.map(({ title }) => title)).toEqual([
       'Infrastructure & Urban Development',
-      'Ports, Airports & Logistics',
+      'Ports, Airports & Integrated Logistics',
       'Energy & Utilities',
       'Healthcare & Life Sciences',
       'Hospitality, Tourism & Leisure',

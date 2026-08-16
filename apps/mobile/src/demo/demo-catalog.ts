@@ -37,7 +37,7 @@ export const demoVerticals: readonly DemoVertical[] = [
   {
     id: 'ports-airports-logistics',
     number: '02',
-    title: 'Ports, Airports & Logistics',
+    title: 'Ports, Airports & Integrated Logistics',
     description: 'Scenario delivery for integrated freight movement and logistics hubs.',
     featuredProjectId: 'vijayawada-integrated-logistics-hub',
   },

@@ -67,18 +67,12 @@ describe('Power-of-9 explorer', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'select-vertical', verticalId: 'energy-utilities' });
   });
 
-  it('drives Energy to Amaravati through the reducer-backed explorer path', () => {
+  it('opens and backs out of the polished Energy detail', () => {
     const rendered = render(<ReducerBackedExplorer />);
 
     fireEvent.press(rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' }));
-    fireEvent.press(rendered.getByRole('button', { name: 'Open Solar generation sub-vertical' }));
-    fireEvent.press(rendered.getByRole('button', { name: 'Open Amaravati Solar Commons project' }));
-
-    expect(rendered.queryByText('PROJECT SELECTED')).toBeNull();
-    expect(rendered.getByText('Amaravati Solar Commons')).toBeTruthy();
-    expect(rendered.getByText('Project timeline')).toBeTruthy();
-    expect(rendered.getAllByRole('tab')).toHaveLength(4);
-    expect(rendered.getByRole('tab', { name: 'Timeline' }).props.accessibilityState).toEqual({ selected: true });
+    expect(rendered.getByText('Powering responsible progress')).toBeTruthy();
+    expect(rendered.getAllByRole('button', { name: /Explore / })).toHaveLength(4);
 
     fireEvent.press(rendered.getByRole('button', { name: 'Back to Power of 9' }));
     expect(rendered.getByText('The Power of 9')).toBeTruthy();
@@ -94,13 +88,23 @@ describe('Power-of-9 explorer', () => {
     expect(within(dashboard).getAllByRole('button')).toHaveLength(18);
   });
 
-  it('dispatches the canonical Solar generation selection from Energy', () => {
-    const onAction = jest.fn();
-    const rendered = render(<DemoExplorer onAction={onAction} state={selectedEnergyState()} />);
+  it('renders four pathways and three Why It Matters rows for every vertical', () => {
+    const ids = ['infrastructure-urban-development','ports-airports-logistics','energy-utilities','healthcare-life-sciences','hospitality-tourism-leisure','real-estate-asset-development','manufacturing-industrial-solutions','spiritual-renaissance-for-bharat','education-technology-innovation'];
+    ids.forEach((verticalId) => {
+      const rendered = render(<DemoExplorer onAction={jest.fn()} state={offlineDemoReducer(createOfflineDemoState(), { type:'select-vertical', verticalId })} />);
+      expect(rendered.getByTestId(`vertical-detail-${verticalId}`)).toBeTruthy();
+      expect(within(rendered.getByTestId('pathway-list')).getAllByRole('button')).toHaveLength(4);
+      expect(rendered.getByTestId('matters-list').props.children).toHaveLength(3);
+      rendered.unmount();
+    });
+  });
 
-    fireEvent.press(rendered.getByRole('button', { name: 'Open Solar generation sub-vertical' }));
-
-    expect(onAction).toHaveBeenCalledWith({ type: 'select-subvertical', subverticalId: 'solar-generation' });
+  it('uses the reference Healthcare composition and copy', () => {
+    const rendered = render(<DemoExplorer onAction={jest.fn()} state={offlineDemoReducer(createOfflineDemoState(), { type:'select-vertical', verticalId:'healthcare-life-sciences' })} />);
+    expect(rendered.getByText('POWER OF 9  •  04')).toBeTruthy();
+    expect(rendered.getByText('Care designed as a continuum')).toBeTruthy();
+    expect(rendered.getByRole('button', { name:'Explore Multi-Specialty Hospitals' })).toBeTruthy();
+    expect(rendered.getByText('Why continuity matters')).toBeTruthy();
   });
 
   it('dispatches the canonical Amaravati project selection from solar generation', () => {

@@ -8,6 +8,7 @@ import { DemoFilterChip, DemoImageFrame, DemoProgressRail, DemoSearchField, Demo
 import { demoProjects, demoSubverticals, demoVerticals, projectForId, subverticalForId, verticalForId, type DemoProject } from './demo-catalog';
 import { demoVisualAssets } from './demo-visual-assets';
 import type { OfflineDemoAction, OfflineDemoState } from './offline-demo';
+import { VerticalDetailPage } from './VerticalDetailPage';
 
 const projectFilters = ['All', 'On track', 'In progress', 'Attention'] as const;
 type ProjectFilter = typeof projectFilters[number];
@@ -80,27 +81,7 @@ function SectionHeading({ title, action }: { title: string; action: string }) { 
 function WatchCard({ image, name, category, progress, onPress }: { image: number; name: string; category: string; progress: number; onPress: () => void }) { return <Pressable accessibilityLabel={`Open ${name} project`} accessibilityRole="button" onPress={onPress} style={styles.watchCard}><Image resizeMode="cover" source={image} style={styles.watchImage} /><View style={styles.watchBody}><Text numberOfLines={2} style={styles.watchName}>{name}</Text><Text numberOfLines={1} style={styles.watchCategory}>{category}</Text><View style={styles.progressLine}><Text style={styles.progressValue}>{progress}%</Text><Text style={styles.onTrack}>On track</Text></View><View style={styles.rail}><View style={[styles.railFill,{width:`${progress}%`}]} /></View><Text style={styles.watchMeta}>◉ Phase 04 · Systems integration</Text></View></Pressable>; }
 
 function VerticalExplorer({ onAction, verticalId }: { onAction: (action: OfflineDemoAction) => void; verticalId: string }) {
-  const vertical = verticalForId(verticalId);
-  const subverticals = demoSubverticals.filter((subvertical) => subvertical.verticalId === vertical.id);
-
-  return <View style={styles.page}>
-    <DemoSurfaceBackButton onPress={() => onAction({ type: 'back-to-root' })} />
-    <View style={styles.headingBlock}>
-      <Text style={styles.eyebrow}>VERTICAL {vertical.number}</Text>
-      <Text style={styles.title}>{vertical.title}</Text>
-      <Text style={styles.subtitle}>{vertical.description}</Text>
-    </View>
-    <View style={styles.recordList}>
-      {subverticals.map((subvertical) => {
-        const visual = visualForProject(demoProjects.find((project) => project.subverticalId === subvertical.id) ?? projectForId(vertical.featuredProjectId));
-        return <Pressable accessibilityLabel={`Open ${subvertical.title} sub-vertical`} accessibilityRole="button" key={subvertical.id} onPress={() => onAction({ type: 'select-subvertical', subverticalId: subvertical.id })} style={styles.subverticalRow}>
-          <DemoImageFrame accessibilityLabel={visual.accessibilityLabel} height={66} source={visual.source} width={88} />
-          <View style={styles.rowCopy}><Text style={styles.rowTitle}>{subvertical.title}</Text><Text style={styles.rowDescription}>{subvertical.description}</Text></View>
-          <Text style={styles.rowChevron}>›</Text>
-        </Pressable>;
-      })}
-    </View>
-  </View>;
+  return <VerticalDetailPage onAction={onAction} verticalId={verticalId} />;
 }
 
 function SubverticalExplorer({ onAction, subverticalId, verticalId }: { onAction: (action: OfflineDemoAction) => void; subverticalId: string; verticalId: string }) {
