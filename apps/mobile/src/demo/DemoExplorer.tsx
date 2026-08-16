@@ -10,7 +10,8 @@ import { demoVisualAssets } from './demo-visual-assets';
 import type { OfflineDemoAction, OfflineDemoState } from './offline-demo';
 import { VerticalDetailPage } from './VerticalDetailPage';
 import { SubverticalProjectPage } from './SubverticalProjectPage';
-import { subverticalPortfolios } from './subvertical-projects';
+import { subverticalPortfolios, portfolioProjectForId, portfolioForProjectId } from './subvertical-projects';
+import { PortfolioProjectDetail } from './PortfolioProjectDetail';
 
 const projectFilters = ['All', 'On track', 'In progress', 'Attention'] as const;
 type ProjectFilter = typeof projectFilters[number];
@@ -34,6 +35,9 @@ export function DemoExplorer({ state, onAction }: {
   }
 
   if (state.surface === 'project' && state.selectedProjectId) {
+    if (subverticalPortfolios.some(page => page.projects.some(project => project.id === state.selectedProjectId))) {
+      return <PortfolioProjectDetail onAction={onAction} project={portfolioProjectForId(state.selectedProjectId)} portfolio={portfolioForProjectId(state.selectedProjectId)} selectedTab={state.selectedProjectDetailTab} />;
+    }
     return <DemoProjectDetail onAction={onAction} project={projectForId(state.selectedProjectId)} state={state} />;
   }
 

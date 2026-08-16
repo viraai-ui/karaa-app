@@ -197,6 +197,16 @@ export function subverticalPortfolioForId(id: string): SubverticalPortfolio {
   if (!result) throw new Error(`Unknown sub-vertical portfolio: ${id}`);
   return result;
 }
+export function portfolioProjectForId(id: string): PortfolioProject {
+  const project = subverticalPortfolios.flatMap((page) => page.projects).find((item) => item.id === id);
+  if (!project) throw new Error(`Unknown portfolio project: ${id}`);
+  return project;
+}
+export function portfolioForProjectId(id: string): SubverticalPortfolio {
+  const page = subverticalPortfolios.find((item) => item.projects.some((project) => project.id === id));
+  if (!page) throw new Error(`Unknown portfolio project: ${id}`);
+  return page;
+}
 export function subverticalPortfolioForPathway(
   verticalId: string,
   pathwayTitle: string,

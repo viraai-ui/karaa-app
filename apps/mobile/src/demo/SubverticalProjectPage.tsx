@@ -125,7 +125,7 @@ export function SubverticalProjectPage({
         <Text style={styles.sectionTitle}>Active Projects</Text>
         <View style={styles.list}>
           {visible.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard key={project.id} project={project} onAction={onAction} />
           ))}
         </View>
         {visible.length === 0 ? (
@@ -153,7 +153,7 @@ function Metric({
     </View>
   );
 }
-function ProjectCard({ project }: { project: PortfolioProject }) {
+function ProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
   return (
     <View style={styles.card} testID={`portfolio-project-${project.id}`}>
       <View style={styles.cardTop}>
@@ -228,6 +228,7 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
         <Pressable
           accessibilityLabel={`View full timeline for ${project.name}`}
           accessibilityRole="button"
+          onPress={() => onAction({ type: "select-project", projectId: project.id })}
           style={styles.timelineTarget}
         >
           <Text style={styles.timelineLink}>View full timeline →</Text>

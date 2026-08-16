@@ -1,5 +1,5 @@
 import { projectForId, subverticalForId, verticalForId } from './demo-catalog';
-import { subverticalPortfolioForId } from './subvertical-projects';
+import { portfolioForProjectId, subverticalPortfolioForId } from './subvertical-projects';
 
 export type OfflineDemoRole = 'customer' | 'employee' | 'management';
 
@@ -365,6 +365,7 @@ export type OfflineDemoAction =
   | { readonly type: 'select-subvertical'; readonly subverticalId: string }
   | { readonly type: 'select-project'; readonly projectId: string }
   | { readonly type: 'select-project-detail-tab'; readonly tab: OfflineDemoState['selectedProjectDetailTab'] }
+  | { readonly type: 'return-to-subvertical' }
   | { readonly type: 'select-tender'; readonly tenderId: string }
   | { readonly type: 'select-tender-detail-tab'; readonly tab: DemoTenderDetailTab }
   | { readonly type: 'return-to-tender-board' }
@@ -682,16 +683,26 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
       return { ...state, surface: 'subvertical', selectedSubverticalId: action.subverticalId, selectedProjectId: null };
     }
     case 'select-project': {
-      const project = projectForId(action.projectId);
+      let project: { verticalId: string; subverticalId: string };
+      try { project = projectForId(action.projectId); }
+      catch (catalogError) {
+        try { const page = portfolioForProjectId(action.projectId); project = { verticalId: page.verticalId, subverticalId: page.id }; }
+        catch { throw catalogError; }
+      }
       if (!state.selectedVerticalId) throw new Error('No demo vertical selected');
       if (!state.selectedSubverticalId) throw new Error('No demo subvertical selected');
       verticalForId(state.selectedVerticalId);
-      const subvertical = subverticalForId(state.selectedSubverticalId);
+      let subvertical: { verticalId: string };
+      try { subvertical = subverticalForId(state.selectedSubverticalId); }
+      catch { subvertical = subverticalPortfolioForId(state.selectedSubverticalId); }
       if (subvertical.verticalId !== state.selectedVerticalId || project.verticalId !== state.selectedVerticalId || project.subverticalId !== state.selectedSubverticalId) {
         throw new Error(`Project does not belong to selected hierarchy: ${action.projectId}`);
       }
       return { ...state, surface: 'project', selectedProjectId: action.projectId, selectedProjectDetailTab: 'timeline' };
     }
+    case 'return-to-subvertical':
+      if (!state.selectedSubverticalId) throw new Error('No demo subvertical selected');
+      return { ...state, surface: 'subvertical', selectedProjectId: null, selectedProjectDetailTab: 'timeline' };
     case 'select-project-detail-tab':
       return { ...state, selectedProjectDetailTab: action.tab };
     case 'select-tender':
