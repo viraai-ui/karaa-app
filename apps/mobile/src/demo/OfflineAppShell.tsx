@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '../theme/tokens';
+import { MotionReveal } from '../components/Motion';
 import { OfflineCustomerViews } from './OfflineCustomerViews';
 import { DemoAppBar, DemoBottomNavigation, DemoWorkspaceSheet } from './OfflineDemoPrimitives';
 import { OfflineEmployeeViews } from './OfflineEmployeeViews';
@@ -48,7 +49,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
             ]}
             testID="demo-chat-keyboard-surface"
           >
-            {roleContent}
+            <MotionReveal key={`${role}-${state.selectedTab}-${state.surface}`}>{roleContent}</MotionReveal>
           </KeyboardAvoidingView>
         ) : (
           <ScrollView
@@ -64,7 +65,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
             style={styles.scrollView}
             testID="demo-scroll-surface"
           >
-            {roleContent}
+            <MotionReveal key={`${role}-${state.selectedTab}-${state.surface}`} testID="screen-motion-reveal">{roleContent}</MotionReveal>
           </ScrollView>
         )}
       </View>
