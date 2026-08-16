@@ -203,8 +203,8 @@ describe('Karaa tender lifecycle demo', () => {
     expect(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' })).toBeTruthy();
     fireEvent.changeText(board.getByLabelText('Search tenders'), 'electrical');
     fireEvent.press(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' }));
-    expect(board.getByText('Local opportunity preview — verify details with the issuing authority.')).toBeTruthy();
-    fireEvent.press(board.getByRole('button', { name: 'Close tender details' }));
+    expect(board.getByText('Karaa Global Energy Infrastructure Pvt. Ltd.')).toBeTruthy();
+    fireEvent.press(board.getByRole('button', { name: 'Back to Tenders' }));
     fireEvent.press(board.getByRole('button', { name: 'View analytics' }));
     expect(board.getByText('Tender analytics')).toBeTruthy();
     fireEvent.press(board.getByRole('button', { name: 'Close Tender analytics' }));
