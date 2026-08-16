@@ -1,16 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoImageFrame } from './OfflineDemoPrimitives';
 import { demoVisualAssets } from './demo-visual-assets';
 import {
-  tenderBoardRows,
   tenderForId,
   tenderLifecycleLabel,
-  type DemoTenderBoardRow,
   type DemoTenderDetailTab,
-  type DemoTenderFilter,
   type DemoTenderUpdate,
   type OfflineDemoAction,
   type OfflineDemoRole,
@@ -41,48 +38,55 @@ export function DemoTenderExperience({ onAction, role, state }: Props) {
 
 function TenderBoard({ onAction, state }: Pick<Props, 'onAction' | 'state'>) {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<DemoTenderFilter>('all');
-  const rows = useMemo(() => tenderBoardRows(state, filter).filter((row) => row.title.toLowerCase().includes(search.toLowerCase())), [filter, search, state]);
-  const attention = rows.filter((row) => row.attention);
+  const [filter, setFilter] = useState<TenderStatus>('All');
+  const [secondary, setSecondary] = useState<TenderStatus>('Ongoing');
+  const [sortAscending, setSortAscending] = useState(false);
+  const [panel, setPanel] = useState<'analytics' | 'calendar' | 'filters' | 'latest' | 'list' | null>(null);
+  const [selected, setSelected] = useState<(typeof tenderRows)[number] | null>(null);
+  const filtered = useMemo(() => tenderRows.filter(item => {
+    const text = `${item.title} ${item.ref} ${item.category}`.toLowerCase();
+    return (!search.trim() || text.includes(search.trim().toLowerCase())) && (filter === 'All' || item.status === filter) && (secondary === 'All' || item.status === secondary);
+  }).sort((a,b) => sortAscending ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title)), [filter, search, secondary, sortAscending]);
 
   return (
-    <View style={styles.page}>
-      <View style={styles.summaryBand}>
-        <Text style={styles.summaryEyebrow}>TENDER OPERATIONS</Text>
-        <Text style={styles.summaryTitle}>Tender board</Text>
-        <Text style={styles.summaryCopy}>Lifecycle evidence and accountable next actions.</Text>
-      </View>
-      <Text style={styles.provenance}>{provenance}</Text>
-      <TextInput accessibilityLabel="Search tenders" onChangeText={setSearch} placeholder="Search tender records" placeholderTextColor={colors.muted} style={styles.search} value={search} />
-      <View accessibilityRole="tablist" style={styles.filterRail}>
-        {([
-          ['all', 'All'],
-          ['technical-review', 'Technical review'],
-          ['attention', 'Attention'],
-        ] as const).map(([key, label]) => (
-          <Pressable accessibilityLabel={`Filter ${label}`} accessibilityRole="tab" accessibilityState={{ selected: filter === key }} key={key} onPress={() => setFilter(key)} style={[styles.filter, filter === key && styles.filterSelected]}>
-            <Text style={[styles.filterText, filter === key && styles.filterTextSelected]}>{label}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Text style={styles.sectionTitle}>Changes needing attention</Text>
-      {attention.length ? attention.map((row) => <TenderRow key={row.tenderId} onAction={onAction} row={row} />) : <Text style={styles.empty}>No tender changes need attention.</Text>}
-      <Text style={styles.sectionTitle}>Tender records</Text>
-      {rows.filter((row) => !row.attention).map((row) => <TenderRow key={row.tenderId} onAction={onAction} row={row} />)}
-      {rows.length === 0 ? <Text style={styles.empty}>No tender records match this filter.</Text> : null}
+    <View style={styles.tendersPage} testID="tenders-page">
+      <View style={styles.tenderHero}><View style={styles.heroCopy}><Text style={styles.tenderEyebrow}>OPPORTUNITIES &amp; PROCUREMENT</Text><Text style={styles.tenderTitle}>Tenders</Text><Text style={styles.tenderSubtitle}>Discover. Apply. Build the future.</Text></View><View style={styles.heroButtons}><SquareButton label="Global search" glyph="⌕" onPress={() => setPanel('filters')} /><SquareButton label="Open tender filters" glyph="≡" onPress={() => setPanel('filters')} /></View></View>
+      <View style={styles.overviewCard}><View style={styles.overviewHead}><Text style={styles.overviewTitle}>Tender overview</Text><Text style={styles.overviewDots}>•••</Text></View><View style={styles.metricGrid}>{overviewMetrics.map(metric => <View key={metric.label} style={styles.metric}><Text style={styles.metricValue}>{metric.value}</Text><Text style={styles.metricLabel}>{metric.label}</Text></View>)}</View><View style={styles.totalLine}><View><Text style={styles.totalValue}>46</Text><Text style={styles.totalLabel}>Total Tenders</Text></View><Pressable accessibilityRole="button" accessibilityLabel="View analytics" onPress={() => setPanel('analytics')}><Text style={styles.cardLink}>View analytics  →</Text></Pressable></View></View>
+      <View style={styles.searchTools}><View style={styles.tenderSearch}><Text style={styles.searchIcon}>⌕</Text><TextInput accessibilityLabel="Search tenders" onChangeText={setSearch} placeholder="Search tenders" placeholderTextColor="#85817A" style={styles.tenderSearchInput} value={search} /></View><SquareButton light label="Filter tenders" glyph="≡" onPress={() => setPanel('filters')} /><SquareButton light label={`Sort tenders ${sortAscending ? 'descending' : 'ascending'}`} glyph="⇅" onPress={() => setSortAscending(value => !value)} /></View>
+      <View accessibilityRole="tablist" style={styles.chipRail}>{statusFilters.map(item => <Pressable accessibilityLabel={`Filter ${item}`} accessibilityRole="tab" accessibilityState={{selected: filter === item}} hitSlop={10} key={item} onPress={() => { setFilter(item); if (item === 'Ongoing' || item === 'In Progress' || item === 'Applied') setSecondary(item); }} style={[styles.chip, filter === item && styles.chipActive]}><Text style={[styles.chipLabel, filter === item && styles.chipLabelActive]}>{item}</Text></Pressable>)}</View>
+      <View style={styles.headingRow}><Text style={styles.serifSection}>Latest Applied</Text><Pressable accessibilityLabel="View all latest applied tenders" accessibilityRole="button" onPress={() => setPanel('latest')}><Text style={styles.sectionLink}>View all  →</Text></Pressable></View>
+      <View style={styles.appliedCard}>{latestApplied.map(item => <View key={item.name} style={styles.progressRow}><View style={styles.appliedIcon}><Text style={styles.appliedGlyph}>{item.icon}</Text></View><View style={styles.progressCopy}><View style={styles.progressHeading}><Text numberOfLines={1} style={styles.progressName}>{item.name}</Text><Text style={styles.progressPercent}>{item.progress}%</Text></View><Text numberOfLines={1} style={styles.progressOwner}>{item.owner}</Text><View style={styles.progressBottom}><Text style={styles.progressStage}>{item.stage}</Text><View style={styles.slimRail}><View style={[styles.slimFill,{width: `${item.progress}%`}]} /></View></View></View></View>)}</View>
+      <View style={styles.headingRow}><Text style={styles.serifSection}>All Tenders</Text><Pressable accessibilityLabel="Change tender list view" accessibilityRole="button" onPress={() => setPanel('list')} style={styles.listControl}><Text style={styles.listControlText}>☷</Text></Pressable></View>
+      <View accessibilityRole="tablist" style={styles.secondaryTabs}>{(['Ongoing','In Progress','Applied'] as const).map(item => <Pressable accessibilityLabel={`Show ${item} tenders`} accessibilityRole="tab" accessibilityState={{selected: secondary === item}} hitSlop={{top:8,bottom:8,left:4,right:4}} key={item} onPress={() => { setSecondary(item); setFilter(item); }} style={[styles.secondaryTab, secondary === item && styles.secondaryActive]}><Text style={[styles.secondaryLabel, secondary === item && styles.secondaryLabelActive]}>{item}</Text></Pressable>)}</View>
+      <View style={styles.tenderList}>{filtered.map(item => <Pressable accessibilityLabel={`Open ${item.title} tender details`} accessibilityRole="button" key={item.id} onPress={() => setSelected(item)} style={styles.compactRow}><View style={styles.sectorIcon}><Text style={styles.sectorGlyph}>{item.icon}</Text></View><View style={styles.compactCopy}><Text numberOfLines={1} style={styles.compactTitle}>{item.title}</Text><Text style={styles.compactMeta}>{item.ref} · {item.category}</Text><View style={styles.compactFacts}><Text style={styles.factSmall}>Est. Value  <Text style={styles.factStrong}>{item.value}</Text></Text><Text style={styles.factSmall}>Closing  <Text style={styles.factStrong}>{item.closing}</Text></Text></View></View><View style={styles.rowSide}><Text style={styles.statusBadge}>{item.status}</Text><View style={styles.goldArrowButton}><Text style={styles.goldArrowText}>›</Text></View></View></Pressable>)}{filtered.length === 0 ? <Text style={styles.emptyResults}>No tenders match your search and filters.</Text> : null}</View>
+      <View style={styles.deadlineStrip}><View style={styles.calendarIcon}><Text style={styles.calendarGlyph}>□</Text></View><View style={styles.deadlineCopy}><Text style={styles.deadlineEyebrow}>UPCOMING DEADLINE</Text><Text style={styles.deadlineTitle}>400kV Substation at Bhopal</Text><Text style={styles.deadlineMeta}>Closes 18 Aug 2026 · 5:00 PM</Text></View><Pressable accessibilityLabel="View calendar" accessibilityRole="button" onPress={() => setPanel('calendar')}><Text style={styles.deadlineLink}>View calendar</Text></Pressable></View>
+      <InfoModal mode={panel} onClose={() => setPanel(null)} />
+      <TenderModal item={selected} onClose={() => setSelected(null)} />
     </View>
   );
 }
 
-function TenderRow({ onAction, row }: { readonly onAction: (action: OfflineDemoAction) => void; readonly row: DemoTenderBoardRow }) {
-  return (
-    <Pressable accessibilityLabel={`Open ${row.title} tender`} accessibilityRole="button" onPress={() => onAction({ type: 'select-tender', tenderId: row.tenderId })} style={styles.tenderRow}>
-      <View style={styles.rowTitleLine}><Text style={styles.rowTitle}>{row.title}</Text><Text style={styles.rowCount}>{row.updateCount} updates</Text></View>
-      <Text style={styles.rowMeta}>{row.authority} · {row.lifecycleLabel}</Text>
-      <View style={styles.rowActionLine}><Text style={styles.attentionText}>{row.attention ? 'Attention' : 'Tracked'}</Text><Text numberOfLines={1} style={styles.nextAction}>{row.nextAction}</Text></View>
-    </Pressable>
-  );
-}
+type TenderStatus = 'All' | 'Ongoing' | 'In Progress' | 'Applied' | 'Completed';
+const statusFilters: readonly TenderStatus[] = ['All','Ongoing','In Progress','Applied','Completed'];
+const overviewMetrics = [{value:'12',label:'Ongoing'},{value:'07',label:'In Progress'},{value:'18',label:'Applied'},{value:'09',label:'Completed'}] as const;
+const latestApplied = [
+  {name:'400kV Substation at Bhopal',owner:'MP Power Transmission Co.',stage:'Stage 4: Final review',icon:'☼',progress:76},
+  {name:'Solar Power Plant - 50 MW',owner:'NTPC Renewable Energy Ltd.',stage:'Stage 3: Commercial review',icon:'▥',progress:60},
+  {name:'Smart City Infrastructure Works',owner:'Lucknow Smart City Ltd.',stage:'Stage 2: Technical review',icon:'▦',progress:48},
+  {name:'Supply of Electrical Equipment',owner:'MP Power Management Co.',stage:'Stage 1: Documentation',icon:'⚙',progress:30},
+] as const;
+const tenderRows = [
+  {id:'solar', icon:'☼', title:'Construction of Solar Power Plant 100 MW', ref:'KRG/RJ/2026/038', category:'Solar & Utilities', value:'₹4,850 Cr', status:'Ongoing', closing:'12 Aug 2026'},
+  {id:'transmission', icon:'⌁', title:'400kV Transmission Line Package-II', ref:'KRG/MP/2026/041', category:'Power & Energy', value:'₹2,786 Cr', status:'Ongoing', closing:'18 Aug 2026'},
+  {id:'substation', icon:'⚙', title:'Electric Substation (220/132kV) EPC Project', ref:'KRG/GJ/2026/029', category:'Electrical EPC', value:'₹2,320 Cr', status:'Ongoing', closing:'21 Aug 2026'},
+  {id:'wind-solar', icon:'⌁', title:'Wind-Solar Hybrid Project 500 MW', ref:'KRG/RJ/2026/022', category:'Renewable Energy', value:'₹1,830 Cr', status:'Ongoing', closing:'24 Aug 2026'},
+  {id:'equipment-ongoing', icon:'▥', title:'Supply of HT Electrical Equipment', ref:'KRG/DL/2026/017', category:'Manufacturing & Material', value:'₹1,220 Cr', status:'Ongoing', closing:'28 Aug 2026'},
+  {id:'smart-city', icon:'▦', title:'Smart City Infrastructure Works', ref:'KRG/GJ/2026/029', category:'Infrastructure', value:'₹198 Cr', status:'In Progress', closing:'28 Aug 2026'},
+  {id:'equipment', icon:'⌁', title:'Supply of Electrical Equipment', ref:'KRG/DL/2026/017', category:'Electrical', value:'₹76 Cr', status:'Applied', closing:'04 Sep 2026'},
+] as const;
+function SquareButton({glyph,label,onPress,light=false}:{glyph:string;label:string;onPress:()=>void;light?:boolean}) { return <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={[styles.squareButton,light && styles.squareButtonLight]}><Text style={[styles.squareGlyph,light && styles.squareGlyphLight]}>{glyph}</Text></Pressable>; }
+function InfoModal({mode,onClose}:{mode:'analytics'|'calendar'|'filters'|'latest'|'list'|null;onClose:()=>void}) { if (!mode) return null; const copy = {analytics:['Tender analytics','46 tracked opportunities · 18 applied · 09 completed.'],calendar:['Tender calendar','18 Aug 2026 · 400kV Substation at Bhopal\n24 Aug 2026 · Solar Power Plant - 50 MW'],filters:['Search & filters','Use search, status chips, and sort controls to refine this local tender prototype.'],latest:['Latest applied tenders','All 4 recently applied tenders are currently shown.'],list:['List view','Compact list view is active. Additional layouts are not available in this prototype.']}[mode]; return <Modal animationType="fade" transparent visible><View style={styles.modalShade}><View accessibilityViewIsModal style={styles.modalCard}><Text style={styles.modalEyebrow}>KARAA GLOBAL</Text><Text style={styles.modalTitle}>{copy[0]}</Text><Text style={styles.modalCopy}>{copy[1]}</Text><Pressable accessibilityLabel={`Close ${copy[0]}`} accessibilityRole="button" onPress={onClose} style={styles.modalClose}><Text style={styles.modalCloseText}>Close</Text></Pressable></View></View></Modal>; }
+function TenderModal({item,onClose}:{item:(typeof tenderRows)[number]|null;onClose:()=>void}) { if (!item) return null; return <Modal animationType="slide" transparent visible><View style={styles.modalShade}><View accessibilityViewIsModal style={styles.modalCard}><Text style={styles.modalEyebrow}>{item.category.toUpperCase()}</Text><Text style={styles.modalTitle}>{item.title}</Text><Text style={styles.modalCopy}>Tender reference · {item.ref}\nEstimated value · {item.value}\nStatus · {item.status}\nClosing date · {item.closing}</Text><Text style={styles.prototypeNote}>Local opportunity preview — verify details with the issuing authority.</Text><Pressable accessibilityLabel="Close tender details" accessibilityRole="button" onPress={onClose} style={styles.modalClose}><Text style={styles.modalCloseText}>Close details</Text></Pressable></View></View></Modal>; }
 
 function TenderDetail({ onAction, role, state }: Props) {
   const tender = tenderForId(state, state.selectedTenderId!);
@@ -168,6 +172,22 @@ function Documents({ updates }: { readonly updates: readonly DemoTenderUpdate[] 
 }
 
 const styles = StyleSheet.create({
+  tendersPage: { gap: 10, paddingBottom: 2, width: '100%' },
+  tenderHero: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingTop: 1 },
+  heroCopy: { flex: 1, gap: 1 }, heroButtons: { flexDirection: 'row', gap: 5 },
+  tenderEyebrow: { color: '#A77B22', fontSize: 7, fontWeight: '900', letterSpacing: 1.05 },
+  tenderTitle: { color: '#11120F', fontFamily: 'serif', fontSize: 27, lineHeight: 30 }, tenderSubtitle: { color: '#726F68', fontSize: 9 },
+  squareButton: { alignItems: 'center', backgroundColor: '#111210', borderColor: '#373830', borderRadius: 4, borderWidth: 1, height: 34, justifyContent: 'center', width: 34 }, squareButtonLight: { backgroundColor: '#FFFEFA', borderColor: '#D8D3C9' }, squareGlyph: { color: '#D1A84C', fontSize: 17 }, squareGlyphLight: { color: '#292A26', fontSize: 16 },
+  overviewCard: { backgroundColor: '#10110F', borderRadius: 6, overflow: 'hidden', paddingHorizontal: 13, paddingTop: 11 }, overviewHead: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, overviewTitle: { color: '#F7F2E8', fontFamily: 'serif', fontSize: 14 }, overviewDots: { color: '#9E9C94', fontSize: 10, letterSpacing: 2 },
+  metricGrid: { flexDirection: 'row', marginTop: 10 }, metric: { borderRightColor: '#343530', borderRightWidth: 1, flex: 1, gap: 2, paddingLeft: 8 }, metricValue: { color: '#D6AD50', fontFamily: 'serif', fontSize: 19 }, metricLabel: { color: '#BDBAB2', fontSize: 7 }, totalLine: { alignItems: 'center', borderTopColor: '#343530', borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingVertical: 8 }, totalValue: { color: '#F5F0E6', fontFamily: 'serif', fontSize: 16 }, totalLabel: { color: '#A9A69F', fontSize: 7 }, cardLink: { color: '#D1A84C', fontSize: 8, fontWeight: '700' },
+  searchTools: { flexDirection: 'row', gap: 5 }, tenderSearch: { alignItems: 'center', backgroundColor: '#FFFEFA', borderColor: '#D8D3C9', borderRadius: 4, borderWidth: 1, flex: 1, flexDirection: 'row', height: 34, paddingHorizontal: 9 }, searchIcon: { color: '#77736C', fontSize: 16 }, tenderSearchInput: { color: '#11120F', flex: 1, fontSize: 9, height: 32, paddingHorizontal: 6, paddingVertical: 0 },
+  chipRail: { flexDirection: 'row', gap: 4 }, chip: { alignItems: 'center', borderColor: '#D5D0C6', borderRadius: 12, borderWidth: 1, flex: 1, height: 24, justifyContent: 'center' }, chipActive: { backgroundColor: '#111210', borderColor: '#111210' }, chipLabel: { color: '#69665F', fontSize: 7, fontWeight: '700' }, chipLabelActive: { color: '#F7F2E8' },
+  headingRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, serifSection: { color: '#161713', fontFamily: 'serif', fontSize: 16 }, sectionLink: { color: '#A77B22', fontSize: 8, fontWeight: '700' },
+  appliedCard: { backgroundColor: '#FFFEFA', borderColor: '#DDD8CE', borderRadius: 5, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 2 }, progressRow: { alignItems:'center', borderBottomColor:'#E9E4DA', borderBottomWidth:1, flexDirection:'row', paddingVertical:5 }, appliedIcon:{alignItems:'center',backgroundColor:'#F1ECE1',borderRadius:3,height:31,justifyContent:'center',marginRight:7,width:31}, appliedGlyph:{color:'#A77B22',fontSize:14}, progressCopy:{flex:1,gap:1}, progressHeading: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, progressName: { color: '#2B2B27', flex: 1, fontSize: 8, fontWeight: '700' }, progressOwner:{color:'#858078',fontSize:6}, progressPercent: { color: '#3A3934', fontSize: 7, fontWeight: '900' }, progressBottom:{alignItems:'center',flexDirection:'row',gap:7}, progressStage:{color:'#A77B22',fontSize:5.5,width:75}, slimRail: { backgroundColor: '#E6E1D7', borderRadius: 2, flex:1, height: 3, overflow: 'hidden' }, slimFill: { backgroundColor: '#BE9136', height: 3 },
+  listControl: { alignItems: 'center', borderColor: '#D5D0C6', borderRadius: 3, borderWidth: 1, height: 25, justifyContent: 'center', width: 30 }, listControlText: { color: '#242520', fontSize: 15 }, secondaryTabs: { borderBottomColor: '#D8D3C9', borderBottomWidth: 1, flexDirection: 'row' }, secondaryTab: { alignItems: 'center', borderBottomColor: 'transparent', borderBottomWidth: 2, height: 27, justifyContent: 'center', paddingHorizontal: 13 }, secondaryActive: { borderBottomColor: '#B6882E' }, secondaryLabel: { color: '#77736C', fontSize: 8, fontWeight: '700' }, secondaryLabelActive: { color: '#171814' },
+  tenderList: { borderTopColor: '#D8D3C9', borderTopWidth: 0 }, compactRow: { alignItems: 'center', borderBottomColor: '#DDD8CE', borderBottomWidth: 1, flexDirection: 'row', minHeight: 66, paddingVertical: 7 }, sectorIcon: { alignItems: 'center', backgroundColor: '#F1ECE1', borderRadius: 4, height: 35, justifyContent: 'center', marginRight: 8, width: 35 }, sectorGlyph: { color: '#A77B22', fontSize: 17 }, compactCopy: { flex: 1, gap: 2 }, compactTitle: { color: '#1A1B17', fontFamily: 'serif', fontSize: 11 }, compactMeta: { color: '#827E76', fontSize: 6.5 }, compactFacts: { flexDirection: 'row', gap: 9, marginTop: 3 }, factSmall: { color: '#8A867E', fontSize: 6.5 }, factStrong: { color: '#2F302B', fontWeight: '800' }, rowSide: { alignItems: 'flex-end', gap: 8, marginLeft: 5 }, statusBadge: { backgroundColor: '#F0E7D4', borderRadius: 7, color: '#8B661E', fontSize: 6, fontWeight: '800', overflow: 'hidden', paddingHorizontal: 5, paddingVertical: 2 }, goldArrowButton: { alignItems: 'center', backgroundColor: '#B98C31', borderRadius: 3, height: 21, justifyContent: 'center', width: 23 }, goldArrowText: { color: '#FFF', fontSize: 17, lineHeight: 18 }, emptyResults: { color: '#77736C', fontSize: 10, paddingVertical: 16, textAlign: 'center' },
+  deadlineStrip: { alignItems: 'center', backgroundColor: '#F0E8D8', borderLeftColor: '#B98C31', borderLeftWidth: 3, borderRadius: 3, flexDirection: 'row', minHeight: 52, paddingHorizontal: 8 }, calendarIcon: { alignItems: 'center', backgroundColor: '#111210', borderRadius: 3, height: 30, justifyContent: 'center', marginRight: 8, width: 30 }, calendarGlyph: { color: '#D1A84C', fontSize: 16 }, deadlineCopy: { flex: 1, gap: 1 }, deadlineEyebrow: { color: '#A77B22', fontSize: 6, fontWeight: '900', letterSpacing: .6 }, deadlineTitle: { color: '#20211D', fontSize: 8, fontWeight: '800' }, deadlineMeta: { color: '#716D65', fontSize: 6.5 }, deadlineLink: { color: '#8C661D', fontSize: 7, fontWeight: '800', textDecorationLine: 'underline' },
+  modalShade: { alignItems: 'center', backgroundColor: 'rgba(0,0,0,.55)', bottom: 0, justifyContent: 'center', left: 0, padding: 22, position: 'absolute', right: 0, top: 0 }, modalCard: { backgroundColor: '#FBF8F0', borderRadius: 8, gap: 8, maxWidth: 350, padding: 20, width: '100%' }, modalEyebrow: { color: '#A77B22', fontSize: 8, fontWeight: '900', letterSpacing: 1 }, modalTitle: { color: '#141511', fontFamily: 'serif', fontSize: 23 }, modalCopy: { color: '#625F58', fontSize: 12, lineHeight: 20 }, prototypeNote: { color: '#8C661D', fontSize: 10, fontStyle: 'italic', lineHeight: 15 }, modalClose: { alignItems: 'center', backgroundColor: '#121310', borderRadius: 4, justifyContent: 'center', minHeight: 44, marginTop: 5 }, modalCloseText: { color: '#F8F3E8', fontSize: 11, fontWeight: '800' },
   page: { gap: spacing.sm },
   summaryBand: { backgroundColor: colors.ink, gap: 4, padding: spacing.md },
   summaryEyebrow: { color: colors.brass, fontSize: 9, fontWeight: '900', letterSpacing: 1 },

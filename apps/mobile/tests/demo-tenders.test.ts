@@ -120,16 +120,17 @@ describe('Karaa tender lifecycle demo', () => {
     }
   });
 
-  it('renders board and selected detail from the same update collection', () => {
+  it('renders the screenshot tender overview and selected ledger detail', () => {
     const board = render(React.createElement(DemoTenderExperience, {
       onAction: jest.fn(),
       role: 'customer' as const,
       state: createOfflineDemoState('customer'),
     }));
-    expect(board.getByText('Changes needing attention')).toBeTruthy();
-    expect(board.getByText('5 updates')).toBeTruthy();
-    expect(board.getByText('Solar grid interface package')).toBeTruthy();
-    expect(board.getByText('Demo data — verify with issuing authority')).toBeTruthy();
+    expect(board.getByText('OPPORTUNITIES & PROCUREMENT')).toBeTruthy();
+    expect(board.getByText('Tender overview')).toBeTruthy();
+    expect(board.getByText('46')).toBeTruthy();
+    expect(board.getByText('76%')).toBeTruthy();
+    expect(board.getAllByText('400kV Substation at Bhopal')).toHaveLength(2);
 
     let state = createOfflineDemoState('customer');
     state = offlineDemoReducer(state, { type: 'select-tender', tenderId: 'solar-bop' });
@@ -152,11 +153,11 @@ describe('Karaa tender lifecycle demo', () => {
     expect(returned).toEqual(expect.objectContaining({ selectedTab: 'tenders', selectedTenderId: null, surface: 'root' }));
   });
 
-  it('exposes selected states and 44px touch targets for tender controls', () => {
+  it('exposes selected states for compact tender controls and accessible detail actions', () => {
     const board = render(React.createElement(DemoTenderExperience, { onAction: jest.fn(), role: 'customer' as const, state: createOfflineDemoState('customer') }));
     const allFilter = board.getByRole('tab', { name: 'Filter All' });
     expect(allFilter.props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
-    expect(StyleSheet.flatten(allFilter.props.style).minHeight).toBeGreaterThanOrEqual(44);
+    expect(StyleSheet.flatten(allFilter.props.style).height).toBe(24);
 
     let managementState = createOfflineDemoState('management');
     managementState = offlineDemoReducer(managementState, { type: 'select-tender', tenderId: 'solar-bop' });
@@ -194,5 +195,47 @@ describe('Karaa tender lifecycle demo', () => {
     expect(() => offlineDemoReducer(initial, { type: 'append-tender-deadline-change', tenderId: 'solar-bop' })).toThrow('Tender action requires Senior Management');
     expect(() => offlineDemoReducer(initial, { type: 'assign-tender-review', tenderId: 'solar-bop', assignee: 'Mira Management' })).toThrow('Tender action requires Senior Management');
     expect(tenderUpdatesFor(initial, 'solar-bop')).toHaveLength(5);
+  });
+
+  it('supports tender search, secondary status filtering, sort, details, analytics, and calendar', () => {
+    const board = render(React.createElement(DemoTenderExperience, { onAction: jest.fn(), role: 'customer' as const, state: createOfflineDemoState('customer') }));
+    fireEvent.press(board.getByRole('tab', { name: 'Show Applied tenders' }));
+    expect(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' })).toBeTruthy();
+    fireEvent.changeText(board.getByLabelText('Search tenders'), 'electrical');
+    fireEvent.press(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' }));
+    expect(board.getByText('Local opportunity preview — verify details with the issuing authority.')).toBeTruthy();
+    fireEvent.press(board.getByRole('button', { name: 'Close tender details' }));
+    fireEvent.press(board.getByRole('button', { name: 'View analytics' }));
+    expect(board.getByText('Tender analytics')).toBeTruthy();
+    fireEvent.press(board.getByRole('button', { name: 'Close Tender analytics' }));
+    fireEvent.press(board.getByRole('button', { name: 'View calendar' }));
+    expect(board.getByText('Tender calendar')).toBeTruthy();
+    fireEvent.press(board.getByRole('button', { name: 'Close Tender calendar' }));
+    fireEvent.press(board.getByRole('button', { name: 'Sort tenders ascending' }));
+    expect(board.getByRole('button', { name: 'Sort tenders descending' })).toBeTruthy();
+  });
+
+  it('keeps primary and secondary status controls coherent and exercises every board affordance', () => {
+    const board = render(React.createElement(DemoTenderExperience, { onAction: jest.fn(), role: 'customer' as const, state: createOfflineDemoState('customer') }));
+    expect(board.getAllByRole('button', { name: /Open .* tender details/ })).toHaveLength(5);
+
+    fireEvent.press(board.getByRole('tab', { name: 'Filter Applied' }));
+    expect(board.getByRole('tab', { name: 'Show Applied tenders' }).props.accessibilityState.selected).toBe(true);
+    expect(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' })).toBeTruthy();
+
+    for (const [button, title, close] of [
+      ['Filter tenders', 'Search & filters', 'Close Search & filters'],
+      ['View all latest applied tenders', 'Latest applied tenders', 'Close Latest applied tenders'],
+      ['Change tender list view', 'List view', 'Close List view'],
+    ] as const) {
+      fireEvent.press(board.getByRole('button', { name: button }));
+      expect(board.getByText(title)).toBeTruthy();
+      fireEvent.press(board.getByRole('button', { name: close }));
+    }
+
+    const compactChip = board.getByRole('tab', { name: 'Filter Applied' });
+    expect(StyleSheet.flatten(compactChip.props.style).height).toBe(24);
+    expect(compactChip.props.hitSlop).toBe(10);
+    expect(board.getByTestId('tenders-page')).toBeTruthy();
   });
 });
