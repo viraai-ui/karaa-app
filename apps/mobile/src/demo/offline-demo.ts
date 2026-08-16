@@ -1,4 +1,5 @@
 import { projectForId, subverticalForId, verticalForId } from './demo-catalog';
+import { subverticalPortfolioForId } from './subvertical-projects';
 
 export type OfflineDemoRole = 'customer' | 'employee' | 'management';
 
@@ -674,7 +675,9 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
     case 'select-subvertical': {
       if (!state.selectedVerticalId) throw new Error('No demo vertical selected');
       verticalForId(state.selectedVerticalId);
-      const subvertical = subverticalForId(action.subverticalId);
+      let subvertical: { verticalId:string };
+      try { subvertical = subverticalPortfolioForId(action.subverticalId); }
+      catch { subvertical = subverticalForId(action.subverticalId); }
       if (subvertical.verticalId !== state.selectedVerticalId) throw new Error(`Subvertical does not belong to selected vertical: ${action.subverticalId}`);
       return { ...state, surface: 'subvertical', selectedSubverticalId: action.subverticalId, selectedProjectId: null };
     }

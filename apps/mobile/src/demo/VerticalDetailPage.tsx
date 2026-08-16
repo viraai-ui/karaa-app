@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/tokens';
 import type { OfflineDemoAction } from './offline-demo';
 import { verticalDetailForId } from './vertical-detail';
+import { subverticalPortfolioForPathway } from './subvertical-projects';
 
 export function VerticalDetailPage({ verticalId, onAction }: { verticalId: string; onAction: (action: OfflineDemoAction) => void }): React.ReactElement {
   const vertical = verticalDetailForId(verticalId);
@@ -16,7 +17,7 @@ export function VerticalDetailPage({ verticalId, onAction }: { verticalId: strin
     </View>
 
     <View style={styles.sectionHead}><Text style={styles.eyebrow}>EXPLORE {vertical.title.split(/[,&]/)[0].trim().toUpperCase()}</Text><Text style={styles.sectionTitle}>Choose a pathway</Text><Text style={styles.sectionSubtitle}>Select a sub-vertical to view its projects, milestones and latest progress.</Text></View>
-    <View testID="pathway-list" style={styles.cards}>{vertical.pathways.map((item,index)=><Pressable accessibilityLabel={`Explore ${item.title}`} accessibilityRole="button" key={item.title} style={styles.card}>
+    <View testID="pathway-list" style={styles.cards}>{vertical.pathways.map((item,index)=><Pressable accessibilityLabel={`Explore ${item.title}`} accessibilityRole="button" key={item.title} onPress={() => onAction({ type:'select-subvertical', subverticalId:subverticalPortfolioForPathway(vertical.id,item.title).id })} style={styles.card}>
       <Image accessibilityLabel={`${item.title} pathway`} resizeMode="cover" source={item.image} style={styles.cardImage} />
       <View style={styles.cardCopy}><Text style={styles.cardNumber}>{String(index+1).padStart(2,'0')}   ◇</Text><Text numberOfLines={2} style={styles.cardTitle}>{item.title}</Text><Text numberOfLines={2} style={styles.cardDescription}>{item.description}</Text><Text style={styles.cardArrow}>→</Text></View>
     </Pressable>)}</View>

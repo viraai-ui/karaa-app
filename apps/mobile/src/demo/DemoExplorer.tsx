@@ -9,6 +9,8 @@ import { demoProjects, demoSubverticals, demoVerticals, projectForId, subvertica
 import { demoVisualAssets } from './demo-visual-assets';
 import type { OfflineDemoAction, OfflineDemoState } from './offline-demo';
 import { VerticalDetailPage } from './VerticalDetailPage';
+import { SubverticalProjectPage } from './SubverticalProjectPage';
+import { subverticalPortfolios } from './subvertical-projects';
 
 const projectFilters = ['All', 'On track', 'In progress', 'Attention'] as const;
 type ProjectFilter = typeof projectFilters[number];
@@ -26,7 +28,9 @@ export function DemoExplorer({ state, onAction }: {
   }
 
   if (state.surface === 'subvertical' && state.selectedVerticalId && state.selectedSubverticalId) {
-    return <SubverticalExplorer onAction={onAction} subverticalId={state.selectedSubverticalId} verticalId={state.selectedVerticalId} />;
+    return subverticalPortfolios.some(item => item.id === state.selectedSubverticalId)
+      ? <SubverticalProjectPage onAction={onAction} subverticalId={state.selectedSubverticalId} />
+      : <SubverticalExplorer onAction={onAction} subverticalId={state.selectedSubverticalId} verticalId={state.selectedVerticalId} />;
   }
 
   if (state.surface === 'project' && state.selectedProjectId) {
