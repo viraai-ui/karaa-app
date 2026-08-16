@@ -39,16 +39,28 @@ describe('Management Command Centre and Geo Location', () => {
     expect(screen.getAllByText('Open live map  ➤')).toHaveLength(6);
   });
 
-  it('searches and exposes an honest detail notice for every project', () => {
-    const screen = render(<Harness />);
-    fireEvent.changeText(screen.getByLabelText('Search Geo Location'), 'Hyderabad');
-    expect(screen.getAllByText('Sanjeevani Advanced Care Hospital').length).toBeGreaterThan(0);
-    expect(screen.queryByText('Karaa Lakeside Resort')).toBeNull();
-    fireEvent.changeText(screen.getByLabelText('Search Geo Location'), '');
-    ['Aarohan Medical City', 'Amaravati Riverfront District', 'Surya Integrated Energy Park', 'Amaravati Integrated Logistics Hub', 'Sanjeevani Advanced Care Hospital', 'Karaa Lakeside Resort'].forEach((name) => {
+  it('opens every project as a data-driven detail and returns to the project list', () => {
+    const names = ['Aarohan Medical City', 'Amaravati Riverfront District', 'Surya Integrated Energy Park', 'Amaravati Integrated Logistics Hub', 'Sanjeevani Advanced Care Hospital', 'Karaa Lakeside Resort'];
+    for (const name of names) {
+      const screen = render(<Harness />);
       fireEvent.press(screen.getByRole('button', { name: `Open ${name}` }));
-      expect(screen.getByText(`${name} details opened locally. No live tracking connection is used.`)).toBeTruthy();
-    });
+      expect(screen.getByTestId('live-workforce-map')).toBeTruthy();
+      expect(screen.getByText(name)).toBeTruthy();
+      fireEvent.press(screen.getByRole('button', { name: 'Back to Geo Location' }));
+      expect(screen.getByText('Geo Location')).toBeTruthy();
+      screen.unmount();
+    }
+  });
+
+  it('matches Aarohan detail content and provides honest functional actions', () => {
+    const screen = render(<Harness />);
+    fireEvent.press(screen.getByRole('button', { name: 'Open Aarohan Medical City' }));
+    ['LIVE WORKFORCE MAP','Pune, Maharashtra','Updated just now','Rohan Mehta','Project Manager','EMP-KG-0243','08:12 AM','06:30 PM','10:41 AM','8h 18m','Structural frame inspection','Clinical Block · East Wing','184m travelled today','View all 426 people →'].forEach(text=>expect(screen.getAllByText(new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))).length).toBeGreaterThan(0));
+    fireEvent.press(screen.getByRole('button',{name:'Refresh workforce map'}));
+    expect(screen.getByText(/no GPS or live backend/)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Dismiss map notice'));
+    for (const name of ['Map layers','Change map time','Zoom in','Zoom out','Recenter map','Open mini map layers','Select Rohan Mehta','Message Rohan Mehta','View full activity','More employee actions','View all 426 people']) expect(screen.getByRole('button',{name})).toBeTruthy();
+    for (const name of ['All Personnel','Field Teams','Managers','Alerts']) expect(StyleSheet.flatten(screen.getByRole('tab',{name}).props.style).minHeight).toBeGreaterThanOrEqual(44);
   });
 
   it('filters all chips and keeps each chip a 44px semantic target', () => {
@@ -85,6 +97,40 @@ describe('Management Command Centre and Geo Location', () => {
     ['8 min ago', '14 min ago', '22 min ago'].forEach((time) => expect(screen.getByText(time)).toBeTruthy());
     fireEvent.press(screen.getByRole('button', { name: 'View all 12 alerts' }));
     expect(screen.getByText('Showing projects with location alerts.')).toBeTruthy();
+  });
+
+  it('preserves Geo Location filters and search after opening and returning from Aarohan', () => {
+    const screen = render(<Harness />);
+    fireEvent.press(screen.getByRole('tab', { name: 'On Track' }));
+    fireEvent.changeText(screen.getByLabelText('Search Geo Location'), 'Aarohan');
+    fireEvent.press(screen.getByRole('button', { name: 'Open Aarohan Medical City' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Back to Geo Location' }));
+    expect(screen.getByRole('tab', { name: 'On Track' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByLabelText('Search Geo Location').props.value).toBe('Aarohan');
+    expect(screen.getByText('Aarohan Medical City')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Open Surya Integrated Energy Park' })).toBeNull();
+  });
+
+  it('exercises every map control, marker, movement route, and employee action honestly', () => {
+    const screen = render(<Harness />);
+    fireEvent.press(screen.getByRole('button', { name: 'Open Aarohan Medical City' }));
+    for (const name of ['Field Teams', 'Managers', 'Alerts', 'All Personnel']) fireEvent.press(screen.getByRole('tab', { name }));
+    fireEvent.changeText(screen.getByLabelText('Search map personnel'), 'Rohan');
+    for (const name of ['Select map marker 24', 'Select map marker 12', 'Select map marker 38', 'Select map marker !', 'Select Rohan Mehta']) fireEvent.press(screen.getByRole('button', { name }));
+    for (const name of ['Map layers', 'Change map time', 'Zoom in', 'Zoom out', 'Recenter map', 'Open mini map layers', 'Message Rohan Mehta', 'Open movement 08:12 Check in', 'Open movement 09:05 Gate A', 'Open movement 10:18 Clinical Block', 'Open movement 10:41 East Wing', 'View full activity', 'Send message to Rohan Mehta', 'More employee actions', 'View all 426 people']) {
+      fireEvent.press(screen.getByRole('button', { name }));
+      expect(screen.getByText(/Prototype preview only/)).toBeTruthy();
+    }
+  });
+
+  it('keeps all interactive map targets at least 44px in one dimension', () => {
+    const screen = render(<Harness />);
+    fireEvent.press(screen.getByRole('button', { name: 'Open Aarohan Medical City' }));
+    const names = ['Back to Geo Location', 'Refresh workforce map', 'Map layers', 'Change map time', 'Zoom in', 'Zoom out', 'Recenter map', 'Open mini map layers', 'Message Rohan Mehta', 'View full activity', 'Send message to Rohan Mehta', 'More employee actions', 'View all 426 people'];
+    for (const name of names) {
+      const style = StyleSheet.flatten(screen.getByRole('button', { name }).props.style);
+      expect(Math.max(style.minHeight ?? style.height ?? 0, style.minWidth ?? style.width ?? 0)).toBeGreaterThanOrEqual(44);
+    }
   });
 
   it('matches privacy copy and opens the honest tracking policy locally', () => {

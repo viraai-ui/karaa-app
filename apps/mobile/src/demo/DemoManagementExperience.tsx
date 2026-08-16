@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { LiveWorkforceMap } from './LiveWorkforceMap';
+
 import { colors, radii, spacing } from '../theme/tokens';
 import { demoProjects, demoVerticals } from './demo-catalog';
 import { DemoAction, DemoProgressRail, DemoSearchField, DemoStatusPill } from './OfflineDemoPrimitives';
@@ -19,6 +21,7 @@ type Props = {
 };
 
 type GeoFilter = 'All Projects' | 'On Track' | 'Attention' | 'Location Alerts';
+type GeoProject = { category:string; name:string; place:string; checked:string; teams:string; ago:string; status:string; live:string; detail:string; tone:string; image:number };
 
 const geoFilters: readonly GeoFilter[] = ['All Projects', 'On Track', 'Attention', 'Location Alerts'];
 
@@ -241,7 +244,8 @@ function GeoLocation({ state, onAction }: Omit<Props, 'view'>) {
   const [query, setQuery] = useState('');
   const [notice, setNotice] = useState('');
   const [ascending, setAscending] = useState(false);
-  const projects = [
+  const [openProject, setOpenProject] = useState<GeoProject | null>(null);
+  const projects: GeoProject[] = [
     {category:'HEALTHCARE & LIFE SCIENCES',name:'Aarohan Medical City',place:'Pune, Maharashtra',checked:'426',teams:'38',ago:'1 min ago',status:'ON TRACK',live:'LIVE',detail:'All personnel within site',tone:'good',image:require('../../assets/verticals/conceptual-healthcare-campus.webp')},
     {category:'INFRASTRUCTURE & URBAN',name:'Amaravati Riverfront District',place:'Amaravati, Andhra Pradesh',checked:'782',teams:'64',ago:'now',status:'ON TRACK',live:'LIVE',detail:'2 personnel near boundary',tone:'warn',image:require('../../assets/verticals/conceptual-urban-district.webp')},
     {category:'ENERGY & UTILITIES',name:'Surya Integrated Energy Park',place:'Kurnool, Andhra Pradesh',checked:'518',teams:'46',ago:'2 min ago',status:'ATTENTION',live:'3 ALERTS',detail:'3 personnel outside geofence',tone:'danger',image:require('../../assets/verticals/conceptual-clean-energy.webp')},
@@ -249,6 +253,7 @@ function GeoLocation({ state, onAction }: Omit<Props, 'view'>) {
     {category:'HEALTHCARE & LIFE SCIENCES',name:'Sanjeevani Advanced Care Hospital',place:'Hyderabad, Telangana',checked:'356',teams:'31',ago:'3 min ago',status:'AT RISK',live:'1 ALERT',detail:'1 device offline',tone:'warn',image:require('../../assets/verticals/multi-specialty-hospitals-user-supplied.webp')},
     {category:'HOSPITALITY & TOURISM',name:'Karaa Lakeside Resort',place:'Udaipur, Rajasthan',checked:'214',teams:'18',ago:'now',status:'ON TRACK',live:'LIVE',detail:'All personnel within site',tone:'good',image:require('../../assets/verticals/conceptual-hospitality-resort.webp')},
   ];
+  if (openProject) return <LiveWorkforceMap project={openProject} onBack={() => setOpenProject(null)} />;
   let visible = projects.filter(p => `${p.name} ${p.place}`.toLowerCase().includes(query.trim().toLowerCase()));
   if (filter === 'On Track') visible = visible.filter(p => p.status === 'ON TRACK');
   if (filter === 'Attention') visible = visible.filter(p => p.status === 'ATTENTION' || p.status === 'AT RISK');
@@ -267,7 +272,7 @@ function GeoLocation({ state, onAction }: Omit<Props, 'view'>) {
       <View style={styles.geoTools}><Pressable accessibilityRole="button" accessibilityLabel="Filter projects" onPress={()=>setFilter(filter==='All Projects'?'Location Alerts':'All Projects')} style={styles.geoTool}><Text style={styles.geoToolText}>⌁  Filter</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Sort projects" onPress={()=>setAscending(!ascending)} style={styles.geoTool}><Text style={styles.geoToolText}>⇅  Sort</Text></Pressable></View>
       <View accessibilityRole="tablist" style={styles.geoChips}>{geoFilters.map(item=><Pressable key={item} accessibilityRole="tab" accessibilityLabel={item} accessibilityState={{selected:filter===item}} onPress={()=>setFilter(item)} style={[styles.geoChip,filter===item&&styles.geoChipActive]}><Text style={[styles.geoChipText,filter===item&&styles.geoChipTextActive]}>{item}</Text></Pressable>)}</View>
       <View style={styles.geoSectionHead}><View><Text style={styles.geoSectionTitle}>Ongoing Projects</Text><Text style={styles.geoSectionCopy}>Choose a site to open its live workforce map.</Text><Text style={styles.geoSectionMeta}>08 projects</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Change project view" onPress={()=>act('Compact list view is selected for this prototype.')} style={styles.geoIconButton}><Text>☷</Text></Pressable></View>
-      <View>{visible.map(p=><Pressable key={p.name} accessibilityRole="button" accessibilityLabel={`Open ${p.name}`} onPress={()=>act(`${p.name} details opened locally. No live tracking connection is used.`)} style={styles.geoProject}><Image accessibilityLabel={`${p.name} project image`} source={p.image} style={styles.geoProjectImage}/><View style={styles.geoProjectBody}><View style={styles.geoProjectTop}><View style={styles.flex}><Text style={styles.geoCategory}>{p.category}</Text><Text style={styles.geoProjectName}>{p.name}</Text><Text style={styles.geoPlace}>●  {p.place}</Text></View><View><Text style={[styles.geoBadge,p.tone==='danger'?styles.geoBadgeDanger:p.tone==='warn'?styles.geoBadgeWarn:styles.geoBadgeGood]}>{p.status}</Text><Text style={p.live==='LIVE'?styles.geoLive:styles.geoAlertBadge}>●  {p.live}</Text></View></View><View style={styles.geoProjectMeta}><View><Text style={styles.geoStat}>{p.checked}</Text><Text style={styles.geoStatLabel}>Checked in</Text></View><View><Text style={styles.geoStat}>{p.teams}</Text><Text style={styles.geoStatLabel}>Field teams</Text></View><View><Text style={styles.geoStat}>{p.ago}</Text><Text style={styles.geoStatLabel}>Last sync</Text></View></View><View style={styles.geoProjectBottom}><Text style={[styles.geoDetail,p.tone==='danger'&&styles.geoDanger]}>◉  {p.detail}</Text><Text style={styles.geoGold}>Open live map  ➤</Text></View></View></Pressable>)}</View>
+      <View>{visible.map(p=><Pressable key={p.name} accessibilityRole="button" accessibilityLabel={`Open ${p.name}`} onPress={()=>setOpenProject(p)} style={styles.geoProject}><Image accessibilityLabel={`${p.name} project image`} source={p.image} style={styles.geoProjectImage}/><View style={styles.geoProjectBody}><View style={styles.geoProjectTop}><View style={styles.flex}><Text style={styles.geoCategory}>{p.category}</Text><Text style={styles.geoProjectName}>{p.name}</Text><Text style={styles.geoPlace}>●  {p.place}</Text></View><View><Text style={[styles.geoBadge,p.tone==='danger'?styles.geoBadgeDanger:p.tone==='warn'?styles.geoBadgeWarn:styles.geoBadgeGood]}>{p.status}</Text><Text style={p.live==='LIVE'?styles.geoLive:styles.geoAlertBadge}>●  {p.live}</Text></View></View><View style={styles.geoProjectMeta}><View><Text style={styles.geoStat}>{p.checked}</Text><Text style={styles.geoStatLabel}>Checked in</Text></View><View><Text style={styles.geoStat}>{p.teams}</Text><Text style={styles.geoStatLabel}>Field teams</Text></View><View><Text style={styles.geoStat}>{p.ago}</Text><Text style={styles.geoStatLabel}>Last sync</Text></View></View><View style={styles.geoProjectBottom}><Text style={[styles.geoDetail,p.tone==='danger'&&styles.geoDanger]}>◉  {p.detail}</Text><Text style={styles.geoGold}>Open live map  ➤</Text></View></View></Pressable>)}</View>
       {!visible.length?<Text style={styles.emptyText}>No matching projects</Text>:null}
       <View style={styles.geoSectionHead}><View><Text style={styles.geoSectionTitle}>Location alerts</Text><Text style={styles.geoSectionCopy}>Recent exceptions requiring review.</Text></View></View>
       {[['3 personnel outside geofence','Surya Integrated Energy Park','8 min ago'],['1 tracking device offline','Sanjeevani Advanced Care Hospital','14 min ago'],['2 personnel near site boundary','Amaravati Riverfront District','22 min ago']].map(([title,project,time])=><Pressable key={title} accessibilityRole="button" accessibilityLabel={`Open alert ${title}`} onPress={()=>act(`${title} — prototype alert details only.`)} style={styles.geoAlertRow}><Text style={styles.geoAlertIcon}>!</Text><View style={styles.flex}><Text style={styles.geoAlertTitle}>{title}</Text><Text style={styles.geoPlace}>{project}</Text></View><Text style={styles.geoAgo}>{time}</Text><Text style={styles.geoChevron}>›</Text></Pressable>)}
