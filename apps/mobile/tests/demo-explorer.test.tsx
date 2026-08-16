@@ -34,18 +34,18 @@ describe('Power-of-9 explorer', () => {
     expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(9);
   });
 
-  it('uses a dense opening grid with resolved 32px visual anchors', () => {
+  it('uses a dense photographic three-column opening grid', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
 
     rendered.getAllByRole('button', { name: /Open .* vertical/i }).forEach((card) => {
-      expect(StyleSheet.flatten(card.props.style).minHeight).toBeLessThanOrEqual(130);
+      expect(StyleSheet.flatten(card.props.style).height).toBe(112);
     });
-    rendered.getAllByLabelText('Demo visual: Amaravati solar campus').forEach((visual) => {
-      expect(StyleSheet.flatten(visual.props.style).height).toBe(32);
+    rendered.getAllByLabelText(/Demo visual:/).forEach((visual) => {
+      expect(StyleSheet.flatten(visual.props.style).height).toBe('100%');
     });
   });
 
-  it('allows long vertical names three lines without breaking the compact grid budget', () => {
+  it('clamps long vertical names to two lines in the photographic grid', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
 
     [
@@ -54,7 +54,7 @@ describe('Power-of-9 explorer', () => {
       'Spiritual Renaissance for Bharat',
       'Education, Technology & Innovation',
     ].forEach((title) => {
-      expect(rendered.getByText(title).props.numberOfLines).toBe(3);
+      expect(rendered.getAllByText(title)[0].props.numberOfLines).toBe(2);
     });
   });
 
@@ -81,7 +81,17 @@ describe('Power-of-9 explorer', () => {
     expect(rendered.getByRole('tab', { name: 'Timeline' }).props.accessibilityState).toEqual({ selected: true });
 
     fireEvent.press(rendered.getByRole('button', { name: 'Back to Power of 9' }));
-    expect(rendered.getByText('Power of 9')).toBeTruthy();
+    expect(rendered.getByText('The Power of 9')).toBeTruthy();
+  });
+
+  it('renders every section of the customer dashboard in the mockup order', () => {
+    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
+    const dashboard = rendered.getByTestId('karaa-home-dashboard');
+    ['Welcome back, Aaryan.', 'The Power of 9', 'Projects to watch', 'My portfolio', 'Latest progress', 'Important notice', 'Quick access'].forEach((text) => {
+      expect(within(dashboard).getByText(text)).toBeTruthy();
+    });
+    expect(within(dashboard).getByText('Payment schedule')).toBeTruthy();
+    expect(within(dashboard).getAllByRole('button')).toHaveLength(18);
   });
 
   it('dispatches the canonical Solar generation selection from Energy', () => {
