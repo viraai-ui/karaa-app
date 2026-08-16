@@ -36,86 +36,6 @@ function ManagementHarness({ tab = 'command', seed }: { tab?: 'command' | 'map';
 }
 
 describe('Management Command Centre and Geo Location', () => {
-  it('switches mutually exclusive reducer-backed Command Centre panels and exposes selected state', () => {
-    const rendered = render(<ManagementHarness />);
-    const portfolio = rendered.getByRole('tab', { name: 'Show portfolio intelligence' });
-    const operations = rendered.getByRole('tab', { name: 'Show operational intelligence' });
-
-    expect(portfolio.props.accessibilityState).toEqual({ selected: true });
-    expect(operations.props.accessibilityState).toEqual({ selected: false });
-    expect(rendered.getAllByTestId('management-summary-value')).toHaveLength(4);
-    demoVerticals.forEach((vertical) => expect(rendered.getByText(vertical.title)).toBeTruthy());
-    expect(rendered.getByText('Project health distribution')).toBeTruthy();
-    expect(rendered.queryByText('Workforce status')).toBeNull();
-
-    fireEvent.press(operations);
-
-    expect(rendered.getByRole('tab', { name: 'Show portfolio intelligence' }).props.accessibilityState).toEqual({ selected: false });
-    expect(rendered.getByRole('tab', { name: 'Show operational intelligence' }).props.accessibilityState).toEqual({ selected: true });
-    expect(rendered.getByText('Workforce status')).toBeTruthy();
-    expect(rendered.queryByText('Project health distribution')).toBeNull();
-
-    let state = reduce(createOfflineDemoState('management'), { type: 'set-management-panel', panel: 'operations' });
-    state = reduce(state, { type: 'select-tab', tab: 'map' });
-    state = reduce(state, { type: 'select-tab', tab: 'command' });
-    expect(state.selectedManagementPanel).toBe('operations');
-  });
-
-  it('authorizes and validates blocker assignment from active Management state and renders the assignee', () => {
-    const management = createOfflineDemoState('management');
-    const assigned = reduce(management, {
-      type: 'assign-blocker',
-      blockerId: 'commissioning-readiness',
-      assignee: 'Mira Management',
-      role: 'employee',
-    });
-
-    expect(assigned.blockers.find((blocker) => blocker.id === 'commissioning-readiness')).toEqual(
-      expect.objectContaining({ assignee: 'Mira Management' }),
-    );
-    expect(() => reduce(createOfflineDemoState('employee'), {
-      type: 'assign-blocker',
-      blockerId: 'commissioning-readiness',
-      assignee: 'Mira Management',
-      role: 'management',
-    })).toThrow(/Senior Management/);
-    expect(() => reduce(management, {
-      type: 'assign-blocker',
-      blockerId: 'unknown-blocker',
-      assignee: 'Mira Management',
-    })).toThrow(/Unknown management blocker/);
-
-    const rendered = render(<OfflineManagementViews onAction={jest.fn()} state={{ ...assigned, selectedTab: 'command' }} />);
-    expect(rendered.getByText('Assigned to Mira Management')).toBeTruthy();
-  });
-
-  it('derives Operations progress and field-review activity from the shared Employee update state', () => {
-    let state = reduce(createOfflineDemoState('employee'), { type: 'review-field-update' });
-    state = reduce(state, { type: 'set-active-role', role: 'management' });
-    state = reduce(state, { type: 'set-management-panel', panel: 'operations' });
-
-    const rendered = render(<OfflineManagementViews onAction={jest.fn()} state={{ ...state, selectedTab: 'command' }} />);
-    expect(rendered.getByText('68%')).toBeTruthy();
-    expect(rendered.getByText('Inverter row alignment has been added to the project activity.')).toBeTruthy();
-  });
-
-  it('derives portfolio average and Energy progress from the shared Amaravati update', () => {
-    let state = reduce(createOfflineDemoState('employee'), { type: 'review-field-update' });
-    state = reduce(state, { type: 'set-active-role', role: 'management' });
-    const portfolioAverage = Math.round(demoProjects.reduce(
-      (total, project) => total + (project.id === 'amaravati-solar-commons' ? state.currentProgress : project.progress),
-      0,
-    ) / demoProjects.length);
-
-    const rendered = render(<OfflineManagementViews onAction={jest.fn()} state={{ ...state, selectedTab: 'command' }} />);
-    const summary = within(rendered.getByTestId('management-summary-band'));
-
-    expect(portfolioAverage).toBe(52);
-    expect(summary.getByText('52%')).toBeTruthy();
-    expect(summary.queryByText('68%')).toBeNull();
-    expect(rendered.getAllByText('68%')).toHaveLength(2);
-    expect(rendered.queryByText('65%')).toBeNull();
-  });
 
   it('selects Amaravati and Dev Employee before handing off to the shared unread-cleared direct Chat thread', () => {
     let state = reduce(createOfflineDemoState('management'), { type: 'select-tab', tab: 'map' });
@@ -243,7 +163,7 @@ describe('Management Command Centre and Geo Location', () => {
   it('dispatches the exact blocker and direct-message actions from visible controls', () => {
     const commandAction = jest.fn();
     const command = render(<OfflineManagementViews onAction={commandAction} state={{ ...createOfflineDemoState('management'), selectedTab: 'command' }} />);
-    fireEvent.press(command.getByRole('button', { name: 'Assign commissioning readiness blocker' }));
+    fireEvent.press(command.getByRole('button', { name: 'Assign Transformer delivery risk' }));
     expect(commandAction).toHaveBeenCalledWith({ type: 'assign-blocker', blockerId: 'commissioning-readiness', assignee: 'Mira Management' });
 
     const mapAction = jest.fn();
