@@ -144,7 +144,7 @@ describe('Karaa Global role demo surfaces', () => {
     fireEvent.press(rendered.getByRole('button', { name: 'Switch workspace' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Open Customer / Investor workspace' }));
     fireEvent.press(rendered.getByRole('tab', { name: 'My Portfolio' }));
-    expect(rendered.getByText('68% delivery recorded')).toBeTruthy();
+    expect(rendered.getByText('Aarohan Medical City')).toBeTruthy();
 
     fireEvent.press(rendered.getByRole('button', { name: 'Switch workspace' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Open Senior Management workspace' }));
@@ -155,16 +155,14 @@ describe('Karaa Global role demo surfaces', () => {
     offlineDemoStore.reset();
   });
 
-  it('renders Customer evidence as labelled compact project media without management controls', () => {
+  it('renders the Customer subscribed portfolio with labelled local project media without management controls', () => {
     const state = { ...createOfflineDemoState('customer'), currentProgress: 68, fieldUpdateReviewed: true, selectedTab: 'portfolio' as const };
     const rendered = render(<OfflineCustomerViews state={state} onAction={jest.fn()} />);
 
     expect(rendered.getByText('My Portfolio')).toBeTruthy();
-    expect(rendered.getByText('68% delivery recorded')).toBeTruthy();
-    const projectVisual = rendered.getByLabelText('Demo visual: Amaravati solar campus');
-    expect(StyleSheet.flatten(projectVisual.props.style).height).toBe(118);
-    expect(StyleSheet.flatten(projectVisual.props.style).width).toBe(132);
-    expect(rendered.getByTestId('customer-project-progress')).toBeTruthy();
+    expect(rendered.getByText('Aarohan Medical City')).toBeTruthy();
+    expect(rendered.getByLabelText('Aarohan Medical City project')).toBeTruthy();
+    expect(rendered.getByTestId('portfolio-card-aarohan-medical-city-pune')).toBeTruthy();
     expect(rendered.queryByText('Geo Location')).toBeNull();
     expect(rendered.queryByText(/offline|local session|presentation session/i)).toBeNull();
   });

@@ -7,6 +7,7 @@ import { DemoSupportExperience } from './DemoSupportExperience';
 import { DemoTenderExperience } from './DemoTenderExperience';
 import { demoVisualAssets } from './demo-visual-assets';
 import { currentDelivery, offlineProject, type OfflineDemoAction, type OfflineDemoState } from './offline-demo';
+import { CustomerPortfolio } from './CustomerPortfolio';
 
 const { source: hero } = demoVisualAssets.hero;
 const { source: evidence } = demoVisualAssets.inspection;
@@ -17,7 +18,7 @@ type Props = { state: OfflineDemoState; onAction: (action: OfflineDemoAction) =>
 export function OfflineCustomerViews({ state, onAction }: Props) {
   switch (state.selectedTab) {
     case 'tenders': return <DemoTenderExperience onAction={onAction} role="customer" state={state} />;
-    case 'portfolio': return <PortfolioView state={state} onAction={onAction} />;
+    case 'portfolio': return state.surface === 'project' ? <DemoExplorer onAction={onAction} state={state} /> : <CustomerPortfolio onAction={onAction} />;
     case 'support': return <DemoSupportExperience onAction={onAction} state={state} />;
     case 'power':
     default: return <PowerView state={state} onAction={onAction} />;
