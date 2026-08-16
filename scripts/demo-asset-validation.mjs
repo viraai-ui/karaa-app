@@ -1,51 +1,20 @@
 import { createHash } from 'node:crypto';
-import { inflateSync } from 'node:zlib';
 import { readFileSync, readdirSync } from 'node:fs';
 import { relative, resolve, sep } from 'node:path';
 
 const DEMO_ASSET_DIRECTORY = 'apps/mobile/assets/demo';
 const CANONICAL_ASSET_PATHS = [
-  'apps/mobile/assets/demo/amaravati-hero.png',
-  'apps/mobile/assets/demo/amaravati-pour.png',
-  'apps/mobile/assets/demo/amaravati-structure.png',
-  'apps/mobile/assets/demo/amaravati-finish.png',
-  'apps/mobile/assets/demo/amaravati-inverter-evidence.png',
-  'apps/mobile/assets/demo/amaravati-solar-hero.png',
-  'apps/mobile/assets/demo/amaravati-inverter-inspection.png',
-  'apps/mobile/assets/demo/amaravati-structure-progress.png',
+  'apps/mobile/assets/demo/amaravati-hero.webp',
+  'apps/mobile/assets/demo/amaravati-pour.webp',
+  'apps/mobile/assets/demo/amaravati-structure.webp',
+  'apps/mobile/assets/demo/amaravati-finish.webp',
+  'apps/mobile/assets/demo/amaravati-inverter-evidence.webp',
+  'apps/mobile/assets/demo/amaravati-solar-hero.webp',
+  'apps/mobile/assets/demo/amaravati-inverter-inspection.webp',
+  'apps/mobile/assets/demo/amaravati-structure-progress.webp',
 ];
 const EXPECTED_ASSET_COUNT = CANONICAL_ASSET_PATHS.length;
-const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-const CHANNELS_BY_COLOR_TYPE = new Map([
-  [0, 1],
-  [2, 3],
-  [3, 1],
-  [4, 2],
-  [6, 4],
-]);
-const VALID_BIT_DEPTHS = new Map([
-  [0, new Set([1, 2, 4, 8, 16])],
-  [2, new Set([8, 16])],
-  [3, new Set([1, 2, 4, 8])],
-  [4, new Set([8, 16])],
-  [6, new Set([8, 16])],
-]);
 
-const CRC32_TABLE = Uint32Array.from({ length: 256 }, (_, index) => {
-  let value = index;
-  for (let bit = 0; bit < 8; bit += 1) {
-    value = (value & 1) === 1 ? (value >>> 1) ^ 0xedb88320 : value >>> 1;
-  }
-  return value >>> 0;
-});
-
-function crc32(bytes) {
-  let value = 0xffffffff;
-  for (const byte of bytes) {
-    value = CRC32_TABLE[(value ^ byte) & 0xff] ^ (value >>> 8);
-  }
-  return (value ^ 0xffffffff) >>> 0;
-}
 
 function ensure(condition, message) {
   if (!condition) {
@@ -57,79 +26,25 @@ function normalizedRelativePath(root, path) {
   return relative(root, path).split(sep).join('/');
 }
 
-function parsePng(bytes) {
-  ensure(bytes.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE), 'invalid PNG signature');
-
-  let offset = PNG_SIGNATURE.length;
-  let header;
-  let seenIdat = false;
-  let endedIdat = false;
-  let ended = false;
-  const idatChunks = [];
-
-  while (offset < bytes.length) {
-    ensure(offset + 12 <= bytes.length, 'truncated PNG chunk');
-    const length = bytes.readUInt32BE(offset);
-    const typeBytes = bytes.subarray(offset + 4, offset + 8);
-    const type = typeBytes.toString('ascii');
-    const dataStart = offset + 8;
-    const dataEnd = dataStart + length;
-    const crcEnd = dataEnd + 4;
-
-    ensure(dataEnd <= bytes.length && crcEnd <= bytes.length, `truncated ${type} chunk`);
-    ensure(bytes.readUInt32BE(dataEnd) === crc32(Buffer.concat([typeBytes, bytes.subarray(dataStart, dataEnd)])), `invalid ${type} CRC`);
-    ensure(!ended, 'data found after IEND');
-
-    const data = bytes.subarray(dataStart, dataEnd);
-    if (type === 'IHDR') {
-      ensure(!header && offset === PNG_SIGNATURE.length && length === 13, 'invalid IHDR');
-      const width = data.readUInt32BE(0);
-      const height = data.readUInt32BE(4);
-      const bitDepth = data[8];
-      const colorType = data[9];
-      const compression = data[10];
-      const filter = data[11];
-      const interlace = data[12];
-
-      ensure(width > 0 && height > 0, 'invalid PNG dimensions');
-      ensure(VALID_BIT_DEPTHS.get(colorType)?.has(bitDepth), 'unsupported PNG color format');
-      ensure(compression === 0 && filter === 0 && interlace === 0, 'unsupported PNG encoding');
-      header = { width, height, bitDepth, colorType };
-    } else if (type === 'IDAT') {
-      ensure(header, 'IDAT appears before IHDR');
-      ensure(!endedIdat, 'non-contiguous IDAT chunks');
-      seenIdat = true;
-      idatChunks.push(data);
-    } else if (type === 'IEND') {
-      ensure(header && seenIdat && length === 0, 'invalid IEND');
-      ended = true;
-      ensure(crcEnd === bytes.length, 'data found after IEND');
-    } else if (seenIdat) {
-      endedIdat = true;
-    }
-
-    offset = crcEnd;
+function parseWebp(bytes) {
+  ensure(bytes.length >= 30 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP', 'invalid WebP signature');
+  ensure(bytes.readUInt32LE(4) + 8 === bytes.length, 'invalid WebP RIFF length');
+  const kind = bytes.toString('ascii', 12, 16);
+  const chunkLength = bytes.readUInt32LE(16);
+  ensure(20 + chunkLength <= bytes.length, 'truncated WebP image chunk');
+  if (kind === 'VP8 ') {
+    ensure(bytes[23] === 0x9d && bytes[24] === 0x01 && bytes[25] === 0x2a, 'invalid VP8 frame header');
+    return { width: bytes.readUInt16LE(26) & 0x3fff, height: bytes.readUInt16LE(28) & 0x3fff };
   }
-
-  ensure(header && seenIdat && ended, 'PNG is missing required image chunks');
-
-  let pixels;
-  try {
-    pixels = inflateSync(Buffer.concat(idatChunks));
-  } catch {
-    throw new Error('PNG pixel data cannot be decompressed');
+  if (kind === 'VP8L') {
+    ensure(bytes[20] === 0x2f, 'invalid VP8L frame header');
+    const bits = bytes.readUInt32LE(21);
+    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
   }
-
-  const channels = CHANNELS_BY_COLOR_TYPE.get(header.colorType);
-  const bytesPerRow = Math.ceil((header.width * channels * header.bitDepth) / 8);
-  const expectedPixelBytes = (bytesPerRow + 1) * header.height;
-  ensure(pixels.length === expectedPixelBytes, 'PNG pixel data has an invalid length');
-
-  for (let offset = 0; offset < pixels.length; offset += bytesPerRow + 1) {
-    ensure(pixels[offset] <= 4, 'PNG contains an invalid scanline filter');
+  if (kind === 'VP8X') {
+    return { width: bytes.readUIntLE(24, 3) + 1, height: bytes.readUIntLE(27, 3) + 1 };
   }
-
-  return { width: header.width, height: header.height };
+  throw new Error(`unsupported WebP chunk ${kind}`);
 }
 
 function loadManifest(root) {
@@ -138,7 +53,7 @@ function loadManifest(root) {
 }
 
 function validateManifestAsset(root, asset) {
-  ensure(typeof asset?.path === 'string' && /^apps\/mobile\/assets\/demo\/[a-z-]+\.png$/.test(asset.path), 'manifest contains an invalid asset path');
+  ensure(typeof asset?.path === 'string' && /^apps\/mobile\/assets\/demo\/[a-z-]+\.webp$/.test(asset.path), 'manifest contains an invalid asset path');
   ensure(asset.origin === 'generated-for-karaa-demo', `${asset.path} is missing required demo origin`);
   ensure(asset.label === 'Demo visual', `${asset.path} is missing required demo label`);
   ensure(typeof asset.subject === 'string' && asset.subject.trim().length > 0, `${asset.path} is missing a subject`);
@@ -150,9 +65,9 @@ function validateManifestAsset(root, asset) {
   const bytes = readFileSync(absolutePath);
   let dimensions;
   try {
-    dimensions = parsePng(bytes);
+    dimensions = parseWebp(bytes);
   } catch (error) {
-    throw new Error(`${asset.path} is not a readable PNG: ${error.message}`);
+    throw new Error(`${asset.path} is not a readable WebP: ${error.message}`);
   }
 
   ensure(dimensions.width === asset.width && dimensions.height === asset.height, `${asset.path} dimensions do not match the manifest`);
@@ -173,17 +88,17 @@ export function validateDemoAssets(root) {
   );
 
   const assetDirectory = resolve(root, DEMO_ASSET_DIRECTORY);
-  const localPngs = readdirSync(assetDirectory, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.png'))
+  const localWebps = readdirSync(assetDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.webp'))
     .map((entry) => `${DEMO_ASSET_DIRECTORY}/${entry.name}`)
     .sort();
-  const declaredPngs = [...manifestPaths].sort();
+  const declaredWebps = [...manifestPaths].sort();
 
-  for (const path of localPngs) {
-    ensure(declaredPngs.includes(path), `Unexpected local PNG: ${path}`);
+  for (const path of localWebps) {
+    ensure(declaredWebps.includes(path), `Unexpected local WebP: ${path}`);
   }
-  for (const path of declaredPngs) {
-    ensure(localPngs.includes(path), `Manifest references missing local PNG: ${path}`);
+  for (const path of declaredWebps) {
+    ensure(localWebps.includes(path), `Manifest references missing local WebP: ${path}`);
   }
 
   return manifest.assets.map((asset) => validateManifestAsset(root, asset));

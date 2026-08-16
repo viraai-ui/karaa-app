@@ -68,7 +68,7 @@ export function KaraaScreen() {
               accessibilityLabel="Demo visual: Amaravati Solar Commons"
               accessibilityRole="image"
               resizeMode="cover"
-              source={require('../../assets/demo/amaravati-hero.png')}
+              source={require('../../assets/demo/amaravati-hero.webp')}
               style={styles.heroImage}
               testID="tour-hero-image"
             />

@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.ts": {
-      "includeFiles": "{apps/mobile/assets/demo/amaravati-inverter-evidence.png,packages/contracts/src/**,packages/demo-data/src/**}",
+      "includeFiles": "{apps/mobile/assets/demo/amaravati-inverter-evidence.webp,packages/contracts/src/**,packages/demo-data/src/**}",
       "maxDuration": 30
     }
   },

@@ -11,14 +11,14 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const demoAssetsPath = 'apps/mobile/assets/demo';
 const verifier = resolve(root, 'scripts/verify-demo-assets.mjs');
 const expectedPaths = [
-  'apps/mobile/assets/demo/amaravati-hero.png',
-  'apps/mobile/assets/demo/amaravati-pour.png',
-  'apps/mobile/assets/demo/amaravati-structure.png',
-  'apps/mobile/assets/demo/amaravati-finish.png',
-  'apps/mobile/assets/demo/amaravati-inverter-evidence.png',
-  'apps/mobile/assets/demo/amaravati-solar-hero.png',
-  'apps/mobile/assets/demo/amaravati-inverter-inspection.png',
-  'apps/mobile/assets/demo/amaravati-structure-progress.png',
+  'apps/mobile/assets/demo/amaravati-hero.webp',
+  'apps/mobile/assets/demo/amaravati-pour.webp',
+  'apps/mobile/assets/demo/amaravati-structure.webp',
+  'apps/mobile/assets/demo/amaravati-finish.webp',
+  'apps/mobile/assets/demo/amaravati-inverter-evidence.webp',
+  'apps/mobile/assets/demo/amaravati-solar-hero.webp',
+  'apps/mobile/assets/demo/amaravati-inverter-inspection.webp',
+  'apps/mobile/assets/demo/amaravati-structure-progress.webp',
 ];
 
 function runVerifier(assetRoot, cwd = root) {
@@ -54,24 +54,24 @@ test('the verifier accepts the canonical eight assets from an unrelated working 
   const manifest = JSON.parse(readFileSync(resolve(root, demoAssetsPath, 'manifest.json'), 'utf8'));
 
   assert.deepEqual(manifest.assets.map((asset) => asset.path), expectedPaths);
-  assert.match(runVerifier(root, tmpdir()), /OK apps\/mobile\/assets\/demo\/amaravati-finish\.png/);
+  assert.match(runVerifier(root, tmpdir()), /OK apps\/mobile\/assets\/demo\/amaravati-finish\.webp/);
 });
 
-test('the verifier rejects an unlisted fifth local PNG', () => {
+test('the verifier rejects an unlisted fifth local WebP', () => {
   withFixture(
     (_fixture, fixtureAssets) => {
-      cpSync(resolve(fixtureAssets, 'amaravati-hero.png'), resolve(fixtureAssets, 'unexpected.png'));
+      cpSync(resolve(fixtureAssets, 'amaravati-hero.webp'), resolve(fixtureAssets, 'unexpected.webp'));
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /Unexpected local PNG: apps\/mobile\/assets\/demo\/unexpected\.png/);
+      assert.throws(() => runVerifier(fixture), /Unexpected local WebP: apps\/mobile\/assets\/demo\/unexpected\.webp/);
     },
   );
 });
 
-test('the verifier rejects a hash-updated truncated PNG', () => {
+test('the verifier rejects a hash-updated truncated WebP', () => {
   withFixture(
     (fixture, fixtureAssets) => {
-      const filename = 'amaravati-hero.png';
+      const filename = 'amaravati-hero.webp';
       const truncated = readFileSync(resolve(fixtureAssets, filename)).subarray(0, 24);
       writeFileSync(resolve(fixtureAssets, filename), truncated);
 
@@ -80,7 +80,7 @@ test('the verifier rejects a hash-updated truncated PNG', () => {
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png is not a readable PNG/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp is not a readable WebP/);
     },
   );
 });
@@ -93,17 +93,17 @@ test('the verifier rejects a manifest asset without a meaningful subject', () =>
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png is missing a subject/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp is missing a subject/);
     },
   );
 });
 
-test('the verifier rejects a valid PNG substituted under a noncanonical filename', () => {
+test('the verifier rejects a valid WebP substituted under a noncanonical filename', () => {
   withFixture(
     (fixture, fixtureAssets) => {
-      const replacement = 'alternate.png';
-      cpSync(resolve(fixtureAssets, 'amaravati-hero.png'), resolve(fixtureAssets, replacement));
-      rmSync(resolve(fixtureAssets, 'amaravati-hero.png'));
+      const replacement = 'alternate.webp';
+      cpSync(resolve(fixtureAssets, 'amaravati-hero.webp'), resolve(fixtureAssets, replacement));
+      rmSync(resolve(fixtureAssets, 'amaravati-hero.webp'));
 
       const manifest = readFixtureManifest(fixture);
       manifest.assets[0].path = `${demoAssetsPath}/${replacement}`;
@@ -123,7 +123,7 @@ test('the verifier rejects a manifest asset with a missing demo label', () => {
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png is missing required demo label/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp is missing required demo label/);
     },
   );
 });
@@ -136,7 +136,7 @@ test('the verifier rejects a manifest asset with a wrong demo label', () => {
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png is missing required demo label/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp is missing required demo label/);
     },
   );
 });
@@ -149,7 +149,7 @@ test('the verifier rejects a manifest asset with a wrong generated origin', () =
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png is missing required demo origin/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp is missing required demo origin/);
     },
   );
 });
@@ -162,7 +162,7 @@ test('the verifier rejects manifest dimensions that differ from decoded pixels',
       writeFixtureManifest(fixture, manifest);
     },
     (fixture) => {
-      assert.throws(() => runVerifier(fixture), /amaravati-hero\.png dimensions do not match the manifest/);
+      assert.throws(() => runVerifier(fixture), /amaravati-hero\.webp dimensions do not match the manifest/);
     },
   );
 });

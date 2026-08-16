@@ -243,7 +243,7 @@ export function createDatabase(filename = ':memory:', options: CreateDatabaseOpt
       const updateId = '51000001-0000-4000-8000-000000000001';
       const mediaId = '60000001-0000-4000-8000-000000000001';
       // Karaa-owned local generated Demo visual; never fetched from a network source.
-      const audienceMedia = readFileSync(new URL('../../../apps/mobile/assets/demo/amaravati-inverter-evidence.png', import.meta.url));
+      const audienceMedia = readFileSync(new URL('../../../apps/mobile/assets/demo/amaravati-inverter-evidence.webp', import.meta.url));
       const audienceMediaDigest = createHash('sha256').update(audienceMedia).digest('hex');
       const audienceMediaPath = `/v1/media/${mediaId}`;
       const serverTimestamp = '2026-08-11T08:16:00.000Z';

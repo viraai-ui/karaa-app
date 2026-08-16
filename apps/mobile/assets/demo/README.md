@@ -6,14 +6,14 @@ Every product surface displaying one of these assets must show the visible capti
 
 | File | Intended use | Dimensions | Generation constraints | SHA-256 |
 | --- | --- | --- | --- | --- |
-| `amaravati-hero.png` | public tour / project hero | 1536x864 px (16:9) | fictional solar site overview at dawn; no text, people, logos, or safety claims | `c3891f9d1e088e88af3b3126fca7e71ff206f0b36654fce4db54b98f1e7b0c7b` |
-| `amaravati-pour.png` | construction-stage evidence card | 1448x1086 px | fictional drainage and footing pour; no text, people, logos, or safety claims | `149b5526fa75c416ac717e22a8231e8006d31beb53b90bd3c6eb182e146c347c` |
-| `amaravati-structure.png` | construction-stage evidence card | 1448x1086 px | fictional solar support structure and conduits; no text, people, logos, or safety claims | `d5a0a062122fd10994f1c817f3758af2e8599a6120fb374f2287143630f15f75` |
-| `amaravati-finish.png` | completed-area evidence card | 1448x1086 px | fictional solar rows and service route; no numeric completion claim, text, people, logos, or safety claims | `942f251f35536e970cfd3a27ae9e7f105a1e029338837bf7f275b2891be6500f` |
-| `amaravati-inverter-evidence.png` | Employee/Customer evidence card | 1448x1086 px | fictional solar inverter installation and cable trays; no text, people, logos, or safety claims | `f4568565f7fcdeb0bcf4c937a3f9061b611043cb5717dc138b65c30c1d13235a` |
-| `amaravati-solar-hero.png` | Karaa Global project hero | 1536x1024 px | fictional Amaravati solar-campus overview; no text, people, logos, or safety claims | `c5657c911a9334f2af752ffb2c039dc2157ae171745cf6d86ca0d6aa7142b9c8` |
-| `amaravati-inverter-inspection.png` | Employee field-review and customer evidence surface | 1536x1024 px | fictional inverter-row inspection and commissioning evidence; no text, people, logos, or safety claims | `24fe571c61e4b179bbb764bd6635ffd9a60027b88f5c2f33bce368c76a5a0cec` |
-| `amaravati-structure-progress.png` | Tender, project-progress, and management surface | 1536x1024 px | fictional Amaravati structural-progress evidence; no text, people, logos, or safety claims | `152d5468faad855afd17cefd1660b83670cc3ddbdbafb8ee6356106ccfaee82d` |
+| `amaravati-hero.webp` | public tour / project hero | 1536x864 px (16:9) | fictional solar site overview at dawn; no text, people, logos, or safety claims | `d6bb4b9cf5f8220225103f7349f9a3974ddd766609995195ef4f94b968288ee6` |
+| `amaravati-pour.webp` | construction-stage evidence card | 1448x1086 px | fictional drainage and footing pour; no text, people, logos, or safety claims | `96292aef7b55f5127123747bf0efa887ac5f481c096e3adfb45b56737a5eb1ca` |
+| `amaravati-structure.webp` | construction-stage evidence card | 1448x1086 px | fictional solar support structure and conduits; no text, people, logos, or safety claims | `8ef6f292f01879388b849467c5aa1e440b77fbe76851219474d3664b35231405` |
+| `amaravati-finish.webp` | completed-area evidence card | 1448x1086 px | fictional solar rows and service route; no numeric completion claim, text, people, logos, or safety claims | `8bea184d5b104dc32677cde63a84d3d57ffa3bc36d778b71f45b6ba6bf2c31a8` |
+| `amaravati-inverter-evidence.webp` | Employee/Customer evidence card | 1448x1086 px | fictional solar inverter installation and cable trays; no text, people, logos, or safety claims | `58ec971625bf512a53dc35ecb3b5a85a92dca450198615d7b9585aed79ffebde` |
+| `amaravati-solar-hero.webp` | Karaa Global project hero | 1536x1024 px | fictional Amaravati solar-campus overview; no text, people, logos, or safety claims | `bad93b10d39a8a9e58c87bafd04b90350f467ad0a9b9bd03102b0ed3ff19fc18` |
+| `amaravati-inverter-inspection.webp` | Employee field-review and customer evidence surface | 1536x1024 px | fictional inverter-row inspection and commissioning evidence; no text, people, logos, or safety claims | `d518cc73b86f7e1db329b67ee34f1c0978f971a43272efa7d7187250f58dde30` |
+| `amaravati-structure-progress.webp` | Tender, project-progress, and management surface | 1536x1024 px | fictional Amaravati structural-progress evidence; no text, people, logos, or safety claims | `88508afe63bccde654e4fa64510b43307c7c9210438ffef5939a25d3f72a50eb` |
 
 ## Visual QA record
 

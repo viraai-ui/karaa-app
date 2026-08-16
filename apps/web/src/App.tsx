@@ -64,7 +64,7 @@ function PublicTour() {
           </div>
         </div>
         <figure className="hero-visual">
-          <img src="/assets/amaravati-hero.png" alt="Generated visual of the fictional Amaravati Solar Commons construction site" />
+          <img src="/assets/amaravati-hero.webp" alt="Generated visual of the fictional Amaravati Solar Commons construction site" />
           <figcaption>Demo visual · fictional Amaravati Solar Commons</figcaption>
         </figure>
       </section>

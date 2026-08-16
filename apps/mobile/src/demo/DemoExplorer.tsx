@@ -44,15 +44,15 @@ function RootExplorer({ onAction }: { onAction: (action: OfflineDemoAction) => v
     return demoVerticals.filter((vertical) => `${vertical.title} ${vertical.description} ${projectForId(vertical.featuredProjectId).name}`.toLowerCase().includes(normalizedQuery));
   }, [query]);
   const pictures = [
-    require('../../assets/demo/amaravati-hero.png'),
-    require('../../assets/demo/amaravati-structure.png'),
+    require('../../assets/demo/amaravati-hero.webp'),
+    require('../../assets/demo/amaravati-structure.webp'),
     demoVisualAssets.hero.source,
-    require('../../assets/demo/amaravati-pour.png'),
-    require('../../assets/demo/amaravati-finish.png'),
+    require('../../assets/demo/amaravati-pour.webp'),
+    require('../../assets/demo/amaravati-finish.webp'),
     demoVisualAssets.progress.source,
-    require('../../assets/demo/amaravati-inverter-evidence.png'),
+    require('../../assets/demo/amaravati-inverter-evidence.webp'),
     demoVisualAssets.inspection.source,
-    require('../../assets/demo/amaravati-structure.png'),
+    require('../../assets/demo/amaravati-structure.webp'),
   ];
 
   return <View style={styles.dashboard} testID="karaa-home-dashboard">
