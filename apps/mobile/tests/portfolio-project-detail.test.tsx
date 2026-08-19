@@ -11,6 +11,7 @@ import {
   projectTimelineFilters,
   s as projectDetailStyles,
 } from "../src/demo/PortfolioProjectDetail";
+import { aarohanGallerySizes, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
 import {
   portfolioForProjectId,
   portfolioProjectForId,
@@ -128,6 +129,36 @@ describe("portfolio project timeline experience", () => {
     });
     fireEvent.press(view.getByLabelText("Back to Multi-Specialty Hospitals"));
     expect(onAction).toHaveBeenCalledWith({ type: "return-to-subvertical" });
+  });
+  it("uses the Aarohan-only body and drives every scoped gallery/lightbox state", () => {
+    expect(aarohanPhotos).toHaveLength(8);
+    expect(aarohanGallerySizes).toEqual({ current: 8, foundation: 5, site: 4 });
+    expect(aarohanVisualMetrics.actionHeight).toBeGreaterThanOrEqual(44);
+    const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={jest.fn()} />);
+    expect(view.getByTestId("aarohan-timeline-body")).toBeTruthy();
+    fireEvent.press(view.getByLabelText("Open 8 photo gallery"));
+    expect(view.getAllByLabelText(/Enlarge photo .* of 8/)).toHaveLength(8);
+    fireEvent.press(view.getByLabelText("Enlarge photo 4 of 8"));
+    expect(view.getByLabelText("Enlarged photo 4 of 8")).toBeTruthy();
+    fireEvent.press(view.getByLabelText("Next photo"));
+    expect(view.getByLabelText("Enlarged photo 5 of 8")).toBeTruthy();
+    fireEvent.press(view.getByLabelText("Previous photo"));
+    fireEvent.press(view.getByLabelText("Back to gallery"));
+    fireEvent.press(view.getByLabelText("Close gallery"));
+    fireEvent.press(view.getByLabelText("Open current photo 1"));
+    expect(view.getByLabelText("Enlarged photo 1 of 8")).toBeTruthy();
+    fireEvent.press(view.getByLabelText("Close preview"));
+    fireEvent.press(view.getByLabelText("Open 5 photo gallery"));
+    expect(view.getAllByLabelText(/Enlarge photo .* of 5/)).toHaveLength(5);
+    fireEvent.press(view.getByLabelText("Close gallery"));
+    fireEvent.press(view.getByLabelText("Open 4 photo gallery"));
+    expect(view.getAllByLabelText(/Enlarge photo .* of 4/)).toHaveLength(4);
+  });
+  it("does not apply the Aarohan body to other project details", () => {
+    const other = subverticalPortfolios.flatMap(page => page.projects).find(project => project.id !== "aarohan-medical-city-pune")!;
+    const view = render(<DemoExplorer state={projectState(other.id)} onAction={jest.fn()} />);
+    expect(view.queryByTestId("aarohan-timeline-body")).toBeNull();
+    expect(view.getByTestId(`project-detail-${other.id}`)).toBeTruthy();
   });
   it("renders overview, documents and media with honest previews", () => {
     for (const tab of ["overview", "documents", "media"] as const) {

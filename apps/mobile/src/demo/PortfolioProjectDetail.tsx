@@ -4,6 +4,7 @@ import { Image, Modal, Pressable, StyleSheet, Switch, Text, View } from "react-n
 import type { ImageSourcePropType } from "react-native";
 import type { OfflineDemoAction, OfflineDemoState } from "./offline-demo";
 import type { PortfolioProject, SubverticalPortfolio } from "./subvertical-projects";
+import { AarohanTimelineBody } from "./AarohanTimelineBody";
 
 const photos: ImageSourcePropType[] = [
   require("../../assets/demo/amaravati-structure.webp"),
@@ -37,6 +38,7 @@ export function PortfolioProjectDetail({ project, portfolio, selectedTab, onActi
   const previewPhoto = photoNumber ? photos[(Number(photoNumber) - 1) % photos.length] : photos[0];
   const aarohan = project.id === "aarohan-medical-city-pune";
   const timeline = aarohan ? aarohanTimeline : aarohanTimeline.map((item, index) => index ? item : { ...item, title: `${project.currentMilestone} reaches the next delivery stage`, detail: `${project.name} has advanced through ${project.currentMilestone.toLowerCase()}. Delivery remains coordinated across the active site.` });
+  if (aarohan) return <AarohanTimelineBody project={project} portfolio={portfolio} selectedTab={selectedTab} onAction={onAction} />;
   return <View style={s.page} testID={`project-detail-${project.id}`}>
     <ProjectSummary project={project} portfolio={portfolio} onBack={() => onAction({ type: "return-to-subvertical" })} />
     <View accessibilityRole="tablist" style={s.tabs} testID="project-primary-tabs">
