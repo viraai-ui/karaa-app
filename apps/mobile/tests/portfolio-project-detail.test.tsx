@@ -51,8 +51,8 @@ describe("portfolio project timeline experience", () => {
     const view = render(<DemoExplorer state={state} onAction={jest.fn()} />);
     expect(view.queryByText(/HEALTHCARE \/ MULTI-SPECIALTY HOSPITALS/)).toBeNull();
     expect(view.queryByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeNull();
-    expect(view.getByTestId("aarohan-timeline-body").children.slice(0, 2).map(child => typeof child === "string" ? child : child.props.testID)).toEqual([
-      "aarohan-back-control", "aarohan-project-summary",
+    expect(view.getByTestId("aarohan-timeline-body").children.slice(0, 3).map(child => typeof child === "string" ? child : child.props.testID)).toEqual([
+      "aarohan-back-control", "aarohan-post-back-gap", "aarohan-project-summary",
     ]);
     aarohanTimeline.forEach((item) => expect(view.getByTestId(`timeline-variant-${item.variant}`)).toBeTruthy());
   });
@@ -62,6 +62,8 @@ describe("portfolio project timeline experience", () => {
     expect(aarohanStyles.page).toMatchObject({ marginTop: -16, marginHorizontal: -16 });
     expect(aarohanVisualMetrics).toMatchObject({ topInsetCompensation: -16, backTouchTarget: 44, backChevron: 23 });
     expect(view.getByTestId("aarohan-back-control").props.style).toMatchObject({ alignItems: "center", backgroundColor: "#080908", flexDirection: "row", height: 44, paddingHorizontal: 15 });
+    expect(view.getByTestId("aarohan-post-back-gap").props.style).toEqual({ height: 12, backgroundColor: "#FBFAF7" });
+    expect(aarohanVisualMetrics.postBackGap).toBe(12);
     expect(view.getByText("‹").props.style).toMatchObject({ color: "#C99B36", fontSize: 23, marginRight: 6 });
     expect(view.getByText("MULTI-SPECIALTY HOSPITALS").props.style).toMatchObject({ color: "#EEE9DF", fontSize: 8, fontWeight: "800", letterSpacing: 1 });
     expect(view.queryByTestId("aarohan-back-icon-area")).toBeNull();
@@ -127,7 +129,11 @@ describe("portfolio project timeline experience", () => {
     ].forEach((text) =>
       expect(view.getByText(text, { exact: false })).toBeTruthy(),
     );
-    expect(view.getAllByText("Building envelope")).toHaveLength(2);
+    expect(view.getAllByText("Building envelope")).toHaveLength(1);
+    expect(view.queryByTestId("next-milestone-bar")).toBeNull();
+    expect(view.queryByText("NEXT MAJOR MILESTONE")).toBeNull();
+    expect(view.queryByText("Expected Q2 2027")).toBeNull();
+    expect(view.queryByLabelText("Notify me")).toBeNull();
     fireEvent.press(view.getByLabelText("Filter Documents"));
     expect(view.getByText("Planning and statutory approvals")).toBeTruthy();
     expect(view.queryByText("Foundation works completed")).toBeNull();
@@ -142,8 +148,6 @@ describe("portfolio project timeline experience", () => {
     await waitFor(() => expect(Linking.openURL).toHaveBeenCalled());
     expect(view.queryByText("Site Report PDF")).toBeNull();
     expect(view.queryByText(/honest local demo preview/)).toBeNull();
-    fireEvent(view.getByLabelText("Notify me"), "valueChange", true);
-    expect(view.getByLabelText("Notify me").props.value).toBe(true);
     fireEvent.press(view.getByLabelText("Overview"));
     expect(onAction).toHaveBeenCalledWith({
       type: "select-project-detail-tab",
@@ -175,6 +179,17 @@ describe("portfolio project timeline experience", () => {
     fireEvent.press(view.getByLabelText("Close gallery"));
     fireEvent.press(view.getByLabelText("Open 4 photo gallery"));
     expect(view.getAllByLabelText(/Enlarge photo .* of 4/)).toHaveLength(4);
+  });
+  it("keeps the 6:5 hero and summary metrics in normal flow at all supported widths", () => {
+    expect(aarohanVisualMetrics.widths).toEqual([360, 390, 430]);
+    expect(aarohanVisualMetrics).toMatchObject({ heroWidth: 108, heroHeight: 90, heroAspectRatio: 1.2, summaryMetricsInFlow: true });
+    expect(aarohanStyles.hero).toMatchObject({ width: 108, height: 90, aspectRatio: 1.2, flexShrink: 0 });
+    expect(aarohanStyles.summary).not.toHaveProperty("position");
+    expect(aarohanStyles.metrics).not.toHaveProperty("position");
+    expect(aarohanStyles.summaryTop).toMatchObject({ flexDirection: "row", alignItems: "flex-start" });
+    expect(aarohanStyles.summaryCopy).toMatchObject({ flex: 1, minWidth: 0 });
+    const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={jest.fn()} />);
+    expect(view.getByTestId("aarohan-summary-metrics")).toBeTruthy();
   });
   it("does not apply the Aarohan body to other project details", () => {
     const other = subverticalPortfolios.flatMap(page => page.projects).find(project => project.id !== "aarohan-medical-city-pune")!;
