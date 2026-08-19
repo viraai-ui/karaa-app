@@ -10,6 +10,7 @@ import { OfflineEmployeeViews } from '../src/demo/OfflineEmployeeViews';
 import { OfflineManagementViews } from '../src/demo/OfflineManagementViews';
 import { DemoImageFrame, DemoProgressRail } from '../src/demo/OfflineDemoPrimitives';
 import { createOfflineDemoState } from '../src/demo/offline-demo';
+import { PAGE_END_CLEARANCE, navigationBottomPadding } from '../src/demo/bottom-spacing';
 
 function renderDemoShell(ui: React.ReactElement) {
   return render(
@@ -32,7 +33,7 @@ describe('Karaa Global role demo surfaces', () => {
     expect(rendered.queryByText(/offline presentation|local session|presentation session/i)).toBeNull();
   });
 
-  it('reserves safe-area clearance for the demo app bar and fixed navigation', () => {
+  it('keeps page clearance minimal while the always-visible navigation owns its safe area', () => {
     const rendered = render(
       <SafeAreaProvider initialMetrics={{
         frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -44,8 +45,12 @@ describe('Karaa Global role demo surfaces', () => {
 
     expect(StyleSheet.flatten(rendered.getByTestId('demo-app-bar').props.style).paddingTop).toBe(24);
     expect(StyleSheet.flatten(rendered.getByTestId('demo-content-viewport').props.style).overflow).toBe('hidden');
-    expect(StyleSheet.flatten(rendered.getByTestId('demo-scroll-surface').props.contentContainerStyle).paddingBottom).toBeGreaterThanOrEqual(109);
-    expect(StyleSheet.flatten(rendered.getByTestId('demo-bottom-navigation').props.style).paddingBottom).toBeGreaterThanOrEqual(42);
+    const pageBottom = StyleSheet.flatten(rendered.getByTestId('demo-scroll-surface').props.contentContainerStyle).paddingBottom;
+    expect(pageBottom).toBe(PAGE_END_CLEARANCE);
+    expect(pageBottom).toBeGreaterThanOrEqual(8);
+    expect(pageBottom).toBeLessThanOrEqual(16);
+    expect(StyleSheet.flatten(rendered.getByTestId('demo-bottom-navigation').props.style).paddingBottom).toBe(navigationBottomPadding(34));
+    expect(rendered.getByTestId('demo-bottom-navigation')).toBeTruthy();
   });
 
   it('gives a selected chat thread a keyboard-safe viewport outside the page scroller', () => {

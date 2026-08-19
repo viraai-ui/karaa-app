@@ -201,7 +201,7 @@ function TicketRow({ onOpen, ticket }: { readonly onOpen: () => void; readonly t
 }
 
 const styles = StyleSheet.create({
-  page: { gap: spacing.sm, paddingBottom: spacing.xl },
+  page: { gap: spacing.sm },
   headingBlock: { gap: 4 },
   eyebrow: { color: colors.brass, fontSize: 10, fontWeight: '900', letterSpacing: 1.05 },
   title: { color: colors.ink, fontSize: 30, fontWeight: '800', lineHeight: 36 },

@@ -531,7 +531,7 @@ const s = StyleSheet.create({
     position: "absolute",
   },
   compatHit: { minHeight: 44 },
-  page: { gap: 14, paddingBottom: 22 },
+  page: { gap: 14 },
   hero: {
     backgroundColor: "#E8E1D2",
     height: 146,

@@ -9,6 +9,7 @@ import { DemoAppBar, DemoBottomNavigation, DemoWorkspaceSheet } from './OfflineD
 import { OfflineEmployeeViews } from './OfflineEmployeeViews';
 import { OfflineManagementViews } from './OfflineManagementViews';
 import { offlineDemoStore, offlineRoleTabs, type OfflineDemoRole } from './offline-demo';
+import { PAGE_END_CLEARANCE } from './bottom-spacing';
 
 export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole; onSwitchRole: (role: OfflineDemoRole) => void }) {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -46,7 +47,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
             style={[
               styles.chatKeyboardSurface,
               {
-                paddingBottom: 75 + 8 + insets.bottom,
+                paddingBottom: PAGE_END_CLEARANCE,
                 paddingLeft: spacing.md + insets.left,
                 paddingRight: spacing.md + insets.right,
               },
@@ -60,7 +61,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
             contentContainerStyle={[
               styles.content,
               {
-                paddingBottom: 75 + 8 + insets.bottom + spacing.lg,
+                paddingBottom: PAGE_END_CLEARANCE,
                 paddingLeft: spacing.md + insets.left,
                 paddingRight: spacing.md + insets.right,
               },
@@ -84,5 +85,5 @@ const styles = StyleSheet.create({
   contentViewport: { flex: 1, overflow: 'hidden' },
   chatKeyboardSurface: { flex: 1, paddingTop: spacing.md },
   scrollView: { flex: 1 },
-  content: { gap: spacing.md, padding: spacing.md, paddingBottom: spacing.xl },
+  content: { gap: spacing.md, padding: spacing.md },
 });
