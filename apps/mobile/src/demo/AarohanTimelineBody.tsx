@@ -682,12 +682,6 @@ function Entry({ item, last, openGallery, openLightbox, openPdf, index, reducedM
               openGallery={openGallery}
               openLightbox={openLightbox}
             />
-            <Action
-              label="View 4 Photos"
-              text="View 4 photos"
-              icon="photo"
-              onPress={() => openGallery("site")}
-            />
           </View>
         )}
         {item.variant === "mobilisation" && (
