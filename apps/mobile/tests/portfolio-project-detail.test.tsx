@@ -5,6 +5,13 @@ import {
   offlineDemoReducer,
 } from "../src/demo/offline-demo";
 import {
+  aarohanTimeline,
+  projectDetailResponsiveMetrics,
+  projectDetailTabs,
+  projectTimelineFilters,
+  s as projectDetailStyles,
+} from "../src/demo/PortfolioProjectDetail";
+import {
   portfolioForProjectId,
   portfolioProjectForId,
   subverticalPortfolios,
@@ -23,6 +30,25 @@ function projectState(id: string) {
   return offlineDemoReducer(state, { type: "select-project", projectId: id });
 }
 describe("portfolio project timeline experience", () => {
+  it("defines the reusable six-variant timeline and narrow-screen metrics", () => {
+    expect(aarohanTimeline.map((item) => item.variant)).toEqual([
+      "current", "foundation", "site", "mobilisation", "approvals", "upcoming",
+    ]);
+    expect(new Set(aarohanTimeline.map((item) => item.variant))).toHaveProperty("size", 6);
+    expect(projectDetailTabs).toEqual(["timeline", "overview", "documents", "media"]);
+    expect(projectTimelineFilters).toHaveLength(4);
+    expect(projectDetailResponsiveMetrics.supportedWidths).toEqual([360, 390, 430]);
+    expect(projectDetailResponsiveMetrics.filterMinFont).toBeGreaterThanOrEqual(10);
+    expect(projectDetailResponsiveMetrics.touchTarget).toBe(44);
+    expect(projectDetailStyles.page).not.toHaveProperty("backgroundColor", "#090A09");
+  });
+  it("keeps the timeline body free of the removed black breadcrumb chrome", () => {
+    const state = projectState("aarohan-medical-city-pune");
+    const view = render(<DemoExplorer state={state} onAction={jest.fn()} />);
+    expect(view.queryByText(/HEALTHCARE \/ MULTI-SPECIALTY HOSPITALS/)).toBeNull();
+    expect(view.getByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeTruthy();
+    aarohanTimeline.forEach((item) => expect(view.getByTestId(`timeline-variant-${item.variant}`)).toBeTruthy());
+  });
   it("resolves all 108 records into their correct hierarchy", () => {
     const projects = subverticalPortfolios.flatMap((page) => page.projects);
     expect(projects).toHaveLength(108);
