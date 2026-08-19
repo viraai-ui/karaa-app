@@ -6,6 +6,7 @@ import type { Conversation, CurrentLocation } from '@karaa/contracts/events';
 
 import { EmptyState } from '../../components/EmptyState';
 import { StatusPill } from '../../components/StatusPill';
+import { KaraaBrand } from '../../components/KaraaBrand';
 import { ProjectConversation } from '../conversations/ProjectConversation';
 import { ApiError } from '../../lib/api';
 import { type RealtimeSession, type RealtimeSubscriber, useRealtimeRefresh } from '../../lib/realtime';
@@ -274,7 +275,7 @@ function ReadyWorkspace({ summary, createIssue, resolveIssue, refresh, loadProje
 
   const attentionCount = summary.projects.reduce((total, project) => total + project.openIssueCount, 0);
   return <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea} testID="management-safe-area"><ScrollView contentContainerStyle={styles.content} style={styles.page}><View style={styles.column}>
-    <View style={styles.header}><Text style={styles.brand}>KARAA</Text><StatusPill label="Management record" tone="structural" /></View>
+    <View style={styles.header}><KaraaBrand height={18} variant="wordmark" /><StatusPill label="Management record" tone="structural" /></View>
     <View style={styles.intro}><Text style={styles.eyebrow}>PROJECT INTELLIGENCE</Text><Text style={styles.title}>Command Centre</Text><Text style={styles.copy}>Prioritize recorded evidence, accountable exceptions, and the next field decision.</Text></View>
     <View style={styles.portfolioStrip}><View><Text style={styles.metric}>{summary.projects.length}</Text><Text style={styles.metricLabel}>authorized projects</Text></View><View style={styles.metricRule} /><View><Text style={styles.metric}>{attentionCount}</Text><Text style={styles.metricLabel}>{attentionCount === 1 ? 'open intervention' : 'open interventions'}</Text></View></View>
     <View style={styles.section}><Text style={styles.sectionLabel}>PRIORITY PROJECT</Text><View style={styles.projectHeader}><View style={styles.projectTitleGroup}><Text style={styles.projectTitle}>{primary.name}</Text><Text style={styles.vertical}>{primary.verticalName}</Text></View><StatusPill label={primary.priority === 'attention' ? 'Attention' : primary.priority === 'healthy' ? 'Current' : 'Needs field record'} tone={priorityTone(primary.priority)} /></View><View style={styles.progressLine}><View style={[styles.progressFill, { width: `${primary.progress}%` }]} /></View><Text testID="priority-project-freshness" style={styles.progressCopy}>{primary.progress}% delivery recorded · {formatFreshness(primary.latestUpdateAt)}</Text></View>

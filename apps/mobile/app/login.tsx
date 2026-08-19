@@ -7,6 +7,7 @@ import { ApiError, login } from '../src/lib/api';
 import { demoVisualAssets } from '../src/demo/demo-visual-assets';
 import { demoAccounts, offlineDemoModeEnabled, type OfflineDemoAccount } from '../src/demo/offline-demo';
 import { loadSession, saveSession, selectRoleRoute } from '../src/lib/session';
+import { KaraaBrand } from '../src/components/KaraaBrand';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -26,8 +27,8 @@ function OfflineAccountSelector({ onSelect }: { onSelect: (account: OfflineDemoA
   return (
     <View style={styles.demoPage}>
       <View style={styles.demoMasthead}>
-        <View style={styles.demoMark}><Text style={styles.demoMarkText}>K</Text></View>
-        <View style={styles.demoBrandBlock}><Text style={styles.demoBrand}>Karaa Global</Text><Text style={styles.demoBrandRule}>PROJECT INTELLIGENCE</Text></View>
+        <KaraaBrand height={32} variant="crown" />
+        <View style={styles.demoBrandBlock}><KaraaBrand height={14} variant="wordmark" /><Text style={styles.demoBrandRule}>PROJECT INTELLIGENCE</Text></View>
       </View>
       <View style={styles.demoHero}>
         <Text style={styles.demoEyebrow}>SECURE PROJECT ACCESS</Text>
@@ -56,7 +57,7 @@ function OfflineAccountSelector({ onSelect }: { onSelect: (account: OfflineDemoA
           ))}
         </View>
       </View>
-      <View style={styles.demoFooter} testID="demo-entry-footer"><Text style={styles.demoFooterText}>KARAA GLOBAL · AMARAVATI SOLAR COMMONS</Text></View>
+      <View style={styles.demoFooter} testID="demo-entry-footer"><KaraaBrand height={9} variant="wordmark" /><Text style={styles.demoFooterText}>· AMARAVATI SOLAR COMMONS</Text></View>
     </View>
   );
 }
@@ -91,7 +92,7 @@ function ServerLoginForm({ onRoute }: { onRoute: (pathname: string) => void }) {
 
   return (
     <View style={styles.page}>
-      <Text style={styles.eyebrow}>KARAA</Text>
+      <KaraaBrand height={24} variant="wordmark" />
       <Text style={styles.title}>Sign in to your workspace</Text>
       <Text style={styles.copy}>Your role is assigned by the server. There is no role selector here.</Text>
       <View style={styles.field}>
@@ -158,6 +159,6 @@ const styles = StyleSheet.create({
   alternativeRole: { color: '#B7B6AF', fontSize: 8, fontWeight: '900', letterSpacing: .55, width: 118 },
   alternativeName: { color: colors.paper, flex: 1, fontSize: 11, fontWeight: '800' },
   accountChevron: { color: colors.brass, fontSize: 20, fontWeight: '500' },
-  demoFooter: { borderTopColor: '#383934', borderTopWidth: 1, marginTop: 'auto', paddingVertical: 8 },
+  demoFooter: { alignItems: 'center', borderTopColor: '#383934', borderTopWidth: 1, flexDirection: 'row', gap: 5, justifyContent: 'center', marginTop: 'auto', paddingVertical: 8 },
   demoFooterText: { color: '#AAA69E', fontSize: 8, fontWeight: '800', letterSpacing: .7, textAlign: 'center' },
 });

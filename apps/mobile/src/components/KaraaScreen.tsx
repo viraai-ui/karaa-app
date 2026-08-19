@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, layout, radii, spacing } from '../theme/tokens';
 import { EmptyState } from './EmptyState';
 import { StatusPill } from './StatusPill';
+import { KaraaBrand } from './KaraaBrand';
 
 const operatingLoop = [
   {
@@ -53,7 +54,7 @@ export function KaraaScreen() {
       >
         <View style={styles.column} testID="tour-column">
       <View style={styles.header}>
-        <Text style={styles.brand}>KARAA</Text>
+        <KaraaBrand height={18} variant="wordmark" />
         <StatusPill label="Public tour · read only" tone="structural" />
       </View>
 

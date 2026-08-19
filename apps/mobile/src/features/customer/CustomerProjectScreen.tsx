@@ -6,6 +6,7 @@ import type { Conversation } from '@karaa/contracts/events';
 
 import { EmptyState } from '../../components/EmptyState';
 import { StatusPill } from '../../components/StatusPill';
+import { KaraaBrand } from '../../components/KaraaBrand';
 import { ApiError, apiBaseUrl } from '../../lib/api';
 import { type RealtimeSession, type RealtimeSubscriber, useRealtimeRefresh } from '../../lib/realtime';
 import { loadSession } from '../../lib/session';
@@ -124,7 +125,7 @@ function CustomerEvidence({
       <ScrollView contentContainerStyle={styles.content} style={styles.page}>
         <View style={styles.column}>
         <View style={styles.header}>
-          <Text style={styles.brand}>KARAA</Text>
+          <KaraaBrand height={18} variant="wordmark" />
           <StatusPill label="Customer record" tone="structural" />
         </View>
 

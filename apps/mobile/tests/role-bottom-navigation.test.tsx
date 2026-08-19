@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineAppShell } from '../src/demo/OfflineAppShell';
+import { CUSTOMER_NAV_INACTIVE } from '../src/demo/CustomerNavIcons';
+import { colors } from '../src/theme/tokens';
 import {
   createOfflineDemoState,
   offlineDemoReducer,
@@ -49,6 +51,32 @@ describe('canonical role bottom navigation', () => {
       expect(bottomTabs(screen).filter((tab) => tab.props.accessibilityState.selected)).toHaveLength(1);
       if (label !== 'Chat') expect(screen.getAllByText(label).length).toBeGreaterThan(1);
     }
+  });
+
+  it('renders the four customer-only reference icons in canonical order with visual semantics', () => {
+    const screen = render(<Shell role="customer" />);
+    const icons = ['power', 'tenders', 'portfolio', 'support'] as const;
+    expect(icons.map((key) => screen.getByTestId(`customer-nav-icon-${key}`).props.accessibilityLabel)).toEqual([
+      'Power of 9 grid icon', 'Tenders document icon', 'My Portfolio briefcase icon', 'Support headset icon',
+    ]);
+    icons.forEach((key) => expect(screen.getByTestId(`customer-nav-icon-${key}`).props.accessibilityRole).toBe('image'));
+    expect(screen.getAllByTestId(/customer-nav-power-dot-/)).toHaveLength(9);
+    expect(screen.getByTestId('customer-nav-power-dot-1')).toHaveStyle({ backgroundColor: colors.brass });
+    expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(CUSTOMER_NAV_INACTIVE);
+  });
+
+  it('switches customer icon colors and preserves icon order', () => {
+    const screen = render(<Shell role="customer" />);
+    fireEvent.press(screen.getByRole('tab', { name: 'Tenders' }));
+    expect(screen.getByTestId('customer-nav-power-dot-1')).toHaveStyle({ backgroundColor: CUSTOMER_NAV_INACTIVE });
+    expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(colors.brass);
+    expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.customer);
+  });
+
+  it.each(['employee', 'management'] as const)('does not leak customer icon components into %s navigation', (role) => {
+    const screen = render(<Shell role={role} />);
+    expect(screen.queryAllByTestId(/customer-nav-icon-/)).toHaveLength(0);
+    offlineRoleTabs[role].forEach((tab) => expect(screen.getByTestId(`role-nav-icon-${tab.key}`)).toBeTruthy());
   });
 
   it('resets nested state when changing tabs while preserving the owning active tab on detail back', () => {

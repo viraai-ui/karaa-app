@@ -92,7 +92,7 @@ describe('LoginScreen', () => {
     process.env.EXPO_PUBLIC_KARAA_DEMO_MODE = 'true';
     const rendered = render(<LoginScreen />);
 
-    expect(rendered.getByText('Karaa Global')).toBeTruthy();
+    expect(rendered.getAllByLabelText('Karaa Global').length).toBeGreaterThan(0);
     expect(rendered.getByText('SECURE PROJECT ACCESS')).toBeTruthy();
     expect(rendered.getByText('Welcome back.')).toBeTruthy();
     expect(rendered.getByText('Choose a workspace')).toBeTruthy();

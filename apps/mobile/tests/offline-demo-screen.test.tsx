@@ -26,7 +26,7 @@ describe('Karaa Global role demo surfaces', () => {
   it('renders a Karaa Global shell with a workspace switcher and no implementation badge', () => {
     const rendered = renderDemoShell(<OfflineAppShell role="employee" onSwitchRole={jest.fn()} />);
 
-    expect(rendered.getByText('KARAA')).toBeTruthy();
+    expect(rendered.getAllByLabelText('Karaa Global').length).toBeGreaterThan(0);
     expect(rendered.getByRole('button', { name: 'Switch workspace' })).toBeTruthy();
     expect(rendered.getByRole('tab', { name: 'My Tasks' })).toBeTruthy();
     expect(rendered.queryByText(/offline presentation|local session|presentation session/i)).toBeNull();

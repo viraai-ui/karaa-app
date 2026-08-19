@@ -69,7 +69,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
           </ScrollView>
         )}
       </View>
-      <DemoBottomNavigation onSelect={(tab) => offlineDemoStore.dispatch({ type: 'select-tab', tab })} selectedTab={state.selectedTab} tabs={offlineRoleTabs[role]} />
+      <DemoBottomNavigation onSelect={(tab) => offlineDemoStore.dispatch({ type: 'select-tab', tab })} role={role} selectedTab={state.selectedTab} tabs={offlineRoleTabs[role]} />
       {workspaceOpen ? <DemoWorkspaceSheet onDismiss={() => setWorkspaceOpen(false)} onSelect={(nextRole) => { setWorkspaceOpen(false); onSwitchRole(nextRole); }} /> : null}
     </View>
   );

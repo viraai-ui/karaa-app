@@ -6,7 +6,10 @@ describe('Android-first native app configuration', () => {
     expect(appConfig.expo.scheme).toBe('karaa');
     expect(appConfig.expo.android?.package).toBe('com.karaa.mobile');
     expect(appConfig.expo.platforms).toEqual(['android', 'web']);
-    expect(appConfig.expo.web).toEqual({ bundler: 'metro', output: 'single' });
+    expect(appConfig.expo.web).toEqual({ bundler: 'metro', output: 'single', favicon: './assets/brand/favicon.png' });
+    expect(appConfig.expo.icon).toBe('./assets/brand/app-icon.png');
+    expect(appConfig.expo.android?.adaptiveIcon).toEqual({ foregroundImage: './assets/brand/adaptive-icon.png', backgroundColor: '#050605' });
+    expect(appConfig.expo.splash).toEqual({ image: './assets/brand/splash-icon.png', resizeMode: 'contain', backgroundColor: '#050605' });
   });
 
   it('uses the release manifest plugin for the documented local HTTP demo API', () => {

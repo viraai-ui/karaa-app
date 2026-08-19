@@ -7,6 +7,7 @@ import type { ProgressUpdateCreatedEvent } from '@karaa/contracts/events';
 
 import { EmptyState } from '../../components/EmptyState';
 import { StatusPill } from '../../components/StatusPill';
+import { KaraaBrand } from '../../components/KaraaBrand';
 import { ProjectConversation } from '../conversations/ProjectConversation';
 import { ApiError } from '../../lib/api';
 import { type RealtimeSession, type RealtimeSubscriber, useRealtimeRefresh } from '../../lib/realtime';
@@ -339,7 +340,7 @@ export function EmployeeWorkScreen({
       <ScrollView contentContainerStyle={styles.content} style={styles.page} keyboardShouldPersistTaps="handled">
         <View style={styles.column}>
           <View style={styles.header}>
-            <Text style={styles.brand}>KARAA</Text>
+            <KaraaBrand height={18} variant="wordmark" />
             <StatusPill label="Field record" tone="structural" />
           </View>
 
