@@ -41,7 +41,7 @@ describe("portfolio project timeline experience", () => {
     expect(new Set(aarohanTimeline.map((item) => item.variant))).toHaveProperty("size", 6);
     expect(projectDetailTabs).toEqual(["timeline", "overview", "documents", "media"]);
     expect(projectTimelineFilters).toHaveLength(4);
-    expect(projectDetailResponsiveMetrics.supportedWidths).toEqual([360, 390, 430]);
+    expect(projectDetailResponsiveMetrics.supportedWidths).toEqual([320, 360, 390, 430]);
     expect(projectDetailResponsiveMetrics.filterMinFont).toBeGreaterThanOrEqual(10);
     expect(projectDetailResponsiveMetrics.touchTarget).toBe(44);
     expect(projectDetailStyles.page).not.toHaveProperty("backgroundColor", "#090A09");
@@ -62,7 +62,7 @@ describe("portfolio project timeline experience", () => {
     const view = render(<DemoExplorer state={state} onAction={jest.fn()} />);
     expect(view.queryByText(/HEALTHCARE \/ MULTI-SPECIALTY HOSPITALS/)).toBeNull();
     expect(view.queryByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeNull();
-    expect(view.getByTestId("aarohan-timeline-body").children.slice(0, 3).map(child => typeof child === "string" ? child : child.props.testID)).toEqual([
+    expect(view.getByTestId("universal-project-timeline").children.slice(0, 3).map(child => typeof child === "string" ? child : child.props.testID)).toEqual([
       "aarohan-back-control", "aarohan-post-back-gap", "aarohan-project-summary",
     ]);
     aarohanTimeline.forEach((item) => expect(view.getByTestId(`timeline-variant-${item.variant}`)).toBeTruthy());
@@ -172,7 +172,7 @@ describe("portfolio project timeline experience", () => {
     expect(aarohanGallerySizes).toEqual({ current: 8, foundation: 5, site: 4 });
     expect(aarohanVisualMetrics.actionHeight).toBeGreaterThanOrEqual(44);
     const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={jest.fn()} />);
-    expect(view.getByTestId("aarohan-timeline-body")).toBeTruthy();
+    expect(view.getByTestId("universal-project-timeline")).toBeTruthy();
     fireEvent.press(view.getByLabelText("Open 8 photo gallery"));
     expect(view.getAllByLabelText(/Enlarge photo .* of 8/)).toHaveLength(8);
     fireEvent.press(view.getByLabelText("Enlarge photo 4 of 8"));
@@ -236,11 +236,46 @@ describe("portfolio project timeline experience", () => {
     const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={jest.fn()} />);
     expect(view.getByTestId("aarohan-summary-metrics")).toBeTruthy();
   });
-  it("does not apply the Aarohan body to other project details", () => {
-    const other = subverticalPortfolios.flatMap(page => page.projects).find(project => project.id !== "aarohan-medical-city-pune")!;
-    const view = render(<DemoExplorer state={projectState(other.id)} onAction={jest.fn()} />);
-    expect(view.queryByTestId("aarohan-timeline-body")).toBeNull();
-    expect(view.getByTestId(`project-detail-${other.id}`)).toBeTruthy();
+  it("routes all 108 projects through the sole universal timeline with dynamic data and back navigation", () => {
+    const projects = subverticalPortfolios.flatMap(page => page.projects.map(project => ({ page, project })));
+    expect(projects).toHaveLength(108);
+    projects.forEach(({ page, project }) => {
+      const onAction = jest.fn();
+      const view = render(<DemoExplorer state={projectState(project.id)} onAction={onAction} />);
+      expect(view.getByTestId("universal-project-timeline")).toBeTruthy();
+      expect(view.queryByTestId(`project-detail-${project.id}`)).toBeNull();
+      expect(view.getByText(page.title.toUpperCase())).toBeTruthy();
+      expect(view.getByText(project.name)).toBeTruthy();
+      expect(view.getByText(project.location)).toBeTruthy();
+      expect(view.getByText(`${project.progress}%`)).toBeTruthy();
+      expect(view.getByText(String(project.openingYear))).toBeTruthy();
+      if (project.id !== "aarohan-medical-city-pune") {
+        expect(view.getByText(`${project.currentMilestone} reaches the next delivery stage`)).toBeTruthy();
+      }
+      expect(view.queryByTestId("next-milestone-bar")).toBeNull();
+      expect(view.getByTestId("timeline-variant-site")).toBeTruthy();
+      fireEvent.press(view.getByLabelText(`Back to ${page.title}`));
+      expect(onAction).toHaveBeenLastCalledWith({ type: "return-to-subvertical" });
+      view.unmount();
+    });
+  });
+  it("smoke-tests universal galleries and PDF actions for every vertical", async () => {
+    const representatives = [...new Map(
+      subverticalPortfolios.map(page => [page.verticalId, page.projects[0]]),
+    ).values()];
+    for (const project of representatives) {
+      const media = render(<DemoExplorer state={{ ...projectState(project.id), selectedProjectDetailTab: "media" }} onAction={jest.fn()} />);
+      expect(media.getByTestId("universal-project-timeline")).toBeTruthy();
+      fireEvent.press(media.getByLabelText("Open project photo 1"));
+      expect(media.getByLabelText("Enlarged photo 1 of 8")).toBeTruthy();
+      fireEvent.press(media.getByLabelText("Close preview"));
+      media.unmount();
+
+      const documents = render(<DemoExplorer state={{ ...projectState(project.id), selectedProjectDetailTab: "documents" }} onAction={jest.fn()} />);
+      fireEvent.press(documents.getByLabelText("Open Site report PDF"));
+      await waitFor(() => expect(Linking.openURL).toHaveBeenCalled());
+      documents.unmount();
+    }
   });
   it("renders overview, documents and media with honest previews", async () => {
     for (const tab of ["overview", "documents", "media"] as const) {
