@@ -17,7 +17,7 @@ describe.each(verticalDetails)('$title universal vertical detail', (vertical) =>
     expect(screen.queryByRole('button',{name:'Back to Power of 9'})).toBeNull();
     removedMetadata.forEach(value => expect(screen.queryByText(value)).toBeNull());
     expect(StyleSheet.flatten(screen.getByTestId('vertical-hero').props.style)).toMatchObject({height:202});
-    expect(StyleSheet.flatten(screen.getByTestId('vertical-hero-title').props.style)).toMatchObject({fontSize:25,lineHeight:24});
+    expect(StyleSheet.flatten(screen.getByTestId('vertical-hero-title').props.style)).toMatchObject({fontSize:['ports-airports-logistics','manufacturing-industrial-solutions'].includes(vertical.id)?22:25,lineHeight:['ports-airports-logistics','manufacturing-industrial-solutions'].includes(vertical.id)?22:24});
     expect(screen.getByTestId('vertical-hero-title').props).toMatchObject({adjustsFontSizeToFit:true,minimumFontScale:.72,numberOfLines:3});
     expect(StyleSheet.flatten(screen.getByText('Choose a pathway').props.style)).toMatchObject({fontSize:22,lineHeight:25});
     vertical.pathways.forEach((pathway,index) => {
