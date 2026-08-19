@@ -3,8 +3,8 @@ import { AccessibilityInfo, Animated, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
 import {
   currentTimelineFraction,
-  HOSPITAL_TIMELINE_HEIGHT,
-  HOSPITAL_TIMELINE_NODE_SIZE,
+  PORTFOLIO_TIMELINE_HEIGHT,
+  PORTFOLIO_TIMELINE_NODE_SIZE,
   timelineConnectorHeight,
   timelineRowStep,
 } from "../src/demo/SubverticalProjectPage";
@@ -13,9 +13,14 @@ import {
   offlineDemoReducer,
 } from "../src/demo/offline-demo";
 import {
+  portfolioForProjectId,
+  portfolioProjectForId,
+  slugify,
   subverticalPortfolioForId,
+  subverticalPortfolioForPathway,
   subverticalPortfolios,
 } from "../src/demo/subvertical-projects";
+import { verticalDetails } from "../src/demo/vertical-detail";
 
 const verticalState = (verticalId: string) =>
   offlineDemoReducer(createOfflineDemoState(), {
@@ -43,6 +48,9 @@ describe("36 sub-vertical project portfolios", () => {
   it("resolves 36 unique pages with three complete project records each", () => {
     expect(subverticalPortfolios).toHaveLength(36);
     expect(new Set(subverticalPortfolios.map((item) => item.id)).size).toBe(36);
+    const allProjects = subverticalPortfolios.flatMap(page => page.projects);
+    expect(allProjects).toHaveLength(108);
+    expect(new Set(allProjects.map(project => project.id)).size).toBe(108);
     subverticalPortfolios.forEach((page) => {
       expect(subverticalPortfolioForId(page.id)).toBe(page);
       expect(page.title).toBeTruthy();
@@ -54,10 +62,64 @@ describe("36 sub-vertical project portfolios", () => {
         expect(project.progress).toBeGreaterThan(0);
         expect(project.update).toBeTruthy();
         expect(project.currentMilestone).toBeTruthy();
-        expect(project.stages.length).toBeGreaterThanOrEqual(4);
+        expect(project.stages).toHaveLength(6);
+        expect(project.stages.filter(stage => stage.endsWith(" NOW"))).toHaveLength(1);
+        expect(project.description).toBeTruthy();
         expect(project.completedActivity).toBeTruthy();
         expect(project.openingYear).toBeTruthy();
         expect(project.image).toBeTruthy();
+      });
+    });
+  });
+
+  it("maps exactly four pathway routes for each of the nine verticals and accepts every hierarchy in the reducer", () => {
+    expect(verticalDetails).toHaveLength(9);
+    verticalDetails.forEach((vertical) => {
+      expect(vertical.pathways).toHaveLength(4);
+      const ownedPages = subverticalPortfolios.filter(page => page.verticalId === vertical.id);
+      expect(ownedPages).toHaveLength(4);
+      vertical.pathways.forEach((pathway, pathwayIndex) => {
+        const page = subverticalPortfolioForPathway(vertical.id, pathway.title);
+        expect(page).toMatchObject({
+          verticalId: vertical.id,
+          pathwayNumber: String(pathwayIndex + 1).padStart(2, "0"),
+          title: pathway.title,
+        });
+        expect(page.id).toBe(pathway.routeId ?? slugify(pathway.title));
+        const accepted = pageState(vertical.id, page.id);
+        expect(accepted).toMatchObject({
+          surface: "subvertical",
+          selectedVerticalId: vertical.id,
+          selectedSubverticalId: page.id,
+          selectedProjectId: null,
+        });
+      });
+    });
+  });
+
+  it("opens every timeline on an existing owned project and reducer back restores its exact portfolio", () => {
+    subverticalPortfolios.forEach((page) => {
+      page.projects.forEach((project) => {
+        expect(portfolioProjectForId(project.id)).toBe(project);
+        expect(portfolioForProjectId(project.id)).toBe(page);
+        const opened = offlineDemoReducer(pageState(page.verticalId, page.id), {
+          type: "select-project",
+          projectId: project.id,
+        });
+        expect(opened).toMatchObject({
+          surface: "project",
+          selectedVerticalId: page.verticalId,
+          selectedSubverticalId: page.id,
+          selectedProjectId: project.id,
+          selectedProjectDetailTab: "timeline",
+        });
+        const returned = offlineDemoReducer(opened, { type: "return-to-subvertical" });
+        expect(returned).toMatchObject({
+          surface: "subvertical",
+          selectedVerticalId: page.verticalId,
+          selectedSubverticalId: page.id,
+          selectedProjectId: null,
+        });
       });
     });
   });
@@ -167,8 +229,8 @@ describe("36 sub-vertical project portfolios", () => {
   it("matches the hospital screenshot structure without a redundant current-update block", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(rendered.getByTestId("hospital-hero")).toBeTruthy();
-    expect(rendered.getByTestId("hospital-metrics")).toBeTruthy();
+    expect(rendered.getByTestId("portfolio-hero")).toBeTruthy();
+    expect(rendered.getByTestId("portfolio-metrics")).toBeTruthy();
     expect(rendered.getAllByTestId("project-timeline")).toHaveLength(3);
     page.projects.forEach(project => expect(project.stages).toHaveLength(6));
     expect(rendered.getByText("Track every hospital from construction to opening.")).toBeTruthy();
@@ -181,12 +243,12 @@ describe("36 sub-vertical project portfolios", () => {
   it("uses one full-width hospital hero image and one smooth stretched fade", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    const hero = rendered.getByTestId("hospital-hero");
-    const background = rendered.getByTestId("hospital-hero-background");
-    const fade = rendered.getByTestId("hospital-hero-fade");
+    const hero = rendered.getByTestId("portfolio-hero");
+    const background = rendered.getByTestId("portfolio-hero-background");
+    const fade = rendered.getByTestId("portfolio-hero-fade");
 
-    expect(within(hero).getAllByTestId("hospital-hero-background")).toHaveLength(1);
-    expect(within(hero).getAllByTestId("hospital-hero-fade")).toHaveLength(1);
+    expect(within(hero).getAllByTestId("portfolio-hero-background")).toHaveLength(1);
+    expect(within(hero).getAllByTestId("portfolio-hero-fade")).toHaveLength(1);
     expect(background.props.resizeMode).toBe("cover");
     expect(background.props.style).toEqual(expect.objectContaining({
       left: 0,
@@ -261,8 +323,8 @@ describe("36 sub-vertical project portfolios", () => {
   it("uses smaller nodes and exact gap-only connector geometry on all three cards", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(HOSPITAL_TIMELINE_HEIGHT).toBe(176);
-    expect(HOSPITAL_TIMELINE_NODE_SIZE).toBe(22);
+    expect(PORTFOLIO_TIMELINE_HEIGHT).toBe(176);
+    expect(PORTFOLIO_TIMELINE_NODE_SIZE).toBe(22);
     expect(timelineRowStep(6)).toBeCloseTo(30.8);
     expect(timelineConnectorHeight(6)).toBeCloseTo(8.8);
     rendered.getAllByTestId("project-timeline").forEach(timeline => {
@@ -311,11 +373,13 @@ describe("36 sub-vertical project portfolios", () => {
     setValue.mockRestore();
   });
 
-  it("keeps another subvertical on the unchanged generic structure", () => {
+  it("uses the universal portfolio structure for every subvertical", () => {
     const page = subverticalPortfolios.find(item => item.id !== "multi-specialty-hospitals")!;
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(rendered.queryByTestId("hospital-hero")).toBeNull();
+    expect(rendered.getByTestId("portfolio-hero")).toBeTruthy();
+    expect(rendered.getByTestId("portfolio-metrics")).toBeTruthy();
     expect(rendered.getByText(page.subtitle)).toBeTruthy();
     expect(rendered.getAllByTestId(/portfolio-project-/)).toHaveLength(3);
+    expect(rendered.getAllByTestId("project-timeline")).toHaveLength(3);
   });
 });

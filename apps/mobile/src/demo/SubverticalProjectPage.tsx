@@ -19,7 +19,7 @@ import {
   type SubverticalPortfolio,
 } from "./subvertical-projects";
 
-const hospitalHeroFade = require("../../assets/subverticals/multi-specialty-hospitals/hero-left-fade.png");
+const portfolioHeroFade = require("../../assets/subverticals/multi-specialty-hospitals/hero-left-fade.png");
 
 const filters: readonly ("All" | PortfolioStatus)[] = [
   "All",
@@ -48,116 +48,21 @@ export function SubverticalProjectPage({
       ),
     [data.projects, filter, query],
   );
-  const average = Math.round(
-    data.projects.reduce((sum, p) => sum + p.progress, 0) /
-      data.projects.length,
-  );
-  if (data.id === "multi-specialty-hospitals") {
-    return (
-      <HospitalPortfolioPage
-        data={data}
-        filter={filter}
-        onAction={onAction}
-        query={query}
-        setFilter={setFilter}
-        setQuery={setQuery}
-        visible={visible}
-      />
-    );
-  }
+
   return (
-    <View style={styles.page} testID={`subvertical-projects-${data.id}`}>
-      <Pressable
-        accessibilityLabel={`Back to ${data.verticalTitle}`}
-        accessibilityRole="button"
-        hitSlop={{ bottom: 1, top: 1 }}
-        onPress={() =>
-          onAction({ type: "select-vertical", verticalId: data.verticalId })
-        }
-        style={styles.back}
-      >
-        <Text style={styles.backArrow}>‹</Text>
-        <Text style={styles.backLabel}>{data.verticalTitle.toUpperCase()}</Text>
-      </Pressable>
-      <View style={styles.hero}>
-        <View style={styles.heroCopy}>
-          <Text style={styles.eyebrow}>
-            {data.verticalTitle.toUpperCase()} / {data.pathwayNumber}
-          </Text>
-          <Text style={styles.title}>{data.title}</Text>
-          <Text style={styles.subtitle}>{data.subtitle}</Text>
-        </View>
-        <Image
-          accessibilityLabel={`${data.title} projects`}
-          resizeMode="cover"
-          source={data.hero}
-          style={styles.heroImage}
-        />
-      </View>
-      <View style={styles.summary}>
-        <Metric value="03" label="Projects" />
-        <Metric value={`${average}%`} label="Average Progress" />
-        <Metric value={data.horizon} label="Horizon" last />
-      </View>
-      <View style={styles.controls}>
-        <View style={styles.search}>
-          <Text style={styles.searchIcon}>⌕</Text>
-          <TextInput
-            accessibilityLabel={`Search ${data.searchCategory}`}
-            onChangeText={setQuery}
-            placeholder={data.searchPlaceholder}
-            placeholderTextColor="#8A867E"
-            style={styles.input}
-            value={query}
-          />
-        </View>
-        <View style={styles.filters}>
-          {filters.map((item) => (
-            <Pressable
-              accessibilityLabel={`Filter ${item}`}
-              accessibilityRole="button"
-              accessibilityState={{ selected: filter === item }}
-              key={item}
-              onPress={() => setFilter(item)}
-              style={styles.chipTarget}
-            >
-              <View style={[styles.chip, filter === item && styles.chipActive]}>
-                <Text
-                  style={[
-                    styles.chipText,
-                    filter === item && styles.chipTextActive,
-                  ]}
-                >
-                  {item === "On Track"
-                    ? "●  "
-                    : item === "In Progress"
-                      ? "■  "
-                      : ""}
-                  {item}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-      <View style={styles.body}>
-        <Text style={styles.sectionTitle}>Active Projects</Text>
-        <View style={styles.list}>
-          {visible.map((project) => (
-            <ProjectCard key={project.id} project={project} onAction={onAction} />
-          ))}
-        </View>
-        {visible.length === 0 ? (
-          <Text style={styles.empty}>
-            No projects match your search and filter.
-          </Text>
-        ) : null}
-      </View>
-    </View>
+    <SubverticalPortfolioPage
+      data={data}
+      filter={filter}
+      onAction={onAction}
+      query={query}
+      setFilter={setFilter}
+      setQuery={setQuery}
+      visible={visible}
+    />
   );
 }
 
-type HospitalPageProps = {
+type PortfolioPageProps = {
   data: SubverticalPortfolio;
   filter: (typeof filters)[number];
   onAction: (action: OfflineDemoAction) => void;
@@ -176,44 +81,44 @@ function LineIcon({ kind }: { kind: "search" | "calendar" }) {
   );
 }
 
-function HospitalPortfolioPage({ data, filter, onAction, query, setFilter, setQuery, visible }: HospitalPageProps) {
+function SubverticalPortfolioPage({ data, filter, onAction, query, setFilter, setQuery, visible }: PortfolioPageProps) {
   return (
     <View style={styles.hPage} testID={`subvertical-projects-${data.id}`}>
       <Pressable accessibilityLabel={`Back to ${data.verticalTitle}`} accessibilityRole="button"
         onPress={() => onAction({ type: "select-vertical", verticalId: data.verticalId })} style={styles.back}>
         <Text style={styles.backArrow}>‹</Text><Text style={styles.backLabel}>{data.verticalTitle.toUpperCase()}</Text>
       </Pressable>
-      <View style={styles.hHero} testID="hospital-hero">
-        <Image accessibilityLabel="Hospital construction site" resizeMode="cover" source={data.hero} style={styles.hHeroImage} testID="hospital-hero-background" />
-        <Image accessible={false} resizeMode="stretch" source={hospitalHeroFade} style={styles.hHeroWash} testID="hospital-hero-fade" />
+      <View style={styles.hHero} testID="portfolio-hero">
+        <Image accessibilityLabel={`${data.title} project portfolio`} resizeMode="cover" source={data.hero} style={styles.hHeroImage} testID="portfolio-hero-background" />
+        <Image accessible={false} resizeMode="stretch" source={portfolioHeroFade} style={styles.hHeroWash} testID="portfolio-hero-fade" />
         <View style={styles.hHeroCopy}>
-          <Text style={styles.hEyebrow}>HEALTHCARE &amp; LIFE SCIENCES  /  01</Text>
-          <Text style={styles.hTitle}>Multi-Specialty Hospitals</Text>
-          <Text style={styles.hSubtitle}>Track every hospital from construction to opening.</Text>
+          <Text numberOfLines={2} style={styles.hEyebrow}>{data.verticalTitle.toUpperCase()}  /  {data.pathwayNumber}</Text>
+          <Text numberOfLines={3} style={styles.hTitle}>{data.title}</Text>
+          <Text numberOfLines={3} style={styles.hSubtitle}>{data.subtitle}</Text>
         </View>
       </View>
-      <View style={styles.hSummary} testID="hospital-metrics">
+      <View style={styles.hSummary} testID="portfolio-metrics">
         <Metric value={String(data.projects.length).padStart(2, "0")} label="Projects" large />
         <Metric value={`${Math.round(data.projects.reduce((sum, project) => sum + project.progress, 0) / data.projects.length)}%`} label="Avg. Progress" large />
         <Metric value={data.horizon} label="Horizon" large last />
       </View>
       <View style={styles.hControls}>
-        <View style={styles.hSearch}><LineIcon kind="search" /><TextInput accessibilityLabel="Search hospitals"
-          onChangeText={setQuery} placeholder="Search hospitals" placeholderTextColor="#89847B" style={styles.hInput} value={query} /></View>
+        <View style={styles.hSearch}><LineIcon kind="search" /><TextInput accessibilityLabel={`Search ${data.searchCategory}`}
+          onChangeText={setQuery} placeholder={data.searchPlaceholder} placeholderTextColor="#89847B" style={styles.hInput} value={query} /></View>
         <View style={styles.hFilters}>{filters.map((item) => <Pressable accessibilityLabel={`Filter ${item}`} accessibilityRole="button"
           accessibilityState={{ selected: filter === item }} key={item} onPress={() => setFilter(item)} style={[styles.hChip, filter === item && styles.hChipActive]}>
           <Text style={[styles.hChipText, filter === item && styles.hChipTextActive]}>{item !== "All" ? "●  " : ""}{item}</Text>
         </Pressable>)}</View>
       </View>
       <View style={styles.hBody}><Text style={styles.hSectionTitle}>Active Projects</Text>
-        <View style={styles.hList}>{visible.map(project => <HospitalProjectCard key={project.id} onAction={onAction} project={project} />)}</View>
+        <View style={styles.hList}>{visible.map(project => <PortfolioProjectCard key={project.id} onAction={onAction} project={project} />)}</View>
         {!visible.length ? <Text style={styles.hEmpty}>No projects match your search and filter.</Text> : null}
       </View>
     </View>
   );
 }
 
-function HospitalProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
+function PortfolioProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
   return <View style={styles.hCard} testID={`portfolio-project-${project.id}`}>
     <View style={styles.hSplitRow} testID={`project-split-${project.id}`}>
       <View style={styles.hImageWrap} testID={`project-image-${project.id}`}>
@@ -222,7 +127,7 @@ function HospitalProjectCard({ project, onAction }: { project: PortfolioProject;
       <View style={styles.hCardLead} testID={`project-summary-${project.id}`}>
         <Text numberOfLines={1} style={styles.hLocation}>{project.location.toUpperCase()}</Text>
         <Text numberOfLines={2} style={styles.hProjectName}>{project.name}</Text>
-        <Text numberOfLines={1} style={styles.hDescription}>Advanced care, thoughtfully designed.</Text>
+        <Text numberOfLines={1} style={styles.hDescription}>{project.description}</Text>
         <View style={styles.hCompactMetrics}>
           <View style={styles.hProgressMetric}><Text style={styles.hProgress}>{project.progress}%</Text><Text style={styles.hMetricCaption}> COMPLETE</Text></View>
           <View style={styles.hOpeningMetric}><Text style={styles.hOpeningYear}>{project.openingYear}</Text><Text style={styles.hMetricCaption}> TARGET</Text></View>
@@ -242,8 +147,8 @@ function HospitalProjectCard({ project, onAction }: { project: PortfolioProject;
   </View>;
 }
 
-export const HOSPITAL_TIMELINE_HEIGHT = 176;
-export const HOSPITAL_TIMELINE_NODE_SIZE = 22;
+export const PORTFOLIO_TIMELINE_HEIGHT = 176;
+export const PORTFOLIO_TIMELINE_NODE_SIZE = 22;
 
 export function currentTimelineFraction(stages: PortfolioProject["stages"]): number {
   const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
@@ -251,11 +156,11 @@ export function currentTimelineFraction(stages: PortfolioProject["stages"]): num
 }
 
 export function timelineRowStep(stageCount: number): number {
-  return (HOSPITAL_TIMELINE_HEIGHT - HOSPITAL_TIMELINE_NODE_SIZE) / Math.max(1, stageCount - 1);
+  return (PORTFOLIO_TIMELINE_HEIGHT - PORTFOLIO_TIMELINE_NODE_SIZE) / Math.max(1, stageCount - 1);
 }
 
 export function timelineConnectorHeight(stageCount: number): number {
-  return timelineRowStep(stageCount) - HOSPITAL_TIMELINE_NODE_SIZE;
+  return timelineRowStep(stageCount) - PORTFOLIO_TIMELINE_NODE_SIZE;
 }
 
 export function VerticalMilestoneTimeline({ stages, status }: { stages: PortfolioProject["stages"]; status: PortfolioStatus }) {
@@ -279,11 +184,11 @@ export function VerticalMilestoneTimeline({ stages, status }: { stages: Portfoli
       const current = index === currentIndex;
       return <Animated.View key={stage} style={[styles.hStage, { opacity: progress.interpolate({ inputRange: [Math.max(0, index / (stages.length - 1) - .08), Math.max(.01, index / (stages.length - 1))], outputRange: [.45, 1], extrapolate: "clamp" }) }]}>
         <View style={[styles.hDot, completed && styles.hDotComplete, current && styles.hDotCurrent]} testID="timeline-node"><Text style={[styles.hNodeText, (completed || current) && styles.hNodeTextActive]}>{completed ? "✓" : index + 1}</Text></View>
-        <Text style={[styles.hStageText, (completed || current) && styles.hStageActive]} testID="timeline-stage-text">{label}</Text>
+        <Text numberOfLines={1} style={[styles.hStageText, (completed || current) && styles.hStageActive]} testID="timeline-stage-text">{label}</Text>
         {current ? <Text style={styles.hStageMarker}>{status === "On Track" ? "ON TRACK" : "IN PROGRESS"}</Text> : null}
         {index < stages.length - 1 ? <View pointerEvents="none" style={[styles.hConnector, {
           height: timelineConnectorHeight(stages.length),
-          top: HOSPITAL_TIMELINE_NODE_SIZE,
+          top: PORTFOLIO_TIMELINE_NODE_SIZE,
         }]} testID="timeline-connector">
           {index < currentIndex ? <Animated.View style={[styles.hConnectorProgress, {
             opacity: progress.interpolate({
@@ -315,91 +220,6 @@ function Metric({
     </View>
   );
 }
-function ProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
-  return (
-    <View style={styles.card} testID={`portfolio-project-${project.id}`}>
-      <View style={styles.cardTop}>
-        <Image
-          accessibilityLabel={`${project.name} site`}
-          resizeMode="cover"
-          source={project.image}
-          style={styles.projectImage}
-        />
-        <View style={styles.cardLead}>
-          <Text numberOfLines={2} style={styles.projectName}>
-            {project.name}
-          </Text>
-          <Text style={styles.location}>{project.location}</Text>
-          <View style={styles.progressRow}>
-            <Text style={styles.progress}>{project.progress}%</Text>
-            <View
-              style={[
-                styles.status,
-                project.status === "In Progress" && styles.statusProgress,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusText,
-                  project.status === "In Progress" && styles.statusProgressText,
-                ]}
-              >
-                ● {project.status.toUpperCase()}
-              </Text>
-            </View>
-          </View>
-          <Text numberOfLines={1} style={styles.update}>
-            {project.update}
-          </Text>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${project.progress}%` }]} />
-          </View>
-          <Text style={styles.trackValue}>{project.progress}%</Text>
-        </View>
-      </View>
-      <View style={styles.milestone}>
-        <Text style={styles.milestoneIcon}>♜</Text>
-        <Text style={styles.milestoneLabel}>Current milestone</Text>
-        <Text style={styles.milestoneValue}>
-          {project.currentMilestone} · {project.currentYear}
-        </Text>
-      </View>
-      <View style={styles.timeline}>
-        <View style={styles.timelineRule} />
-        {project.stages.map((stage, index) => (
-          <View key={stage} style={styles.stage}>
-            <View style={[styles.dot, index < 2 && styles.dotActive]} />
-            <Text
-              numberOfLines={2}
-              style={[styles.stageText, index < 2 && styles.stageActive]}
-            >
-              {stage}
-            </Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.cardFooter}>
-        <View style={styles.activity}>
-          <Text style={styles.footerIcon}>◉</Text>
-          <Text style={styles.footerText}>{project.completedActivity}</Text>
-        </View>
-        <View style={styles.activity}>
-          <Text style={styles.footerIcon}>▣</Text>
-          <Text style={styles.footerText}>Opening {project.openingYear}</Text>
-        </View>
-        <Pressable
-          accessibilityLabel={`View full timeline for ${project.name}`}
-          accessibilityRole="button"
-          onPress={() => onAction({ type: "select-project", projectId: project.id })}
-          style={styles.timelineTarget}
-        >
-          <Text style={styles.timelineLink}>View full timeline →</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   page: {
     backgroundColor: "#F9F7F1",
@@ -665,11 +485,11 @@ const styles = StyleSheet.create({
   hProgressTrack: { backgroundColor: "#E8E1D5", height: 2, marginTop: 4, overflow: "hidden", width: "100%" },
   hProgressFill: { backgroundColor: "#C28D2A", height: 2 },
   hTimelineWrap: { borderTopColor: "#E8E1D6", borderTopWidth: 1, paddingHorizontal: 16, paddingVertical: 12 },
-  hTimeline: { height: HOSPITAL_TIMELINE_HEIGHT, justifyContent: "space-between", position: "relative" },
-  hStage: { alignItems: "center", flexDirection: "row", height: HOSPITAL_TIMELINE_NODE_SIZE, paddingLeft: 0, position: "relative" },
-  hConnector: { backgroundColor: "#DDD6CA", left: (HOSPITAL_TIMELINE_NODE_SIZE - 1) / 2, overflow: "hidden", position: "absolute", width: 1 },
+  hTimeline: { height: PORTFOLIO_TIMELINE_HEIGHT, justifyContent: "space-between", position: "relative" },
+  hStage: { alignItems: "center", flexDirection: "row", height: PORTFOLIO_TIMELINE_NODE_SIZE, paddingLeft: 0, position: "relative" },
+  hConnector: { backgroundColor: "#DDD6CA", left: (PORTFOLIO_TIMELINE_NODE_SIZE - 1) / 2, overflow: "hidden", position: "absolute", width: 1 },
   hConnectorProgress: { backgroundColor: "#C28D2A", bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
-  hDot: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#C7C0B5", borderRadius: HOSPITAL_TIMELINE_NODE_SIZE / 2, borderWidth: 1, height: HOSPITAL_TIMELINE_NODE_SIZE, justifyContent: "center", width: HOSPITAL_TIMELINE_NODE_SIZE },
+  hDot: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#C7C0B5", borderRadius: PORTFOLIO_TIMELINE_NODE_SIZE / 2, borderWidth: 1, height: PORTFOLIO_TIMELINE_NODE_SIZE, justifyContent: "center", width: PORTFOLIO_TIMELINE_NODE_SIZE },
   hDotComplete: { backgroundColor: "#C28D2A", borderColor: "#C28D2A" },
   hDotCurrent: { backgroundColor: "#FFF", borderColor: "#C28D2A", borderWidth: 2 },
   hNodeText: { color: "#908A81", fontSize: 10, fontWeight: "800" }, hNodeTextActive: { color: "#A87720" },
