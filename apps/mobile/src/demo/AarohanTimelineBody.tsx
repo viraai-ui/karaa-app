@@ -55,7 +55,7 @@ export const aarohanVisualMetrics = {
   cardRadius: 5,
   mediaHeight: 58,
   actionHeight: 44,
-  widths: [360, 390, 430],
+  widths: [320, 360, 390, 430],
 } as const;
 export const aarohanMotionContract = {
   transformOnly: true,
@@ -725,18 +725,19 @@ function CardCopy({ item }: any) {
   return (
     <View
       style={[
+        a.cardCopy,
         side && a.sideCopy,
         item.variant === "approvals" && a.approvalCopy,
       ]}
     >
       <View style={a.meta}>
-        <Text style={a.date}>{item.date}</Text>
-        <Text style={[a.badge, item.variant === "upcoming" && a.badgeFuture]}>
+        <Text numberOfLines={2} style={a.date}>{item.date}</Text>
+        <Text numberOfLines={2} style={[a.badge, item.variant === "upcoming" && a.badgeFuture]}>
           {item.status}
         </Text>
       </View>
-      <Text style={a.cardTitle}>{item.title}</Text>
-      <Text style={a.detail}>{item.detail}</Text>
+      <Text numberOfLines={2} style={a.cardTitle}>{item.title}</Text>
+      <Text numberOfLines={2} style={a.detail}>{item.detail}</Text>
     </View>
   );
 }
@@ -801,7 +802,7 @@ function Action({
       style={(state) => [a.action, pressed(state)]}
     >
       <Icon name={icon} color={GOLD} size={11} />
-      <Text numberOfLines={1} style={a.actionText}>
+      <Text numberOfLines={2} style={a.actionText}>
         {text}
       </Text>
     </Pressable>
@@ -871,9 +872,9 @@ function GalleryModal({
         {state.mode === "gallery" ? (
           <View style={a.galleryModal}>
             <View style={a.modalHead}>
-              <View>
-                <Text style={a.modalTitle}>{title}</Text>
-                <Text style={a.modalCount}>{count} photos</Text>
+              <View style={a.modalHeadCopy}>
+                <Text numberOfLines={2} style={a.modalTitle}>{title}</Text>
+                <Text numberOfLines={2} style={a.modalCount}>{count} photos</Text>
               </View>
               <Pressable
                 accessibilityLabel="Close gallery"
@@ -911,7 +912,7 @@ function GalleryModal({
               >
                 <Icon name="grid" color="#FFF" size={17} />
               </Pressable>
-              <Text accessibilityLiveRegion="polite" style={a.counter}>
+              <Text numberOfLines={1} accessibilityLiveRegion="polite" style={a.counter}>
                 {state.index + 1} / {count}
               </Text>
               <Pressable
@@ -976,7 +977,9 @@ function PdfModal({
       <View style={a.modalShade}>
         <View style={a.galleryModal}>
           <View style={a.modalHead}>
-            <Text style={a.modalTitle}>{title}</Text>
+            <View style={a.modalHeadCopy}>
+              <Text numberOfLines={2} style={a.modalTitle}>{title}</Text>
+            </View>
             <Pressable
               accessibilityLabel="Close preview"
               onPress={close}
@@ -1167,6 +1170,7 @@ export const a = StyleSheet.create({
   nodeCore: { width: 5, height: 5, borderRadius: 3, backgroundColor: GOLD },
   nodeFuture: { borderColor: "#BDB7AD" },
   card: {
+    minWidth: 0,
     minHeight: 58,
     borderWidth: 1,
     borderColor: LINE,
@@ -1176,26 +1180,30 @@ export const a = StyleSheet.create({
     position: "relative",
   },
   featured: { borderColor: "#D9AD4D", backgroundColor: "#FFFCF4", shadowColor: GOLD, shadowOpacity: 0.16, shadowRadius: 9, elevation: 3 },
-  meta: { flexDirection: "row", alignItems: "center", gap: 6 },
-  date: { fontSize: 8, color: "#8B6418", fontWeight: "900", backgroundColor: "#FBF3DF", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 8, overflow: "hidden" },
+  cardCopy: { minWidth: 0 },
+  meta: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 4, minWidth: 0 },
+  date: { fontSize: 8, lineHeight: 10, color: "#8B6418", fontWeight: "900", backgroundColor: "#FBF3DF", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 8, flexShrink: 1 },
   badge: {
     fontSize: 7.5,
+    lineHeight: 10,
     color: "#46804D",
     fontWeight: "900",
     backgroundColor: "#EEF6ED",
     paddingHorizontal: 4,
     paddingVertical: 1.5,
     borderRadius: 2,
+    flexShrink: 1,
   },
   badgeFuture: { color: "#777168", backgroundColor: "#F0EFEC" },
   cardTitle: {
     fontFamily: "serif",
-    fontSize: 14,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 16,
     color: INK,
     marginTop: 3,
+    flexShrink: 1,
   },
-  detail: { fontSize: 8.5, lineHeight: 12, color: "#625D55", marginTop: 1 },
+  detail: { fontSize: 8.5, lineHeight: 12, color: "#625D55", marginTop: 1, flexShrink: 1 },
   mediaRow: { flex: 1, flexDirection: "row", gap: 4, marginTop: 6 },
   thumb: { flex: 1, minWidth: 0, height: 58, position: "relative" },
   photo: { width: "100%", height: "100%", borderRadius: 2 },
@@ -1208,7 +1216,7 @@ export const a = StyleSheet.create({
     borderRadius: 2,
   },
   more: { color: "#FFF", fontSize: 12, fontWeight: "900" },
-  actions: { flexDirection: "row", gap: 4, marginTop: 4 },
+  actions: { flexDirection: "row", gap: 4, marginTop: 4, minWidth: 0 },
   action: {
     flex: 1,
     minWidth: 0,
@@ -1224,10 +1232,13 @@ export const a = StyleSheet.create({
     paddingHorizontal: 3,
   },
   actionText: {
-    fontSize: 8.5,
+    fontSize: 8,
+    lineHeight: 10,
     color: "#69583F",
     fontWeight: "700",
     flexShrink: 1,
+    minWidth: 0,
+    textAlign: "center",
   },
   verified: {
     flexDirection: "row",
@@ -1235,7 +1246,7 @@ export const a = StyleSheet.create({
     gap: 4,
     marginTop: 3,
   },
-  verifiedText: { fontSize: 8, color: "#777168" },
+  verifiedText: { fontSize: 8, color: "#777168", flexShrink: 1, minWidth: 0 },
   sideCopy: { paddingRight: 132, minHeight: 61 },
   sideMedia: { position: "absolute", right: 8, top: 8, width: 124 },
   siteMedia: { position: "absolute", right: 8, top: 8, width: 105 },
@@ -1276,12 +1287,15 @@ export const a = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
   },
-  modalTitle: { fontFamily: "serif", fontSize: 18, color: INK, flexShrink: 1 },
-  modalCount: { fontSize: 11, color: "#777168", marginTop: 2 },
+  modalHeadCopy: { flex: 1, minWidth: 0 },
+  modalTitle: { fontFamily: "serif", fontSize: 16.5, lineHeight: 20, color: INK, flexShrink: 1, minWidth: 0 },
+  modalCount: { fontSize: 10, lineHeight: 13, color: "#777168", marginTop: 2, flexShrink: 1 },
   iconButton: {
     width: 44,
     height: 44,
+    flexShrink: 0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1298,8 +1312,9 @@ export const a = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
   },
-  counter: { color: "#FFF", fontSize: 14, fontWeight: "800" },
+  counter: { color: "#FFF", fontSize: 13, lineHeight: 17, fontWeight: "800", flex: 1, minWidth: 0, flexShrink: 1, textAlign: "center" },
   largeImage: { width: "100%", height: "82%" },
   arrow: {
     position: "absolute",

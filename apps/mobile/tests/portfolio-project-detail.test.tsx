@@ -1,5 +1,5 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { Linking } from "react-native";
+import { Linking, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
 import {
   createOfflineDemoState,
@@ -191,8 +191,42 @@ describe("portfolio project timeline experience", () => {
     fireEvent.press(view.getByLabelText("Open 4 photo gallery"));
     expect(view.getAllByLabelText(/Enlarge photo .* of 4/)).toHaveLength(4);
   });
+  it("contains long Aarohan card and modal text at 320–430px without changing card geometry", () => {
+    expect(aarohanVisualMetrics.widths).toEqual([320, 360, 390, 430]);
+    expect(aarohanStyles.card).toMatchObject({ minWidth: 0, position: "relative" });
+    expect(aarohanStyles.cardCopy).toMatchObject({ minWidth: 0 });
+    expect(aarohanStyles.cardTitle).toMatchObject({ fontSize: 13, lineHeight: 16, flexShrink: 1 });
+    expect(aarohanStyles.meta).toMatchObject({ flexWrap: "wrap", minWidth: 0 });
+    expect(aarohanStyles.date).toMatchObject({ flexShrink: 1 });
+    expect(aarohanStyles.badge).toMatchObject({ flexShrink: 1 });
+    expect(aarohanStyles.actions).toMatchObject({ minWidth: 0 });
+    expect(aarohanStyles.action).toMatchObject({ minWidth: 0, minHeight: 44 });
+    expect(aarohanStyles.actionText).toMatchObject({ fontSize: 8, lineHeight: 10, flexShrink: 1, minWidth: 0 });
+    expect(aarohanStyles.modalHead).toMatchObject({ gap: 8 });
+    expect(aarohanStyles.modalHeadCopy).toMatchObject({ flex: 1, minWidth: 0 });
+    expect(aarohanStyles.modalTitle).toMatchObject({ fontSize: 16.5, lineHeight: 20, flexShrink: 1, minWidth: 0 });
+    expect(aarohanStyles.iconButton).toMatchObject({ width: 44, height: 44, flexShrink: 0 });
+    expect(aarohanStyles.sideMedia).toMatchObject({ position: "absolute", width: 124 });
+    expect(aarohanStyles.siteMedia).toMatchObject({ position: "absolute", width: 105 });
+
+    const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={jest.fn()} />);
+    aarohanTimeline.forEach((item) => {
+      const title = view.getByText(item.title);
+      expect(title.props.numberOfLines).toBe(2);
+      expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 13, lineHeight: 16, flexShrink: 1 });
+    });
+    view.getAllByText(/\.pdf|View \d+ photos/).forEach((label) =>
+      expect(label.props.numberOfLines).toBe(2),
+    );
+    fireEvent.press(view.getByLabelText("Open 4 photo gallery"));
+    const longModalTitle = view.getAllByText("Basement and services core underway").find(
+      (node) => node.props.numberOfLines === 2,
+    );
+    expect(longModalTitle).toBeTruthy();
+    expect(StyleSheet.flatten(longModalTitle!.props.style)).toMatchObject({ fontSize: 16.5, lineHeight: 20, minWidth: 0, flexShrink: 1 });
+  });
   it("keeps the 6:5 hero and summary metrics in normal flow at all supported widths", () => {
-    expect(aarohanVisualMetrics.widths).toEqual([360, 390, 430]);
+    expect(aarohanVisualMetrics.widths).toEqual([320, 360, 390, 430]);
     expect(aarohanVisualMetrics).toMatchObject({ heroWidth: 108, heroHeight: 90, heroAspectRatio: 1.2, summaryMetricsInFlow: true });
     expect(aarohanStyles.hero).toMatchObject({ width: 108, height: 90, aspectRatio: 1.2, flexShrink: 0 });
     expect(aarohanStyles.summary).not.toHaveProperty("position");
