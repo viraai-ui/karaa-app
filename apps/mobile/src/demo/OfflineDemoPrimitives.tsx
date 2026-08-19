@@ -18,22 +18,23 @@ const iconGlyphs: Record<OfflineDemoIcon, string> = {
   pin: '⌖',
 };
 
-export function DemoAppBar({ role, onSwitchWorkspace }: { role: OfflineDemoRole; onSwitchWorkspace: () => void }) {
+export function DemoAppBar({ role, onSwitchWorkspace, healthcareBack }: { role: OfflineDemoRole; onSwitchWorkspace: () => void; healthcareBack?: () => void }) {
   const account = demoAccounts.find((item) => item.role === role)!;
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.appBar, { paddingTop: insets.top }]} testID="demo-app-bar">
+    <View style={[styles.appBar, healthcareBack && styles.healthcareAppBar, { paddingTop: insets.top }]} testID="demo-app-bar">
       <View style={styles.brandGroup}>
+        {healthcareBack ? <Pressable accessibilityLabel="Back to Power of 9" accessibilityRole="button" onPress={healthcareBack} style={styles.headerBack}><Text style={styles.headerBackArrow}>←</Text></Pressable> : null}
         <KaraaBrand height={30} variant="crown" />
         <View>
           <KaraaBrand height={13} variant="wordmark" />
-          <Text style={styles.role}>{account.roleLabel}</Text>
+          {!healthcareBack ? <Text style={styles.role}>{account.roleLabel}</Text> : null}
         </View>
       </View>
       <View style={styles.topActions}>
-        <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></View>
-        <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>♧</Text><View style={styles.notificationDot} /></View>
-        <Pressable accessibilityLabel="Switch workspace" accessibilityRole="button" onPress={onSwitchWorkspace} style={styles.avatar}><Text style={styles.avatarText}>{account.initials}</Text></Pressable>
+        {healthcareBack ? <Pressable accessibilityLabel="Search" accessibilityRole="button" onPress={() => undefined} style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></Pressable> : <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></View>}
+        {healthcareBack ? <Pressable accessibilityLabel="Notifications" accessibilityRole="button" onPress={() => undefined} style={styles.iconButton}><Text style={styles.topIcon}>♧</Text><View style={styles.notificationDot} /></Pressable> : <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>♧</Text><View style={styles.notificationDot} /></View>}
+        {!healthcareBack ? <Pressable accessibilityLabel="Switch workspace" accessibilityRole="button" onPress={onSwitchWorkspace} style={styles.avatar}><Text style={styles.avatarText}>{account.initials}</Text></Pressable> : null}
       </View>
     </View>
   );
@@ -110,6 +111,8 @@ export function OfflineDemoPrimitivesPreview() {
 
 const styles = StyleSheet.create({
   appBar: { alignItems: 'center', backgroundColor: '#050605', borderBottomColor: colors.brass, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 62, paddingHorizontal: spacing.md },
+  healthcareAppBar: { minHeight: 44, paddingHorizontal: 8 },
+  headerBack: { alignItems: 'center', height: 44, justifyContent: 'center', marginLeft: -12, width: 44 }, headerBackArrow: { color: colors.brass, fontSize: 19 },
   brandGroup: { alignItems: 'center', flexDirection: 'row', gap: 8 }, mark: { borderColor: colors.brass, borderWidth: 1, color: colors.brass, fontSize: 22, fontWeight: '900', height: 32, lineHeight: 29, textAlign: 'center', width: 32 }, brand: { color: colors.paper, fontSize: 15, fontWeight: '800', letterSpacing: 2.1 }, role: { color: colors.brass, fontSize: 8, fontWeight: '800', letterSpacing: 1.05, marginTop: 1 },
   topActions: { alignItems: 'center', flexDirection: 'row', gap: 4 }, iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', position: 'relative', width: 44 }, topIcon: { color: colors.paper, fontSize: 26, fontWeight: '300' }, notificationDot: { backgroundColor: '#E89A0A', borderRadius: 5, height: 8, position: 'absolute', right: 6, top: 5, width: 8 }, avatar: { alignItems: 'center', backgroundColor: '#474845', borderRadius: radii.pill, height: 44, justifyContent: 'center', marginLeft: 2, width: 44 }, avatarText: { color: colors.paper, fontSize: 11, fontWeight: '900' },
   sheetBackdrop: { backgroundColor: 'rgba(5, 6, 5, 0.52)', bottom: 0, justifyContent: 'flex-end', left: 0, position: 'absolute', right: 0, top: 0, zIndex: 20 }, sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radii.lg, borderTopRightRadius: radii.lg, gap: spacing.sm, padding: spacing.lg, paddingBottom: spacing.xl }, sheetHeader: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }, sheetLabel: { color: colors.brass, fontSize: 10, fontWeight: '900', letterSpacing: 1.1 }, sheetTitle: { color: colors.ink, fontSize: 27, fontWeight: '800', lineHeight: 33 }, closeButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 }, close: { color: colors.ink, fontSize: 30, lineHeight: 30 }, workspaceRow: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 66, paddingVertical: spacing.sm }, workspaceAvatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: radii.pill, height: 38, justifyContent: 'center', width: 38 }, workspaceAvatarText: { color: colors.brass, fontSize: 11, fontWeight: '900' }, workspaceCopy: { flex: 1 }, workspaceName: { color: colors.ink, fontSize: 16, fontWeight: '800' }, workspaceRole: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: .7, marginTop: 2 }, chevron: { color: colors.brass, fontSize: 28, fontWeight: '300' },

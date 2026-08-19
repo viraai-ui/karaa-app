@@ -34,7 +34,11 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
 
   return (
     <View style={styles.screen}>
-      <DemoAppBar onSwitchWorkspace={() => setWorkspaceOpen(true)} role={role} />
+      <DemoAppBar
+        healthcareBack={role === 'customer' && state.surface === 'vertical' && state.selectedVerticalId === 'healthcare-life-sciences' ? () => offlineDemoStore.dispatch({ type: 'back-to-root' }) : undefined}
+        onSwitchWorkspace={() => setWorkspaceOpen(true)}
+        role={role}
+      />
       <View style={styles.contentViewport} testID="demo-content-viewport">
         {chatThreadOpen ? (
           <KeyboardAvoidingView
