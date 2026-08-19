@@ -144,4 +144,31 @@ describe("36 sub-vertical project portfolios", () => {
       verticalId: page.verticalId,
     });
   });
+
+  it("matches the hospital screenshot structure and exact milestone copy", () => {
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    expect(rendered.getByTestId("hospital-hero")).toBeTruthy();
+    expect(rendered.getByTestId("hospital-metrics")).toBeTruthy();
+    expect(rendered.getAllByTestId("project-timeline")).toHaveLength(3);
+    expect(rendered.getByText("Track every hospital from construction to opening.")).toBeTruthy();
+    ["Structural frame underway", "Main hospital block rising", "Foundation phase in progress",
+      "Structure · 2026", "Main Block · 2026", "Foundations · 2026"].forEach(copy => expect(rendered.getByText(copy)).toBeTruthy());
+  });
+
+  it("routes all three full-timeline targets", () => {
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const onAction = jest.fn();
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={onAction} />);
+    page.projects.forEach(project => fireEvent.press(rendered.getByRole("button", { name: `View full timeline for ${project.name}` })));
+    expect(onAction.mock.calls.map(([action]) => action)).toEqual(page.projects.map(project => ({ type: "select-project", projectId: project.id })));
+  });
+
+  it("keeps another subvertical on the unchanged generic structure", () => {
+    const page = subverticalPortfolios.find(item => item.id !== "multi-specialty-hospitals")!;
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    expect(rendered.queryByTestId("hospital-hero")).toBeNull();
+    expect(rendered.getByText(page.subtitle)).toBeTruthy();
+    expect(rendered.getAllByTestId(/portfolio-project-/)).toHaveLength(3);
+  });
 });

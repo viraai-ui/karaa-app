@@ -13,6 +13,7 @@ import {
   subverticalPortfolioForId,
   type PortfolioProject,
   type PortfolioStatus,
+  type SubverticalPortfolio,
 } from "./subvertical-projects";
 
 const filters: readonly ("All" | PortfolioStatus)[] = [
@@ -46,6 +47,19 @@ export function SubverticalProjectPage({
     data.projects.reduce((sum, p) => sum + p.progress, 0) /
       data.projects.length,
   );
+  if (data.id === "multi-specialty-hospitals") {
+    return (
+      <HospitalPortfolioPage
+        data={data}
+        filter={filter}
+        onAction={onAction}
+        query={query}
+        setFilter={setFilter}
+        setQuery={setQuery}
+        visible={visible}
+      />
+    );
+  }
   return (
     <View style={styles.page} testID={`subvertical-projects-${data.id}`}>
       <Pressable
@@ -137,19 +151,107 @@ export function SubverticalProjectPage({
     </View>
   );
 }
+
+type HospitalPageProps = {
+  data: SubverticalPortfolio;
+  filter: (typeof filters)[number];
+  onAction: (action: OfflineDemoAction) => void;
+  query: string;
+  setFilter: (value: (typeof filters)[number]) => void;
+  setQuery: (value: string) => void;
+  visible: readonly PortfolioProject[];
+};
+
+function LineIcon({ kind }: { kind: "search" | "building" | "check" | "calendar" | "arrow" | "timeline" }) {
+  return (
+    <View accessibilityElementsHidden style={[styles.hIcon, kind === "search" && styles.hSearchIcon]}>
+      {kind === "search" ? <View style={styles.hSearchHandle} /> : null}
+      {kind === "building" ? <><View style={styles.hWindow} /><View style={[styles.hWindow, styles.hWindowRight]} /></> : null}
+      {kind === "check" ? <Text style={styles.hCheck}>✓</Text> : null}
+      {kind === "calendar" ? <View style={styles.hCalendarTop} /> : null}
+      {kind === "arrow" ? <Text style={styles.hArrow}>→</Text> : null}
+      {kind === "timeline" ? <View style={styles.hTimelineDot} /> : null}
+    </View>
+  );
+}
+
+function HospitalPortfolioPage({ data, filter, onAction, query, setFilter, setQuery, visible }: HospitalPageProps) {
+  return (
+    <View style={styles.hPage} testID={`subvertical-projects-${data.id}`}>
+      <Pressable accessibilityLabel={`Back to ${data.verticalTitle}`} accessibilityRole="button"
+        onPress={() => onAction({ type: "select-vertical", verticalId: data.verticalId })} style={styles.back}>
+        <Text style={styles.backArrow}>‹</Text><Text style={styles.backLabel}>{data.verticalTitle.toUpperCase()}</Text>
+      </Pressable>
+      <View style={styles.hHero} testID="hospital-hero">
+        <Image accessibilityLabel="Hospital construction site" resizeMode="cover" source={data.hero} style={styles.hHeroImage} />
+        <View style={styles.hHeroWash} />
+        <View style={styles.hHeroCopy}>
+          <Text style={styles.hEyebrow}>HEALTHCARE &amp; LIFE SCIENCES  /  01</Text>
+          <Text style={styles.hTitle}>Multi-Specialty Hospitals</Text>
+          <Text style={styles.hSubtitle}>Track every hospital from construction to opening.</Text>
+        </View>
+      </View>
+      <View style={styles.hSummary} testID="hospital-metrics">
+        <Metric value={String(data.projects.length).padStart(2, "0")} label="Projects" large />
+        <Metric value={`${Math.round(data.projects.reduce((sum, project) => sum + project.progress, 0) / data.projects.length)}%`} label="Avg. Progress" large />
+        <Metric value={data.horizon} label="Horizon" large last />
+      </View>
+      <View style={styles.hControls}>
+        <View style={styles.hSearch}><LineIcon kind="search" /><TextInput accessibilityLabel="Search hospitals"
+          onChangeText={setQuery} placeholder="Search hospitals" placeholderTextColor="#89847B" style={styles.hInput} value={query} /></View>
+        <View style={styles.hFilters}>{filters.map((item) => <Pressable accessibilityLabel={`Filter ${item}`} accessibilityRole="button"
+          accessibilityState={{ selected: filter === item }} key={item} onPress={() => setFilter(item)} style={[styles.hChip, filter === item && styles.hChipActive]}>
+          <Text style={[styles.hChipText, filter === item && styles.hChipTextActive]}>{item !== "All" ? "●  " : ""}{item}</Text>
+        </Pressable>)}</View>
+      </View>
+      <View style={styles.hBody}><Text style={styles.hSectionTitle}>Active Projects</Text>
+        <View style={styles.hList}>{visible.map(project => <HospitalProjectCard key={project.id} onAction={onAction} project={project} />)}</View>
+        {!visible.length ? <Text style={styles.hEmpty}>No projects match your search and filter.</Text> : null}
+      </View>
+    </View>
+  );
+}
+
+function HospitalProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
+  return <View style={styles.hCard} testID={`portfolio-project-${project.id}`}>
+    <View style={styles.hCardTop}><Image accessibilityLabel={`${project.name} construction site`} resizeMode="cover" source={project.image} style={styles.hProjectImage} />
+      <View style={styles.hCardLead}><Text numberOfLines={2} style={styles.hProjectName}>{project.name}</Text>
+        <Text style={styles.hLocation}>{project.location}</Text><View style={styles.hProgressRow}><Text style={styles.hProgress}>{project.progress}%</Text>
+          <View style={[styles.hStatus, project.status === "In Progress" && styles.hStatusProgress]}><Text style={[styles.hStatusText, project.status === "In Progress" && styles.hStatusProgressText]}>● {project.status.toUpperCase()}</Text></View></View>
+        <Text numberOfLines={2} style={styles.hUpdate}>{project.update}</Text><View style={styles.hTrack}><View style={[styles.hFill, { width: `${project.progress}%` }]} /></View>
+      </View></View>
+    <View style={styles.hMilestone}><LineIcon kind="building" /><Text style={styles.hMilestoneLabel}>Current milestone</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View>
+    <ProjectTimeline stages={project.stages} />
+    <View style={styles.hFooter}><View style={styles.hActivity}><LineIcon kind="check" /><Text style={styles.hFooterText}>{project.completedActivity}</Text></View>
+      <View style={styles.hActivity}><LineIcon kind="calendar" /><Text style={styles.hFooterText}>Opening {project.openingYear}</Text></View>
+      <Pressable accessibilityLabel={`View full timeline for ${project.name}`} accessibilityRole="button" onPress={() => onAction({ type: "select-project", projectId: project.id })} style={styles.hTimelineTarget}>
+        <Text style={styles.hTimelineLink}>View full timeline</Text><LineIcon kind="arrow" /></Pressable></View>
+  </View>;
+}
+
+function ProjectTimeline({ stages }: { stages: PortfolioProject["stages"] }) {
+  return <View style={styles.hTimeline} testID="project-timeline"><View style={styles.hTimelineRule} />{stages.map((stage, index) => {
+    const [label, marker] = stage.replace(" ✓", "|✓").replace(" NOW", "|NOW").replace(" Next", "|Next").split("|");
+    return <View key={stage} style={styles.hStage}><View style={[styles.hDot, index < 2 && styles.hDotActive]} />
+      <Text style={[styles.hStageText, index < 2 && styles.hStageActive]}>{label}</Text>{marker ? <Text style={styles.hStageMarker}>{marker}</Text> : null}</View>;
+  })}</View>;
+}
+
 function Metric({
   value,
   label,
   last = false,
+  large = false,
 }: {
   value: string;
   label: string;
   last?: boolean;
+  large?: boolean;
 }) {
   return (
     <View style={[styles.metric, !last && styles.metricRule]}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={[styles.metricValue, large && styles.hMetricValue]}>{value}</Text>
+      <Text style={[styles.metricLabel, large && styles.hMetricLabel]}>{label}</Text>
     </View>
   );
 }
@@ -465,4 +567,51 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     textAlign: "center",
   },
+  hPage: { backgroundColor: "#F8F5EE", marginHorizontal: -16, marginTop: -16, paddingBottom: 24 },
+  hHero: { height: 196, overflow: "hidden", position: "relative" },
+  hHeroImage: { height: "100%", position: "absolute", right: 0, top: 0, width: "73%" },
+  hHeroWash: { backgroundColor: "rgba(248,245,238,.76)", height: "100%", left: "35%", position: "absolute", top: 0, width: "31%" },
+  hHeroCopy: { height: "100%", justifyContent: "center", paddingHorizontal: 18, width: "67%" },
+  hEyebrow: { color: "#A77A20", fontSize: 10, fontWeight: "900", letterSpacing: .75, marginBottom: 9 },
+  hTitle: { color: "#24221D", fontFamily: "serif", fontSize: 23, lineHeight: 27 },
+  hSubtitle: { color: "#5D584F", fontSize: 13, lineHeight: 18, marginTop: 8 },
+  hSummary: { backgroundColor: "#FFF", borderColor: "#DDD5C7", borderRadius: 10, borderWidth: 1, flexDirection: "row", marginHorizontal: 16, marginTop: -17, minHeight: 70, shadowColor: "#2D281F", shadowOffset: { height: 3, width: 0 }, shadowOpacity: .08, shadowRadius: 8, zIndex: 3 },
+  hMetricValue: { fontSize: 20 }, hMetricLabel: { fontSize: 11, marginTop: 3 },
+  hControls: { paddingHorizontal: 16, paddingTop: 14 },
+  hSearch: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#E0D9CD", borderRadius: 8, borderWidth: 1, flexDirection: "row", height: 44, paddingHorizontal: 12 },
+  hInput: { color: "#292721", flex: 1, fontSize: 13, height: 44, paddingHorizontal: 10 },
+  hFilters: { flexDirection: "row", gap: 7, marginTop: 8 },
+  hChip: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#DED7CB", borderRadius: 8, borderWidth: 1, flex: 1, height: 44, justifyContent: "center", minWidth: 0, paddingHorizontal: 4 },
+  hChipActive: { backgroundColor: "#F6ECD8", borderColor: "#C79735" },
+  hChipText: { color: "#555047", fontSize: 11, fontWeight: "700" },
+  hChipTextActive: { color: "#9E7020" },
+  hBody: { paddingHorizontal: 16, paddingTop: 17 },
+  hSectionTitle: { color: "#292721", fontFamily: "serif", fontSize: 22, marginBottom: 10 },
+  hList: { gap: 14 },
+  hCard: { backgroundColor: "#FFF", borderColor: "#DDD5C8", borderRadius: 12, borderWidth: 1, overflow: "hidden", padding: 10 },
+  hCardTop: { flexDirection: "row", minHeight: 156 },
+  hProjectImage: { alignSelf: "stretch", borderRadius: 7, width: "45%" },
+  hCardLead: { flex: 1, paddingLeft: 12 },
+  hProjectName: { color: "#25231E", fontFamily: "serif", fontSize: 18, lineHeight: 20 },
+  hLocation: { color: "#6C665D", fontSize: 11, lineHeight: 15, marginTop: 3 },
+  hProgressRow: { alignItems: "center", flexDirection: "row", gap: 7, marginTop: 7 },
+  hProgress: { color: "#27251F", fontSize: 20, fontWeight: "700" },
+  hStatus: { backgroundColor: "#EAF3E8", borderRadius: 12, paddingHorizontal: 7, paddingVertical: 4 },
+  hStatusProgress: { backgroundColor: "#E7EFF4" }, hStatusText: { color: "#54844F", fontSize: 10, fontWeight: "900" }, hStatusProgressText: { color: "#527789" },
+  hUpdate: { color: "#514D45", fontSize: 13, fontWeight: "700", lineHeight: 17, marginTop: 5 },
+  hTrack: { backgroundColor: "#EAE4D9", borderRadius: 2, height: 4, marginTop: 9 }, hFill: { backgroundColor: "#C79129", borderRadius: 2, height: 4 },
+  hMilestone: { alignItems: "center", borderBottomColor: "#EAE4DA", borderBottomWidth: 1, flexDirection: "row", minHeight: 44 },
+  hMilestoneLabel: { color: "#5F5A52", fontSize: 11, marginLeft: 7 }, hMilestoneValue: { color: "#665F56", fontSize: 11, fontWeight: "800", marginLeft: "auto" },
+  hTimeline: { flexDirection: "row", minHeight: 88, position: "relative" },
+  hTimelineRule: { backgroundColor: "#DCD5C9", height: 1, left: "10%", position: "absolute", right: "10%", top: 18 },
+  hStage: { alignItems: "center", flex: 1, paddingHorizontal: 2, zIndex: 2 }, hDot: { backgroundColor: "#FFF", borderColor: "#C5BEB2", borderRadius: 6, borderWidth: 1, height: 11, marginTop: 13, width: 11 },
+  hDotActive: { backgroundColor: "#CA9228", borderColor: "#CA9228" }, hStageText: { color: "#625D55", fontSize: 11, lineHeight: 14, marginTop: 5, textAlign: "center" }, hStageActive: { color: "#9D7223", fontWeight: "800" }, hStageMarker: { color: "#8C867D", fontSize: 10, marginTop: 1 },
+  hFooter: { alignItems: "center", borderTopColor: "#EAE4DA", borderTopWidth: 1, flexDirection: "row", flexWrap: "wrap", paddingTop: 6 },
+  hActivity: { alignItems: "center", flexDirection: "row", minHeight: 44, width: "50%" }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 4 },
+  hTimelineTarget: { alignItems: "center", borderTopColor: "#F0EBE2", borderTopWidth: 1, flexDirection: "row", height: 44, justifyContent: "flex-end", width: "100%" }, hTimelineLink: { color: "#A8761E", fontSize: 11, fontWeight: "800" },
+  hEmpty: { color: "#6D675E", fontSize: 13, paddingVertical: 24, textAlign: "center" },
+  hIcon: { borderColor: "#A87A27", borderRadius: 2, borderWidth: 1.2, height: 15, position: "relative", width: 15 },
+  hSearchIcon: { borderColor: "#817B72", borderRadius: 8, height: 14, width: 14 }, hSearchHandle: { backgroundColor: "#817B72", height: 1.5, position: "absolute", right: -4, top: 12, transform: [{ rotate: "45deg" }], width: 6 },
+  hWindow: { backgroundColor: "#A87A27", height: 3, left: 3, position: "absolute", top: 4, width: 3 }, hWindowRight: { left: 8 }, hCheck: { color: "#A87A27", fontSize: 12, fontWeight: "800", left: 1, position: "absolute", top: -2 },
+  hCalendarTop: { borderBottomColor: "#A87A27", borderBottomWidth: 1, left: 1, position: "absolute", right: 1, top: 4 }, hArrow: { color: "#A8761E", fontSize: 17, left: 1, position: "absolute", top: -5 }, hTimelineDot: { backgroundColor: "#A87A27", borderRadius: 2, height: 4, left: 4, position: "absolute", top: 4, width: 4 },
 });
