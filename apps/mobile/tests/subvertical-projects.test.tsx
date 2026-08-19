@@ -1,7 +1,12 @@
 import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
 import { AccessibilityInfo, Animated, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
-import { currentTimelineFraction } from "../src/demo/SubverticalProjectPage";
+import {
+  currentTimelineFraction,
+  currentTimelineTargetHeight,
+  HOSPITAL_TIMELINE_HEIGHT,
+  HOSPITAL_TIMELINE_NODE_SIZE,
+} from "../src/demo/SubverticalProjectPage";
 import {
   createOfflineDemoState,
   offlineDemoReducer,
@@ -204,12 +209,20 @@ describe("36 sub-vertical project portfolios", () => {
     expect(onAction.mock.calls.map(([action]) => action)).toEqual(page.projects.map(project => ({ type: "select-project", projectId: project.id })));
   });
 
-  it("uses a construction milestone icon and one compact, 360px-safe footer on all three cards", () => {
+  it("uses an unbadged image, minimalist current-update icon, and compact, 360px-safe footer on every card", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(rendered.getAllByLabelText("Construction milestone icon")).toHaveLength(3);
+    const icons = rendered.getAllByLabelText("Current update status icon");
+    expect(icons).toHaveLength(3);
+    icons.forEach(icon => expect(StyleSheet.flatten(icon.props.style)).toMatchObject({
+      borderColor: "#AD7C24", borderRadius: 13, borderWidth: 1.5, height: 26, width: 26,
+    }));
+    expect(rendered.queryByLabelText("Construction milestone icon")).toBeNull();
     page.projects.forEach(project => {
       const card = rendered.getByTestId(`portfolio-project-${project.id}`);
+      const image = rendered.getByTestId(`project-image-${project.id}`);
+      expect(image.children).toHaveLength(1);
+      expect(within(card).queryByText(/^0[1-3]$/)).toBeNull();
       expect(within(card).queryByText(project.completedActivity)).toBeNull();
       const footer = rendered.getByTestId(`project-footer-${project.id}`);
       expect(within(footer).getByText(`Opening ${project.openingYear}`)).toBeTruthy();
@@ -219,6 +232,20 @@ describe("36 sub-vertical project portfolios", () => {
       expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 48 });
       expect(82).toBeLessThan(360 - 32 - 36);
     });
+  });
+
+  it("uses compact timeline geometry and centers progress exactly on the current node", () => {
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    expect(HOSPITAL_TIMELINE_HEIGHT).toBe(184);
+    expect(HOSPITAL_TIMELINE_NODE_SIZE).toBe(26);
+    expect((HOSPITAL_TIMELINE_HEIGHT - HOSPITAL_TIMELINE_NODE_SIZE) / 5).toBeCloseTo(31.6);
+    rendered.getAllByTestId("project-timeline").forEach(timeline => {
+      expect(StyleSheet.flatten(timeline.props.style)).toMatchObject({ height: 184, justifyContent: "space-between" });
+    });
+    expect(rendered.getAllByTestId("project-timeline-progress")).toHaveLength(3);
+    expect(currentTimelineTargetHeight(page.projects[0].stages)).toBeCloseTo(2 * 31.6);
+    expect(currentTimelineFraction(page.projects[0].stages)).toBe(2 / 5);
   });
 
   it("draws once to the current stage fraction and does not loop", async () => {
