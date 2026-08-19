@@ -1,4 +1,5 @@
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
 import {
   createOfflineDemoState,
@@ -11,7 +12,7 @@ import {
   projectTimelineFilters,
   s as projectDetailStyles,
 } from "../src/demo/PortfolioProjectDetail";
-import { aarohanGallerySizes, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
+import { a as aarohanStyles, aarohanGallerySizes, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
 import {
   portfolioForProjectId,
   portfolioProjectForId,
@@ -31,6 +32,8 @@ function projectState(id: string) {
   return offlineDemoReducer(state, { type: "select-project", projectId: id });
 }
 describe("portfolio project timeline experience", () => {
+  beforeEach(() => jest.spyOn(Linking, "openURL").mockResolvedValue(true));
+  afterEach(() => jest.restoreAllMocks());
   it("defines the reusable six-variant timeline and narrow-screen metrics", () => {
     expect(aarohanTimeline.map((item) => item.variant)).toEqual([
       "current", "foundation", "site", "mobilisation", "approvals", "upcoming",
@@ -49,6 +52,23 @@ describe("portfolio project timeline experience", () => {
     expect(view.queryByText(/HEALTHCARE \/ MULTI-SPECIALTY HOSPITALS/)).toBeNull();
     expect(view.getByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeTruthy();
     aarohanTimeline.forEach((item) => expect(view.getByTestId(`timeline-variant-${item.variant}`)).toBeTruthy());
+  });
+  it("compensates only the Aarohan shell inset and provides a compact accessible Back control", () => {
+    const onAction = jest.fn();
+    const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={onAction} />);
+    expect(aarohanStyles.page).toMatchObject({ marginTop: -16, marginHorizontal: -16 });
+    expect(aarohanVisualMetrics).toMatchObject({ topInsetCompensation: -16, backTouchTarget: 44, backIconArea: 30, backChevron: 17 });
+    expect(view.getByTestId("aarohan-back-control").props.style).toMatchObject({ height: 44, marginBottom: -16 });
+    expect(view.getByTestId("aarohan-back-icon-area").props.style).toMatchObject({ width: 30, height: 30 });
+    fireEvent.press(view.getByLabelText("Back to Multi-Specialty Hospitals"));
+    expect(onAction).toHaveBeenLastCalledWith({ type: "return-to-subvertical" });
+    expect(projectDetailStyles.page).not.toHaveProperty("marginTop", -16);
+  });
+  it("ships a valid bundled one-page PDF", () => {
+    const bytes = jest.requireActual("fs").readFileSync("assets/documents/site-report.pdf");
+    expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(bytes.toString()).toContain("/Count 1");
+    expect(bytes.toString()).toContain("%%EOF");
   });
   it("resolves all 108 records into their correct hierarchy", () => {
     const projects = subverticalPortfolios.flatMap((page) => page.projects);
@@ -84,7 +104,7 @@ describe("portfolio project timeline experience", () => {
       view.unmount();
     });
   });
-  it("preserves exact Aarohan content and functional interactions", () => {
+  it("preserves exact Aarohan content and functional interactions", async () => {
     const state = projectState("aarohan-medical-city-pune"),
       onAction = jest.fn();
     const view = render(<DemoExplorer state={state} onAction={onAction} />);
@@ -113,13 +133,10 @@ describe("portfolio project timeline experience", () => {
     expect(view.queryByText("Foundation works completed")).toBeNull();
     fireEvent.press(view.getByLabelText("Filter All updates"));
     expect(view.getAllByLabelText("View 8 Photos")).toHaveLength(1);
-    fireEvent.press(view.getByLabelText("Preview Site Report PDF"));
-    expect(
-      view.getByText(
-        "This is an honest local demo preview for the Karaa prototype. It is not a live project document or delivery record.",
-      ),
-    ).toBeTruthy();
-    fireEvent.press(view.getByLabelText("Close preview"));
+    fireEvent.press(view.getByLabelText("Open Site report PDF"));
+    await waitFor(() => expect(Linking.openURL).toHaveBeenCalled());
+    expect(view.queryByText("Site Report PDF")).toBeNull();
+    expect(view.queryByText(/honest local demo preview/)).toBeNull();
     fireEvent(view.getByLabelText("Notify me"), "valueChange", true);
     expect(view.getByLabelText("Notify me").props.value).toBe(true);
     fireEvent.press(view.getByLabelText("Overview"));
@@ -160,7 +177,7 @@ describe("portfolio project timeline experience", () => {
     expect(view.queryByTestId("aarohan-timeline-body")).toBeNull();
     expect(view.getByTestId(`project-detail-${other.id}`)).toBeTruthy();
   });
-  it("renders overview, documents and media with honest previews", () => {
+  it("renders overview, documents and media with honest previews", async () => {
     for (const tab of ["overview", "documents", "media"] as const) {
       const state = {
         ...projectState("aarohan-medical-city-pune"),
@@ -178,9 +195,10 @@ describe("portfolio project timeline experience", () => {
       ).toBeTruthy();
       if (tab === "documents") {
         fireEvent.press(
-          view.getByLabelText("Preview Site Report · 18 Aug 2026"),
+          view.getByLabelText("Open Site report PDF"),
         );
-        expect(view.getByText(/honest local demo preview/)).toBeTruthy();
+        await waitFor(() => expect(Linking.openURL).toHaveBeenCalled());
+        expect(view.queryByText(/honest local demo preview/)).toBeNull();
       }
       if (tab === "media") {
         fireEvent.press(view.getByLabelText("Open project photo 1"));
