@@ -46,20 +46,25 @@ describe("portfolio project timeline experience", () => {
     expect(projectDetailResponsiveMetrics.touchTarget).toBe(44);
     expect(projectDetailStyles.page).not.toHaveProperty("backgroundColor", "#090A09");
   });
-  it("keeps the timeline body free of the removed black breadcrumb chrome", () => {
+  it("puts the subvertical back bar before the summary and removes the old summary crumb", () => {
     const state = projectState("aarohan-medical-city-pune");
     const view = render(<DemoExplorer state={state} onAction={jest.fn()} />);
     expect(view.queryByText(/HEALTHCARE \/ MULTI-SPECIALTY HOSPITALS/)).toBeNull();
-    expect(view.getByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeTruthy();
+    expect(view.queryByText("MULTI-SPECIALTY HOSPITALS / PROJECT 01")).toBeNull();
+    expect(view.getByTestId("aarohan-timeline-body").children.slice(0, 2).map(child => typeof child === "string" ? child : child.props.testID)).toEqual([
+      "aarohan-back-control", "aarohan-project-summary",
+    ]);
     aarohanTimeline.forEach((item) => expect(view.getByTestId(`timeline-variant-${item.variant}`)).toBeTruthy());
   });
-  it("compensates only the Aarohan shell inset and provides a compact accessible Back control", () => {
+  it("copies the exact subvertical black back bar and preserves its return route", () => {
     const onAction = jest.fn();
     const view = render(<DemoExplorer state={projectState("aarohan-medical-city-pune")} onAction={onAction} />);
     expect(aarohanStyles.page).toMatchObject({ marginTop: -16, marginHorizontal: -16 });
-    expect(aarohanVisualMetrics).toMatchObject({ topInsetCompensation: -16, backTouchTarget: 44, backIconArea: 30, backChevron: 17 });
-    expect(view.getByTestId("aarohan-back-control").props.style).toMatchObject({ height: 44, marginBottom: -16 });
-    expect(view.getByTestId("aarohan-back-icon-area").props.style).toMatchObject({ width: 30, height: 30 });
+    expect(aarohanVisualMetrics).toMatchObject({ topInsetCompensation: -16, backTouchTarget: 44, backChevron: 23 });
+    expect(view.getByTestId("aarohan-back-control").props.style).toMatchObject({ alignItems: "center", backgroundColor: "#080908", flexDirection: "row", height: 44, paddingHorizontal: 15 });
+    expect(view.getByText("‹").props.style).toMatchObject({ color: "#C99B36", fontSize: 23, marginRight: 6 });
+    expect(view.getByText("MULTI-SPECIALTY HOSPITALS").props.style).toMatchObject({ color: "#EEE9DF", fontSize: 8, fontWeight: "800", letterSpacing: 1 });
+    expect(view.queryByTestId("aarohan-back-icon-area")).toBeNull();
     fireEvent.press(view.getByLabelText("Back to Multi-Specialty Hospitals"));
     expect(onAction).toHaveBeenLastCalledWith({ type: "return-to-subvertical" });
     expect(projectDetailStyles.page).not.toHaveProperty("marginTop", -16);
