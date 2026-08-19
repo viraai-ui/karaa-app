@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineAppShell } from '../src/demo/OfflineAppShell';
 import { CUSTOMER_NAV_INACTIVE } from '../src/demo/CustomerNavIcons';
+import { SENIOR_MANAGEMENT_NAV_INACTIVE } from '../src/demo/SeniorManagementNavIcons';
 import { colors } from '../src/theme/tokens';
 import {
   createOfflineDemoState,
@@ -76,7 +77,33 @@ describe('canonical role bottom navigation', () => {
   it.each(['employee', 'management'] as const)('does not leak customer icon components into %s navigation', (role) => {
     const screen = render(<Shell role={role} />);
     expect(screen.queryAllByTestId(/customer-nav-icon-/)).toHaveLength(0);
-    offlineRoleTabs[role].forEach((tab) => expect(screen.getByTestId(`role-nav-icon-${tab.key}`)).toBeTruthy());
+    offlineRoleTabs[role].forEach((tab) => expect(screen.getByTestId(role === 'management' ? `senior-management-nav-icon-${tab.key}` : `role-nav-icon-${tab.key}`)).toBeTruthy());
+  });
+
+  it('renders the five senior-management reference silhouettes and nine hollow grid dots', () => {
+    const screen = render(<Shell role="management" />);
+    const keys = ['power', 'tenders', 'command', 'map', 'chat'] as const;
+    expect(keys.map((key) => screen.getByTestId(`senior-management-nav-icon-${key}`).props.accessibilityLabel)).toEqual([
+      'Power of 9 hollow grid icon', 'Tenders folded document icon', 'Command Centre speedometer icon', 'Geo Location map pin icon', 'Chat speech bubble icon',
+    ]);
+    expect(screen.getAllByTestId(/senior-management-nav-power-dot-/)).toHaveLength(9);
+    expect(screen.getByTestId('senior-management-nav-power-dot-1')).toHaveStyle({ backgroundColor: 'transparent', borderColor: colors.brass });
+    expect(screen.getByTestId('senior-management-nav-document')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
+    expect(screen.getAllByTestId(/senior-management-nav-gauge-tick-/)).toHaveLength(5);
+  });
+
+  it('switches senior-management icon and label color without changing canonical order', () => {
+    const screen = render(<Shell role="management" />);
+    fireEvent.press(screen.getByRole('tab', { name: 'Geo Location' }));
+    expect(screen.getByTestId('senior-management-nav-power-dot-1')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
+    expect(screen.getByTestId('senior-management-nav-pin-outline')).toHaveStyle({ borderColor: colors.brass });
+    expect(screen.getAllByText('Geo Location').at(-1)).toHaveStyle({ color: colors.brass });
+    expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.management);
+  });
+
+  it.each(['customer', 'employee'] as const)('keeps senior-management icons isolated from %s navigation', (role) => {
+    const screen = render(<Shell role={role} />);
+    expect(screen.queryAllByTestId(/senior-management-nav-icon-/)).toHaveLength(0);
   });
 
   it('resets nested state when changing tabs while preserving the owning active tab on detail back', () => {
