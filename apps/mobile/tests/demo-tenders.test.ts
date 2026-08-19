@@ -2,7 +2,7 @@ import * as React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { DemoTenderExperience } from '../src/demo/DemoTenderExperience';
+import { DemoTenderExperience, TENDER_BOARD_VISUAL_METRICS } from '../src/demo/DemoTenderExperience';
 import {
   createOfflineDemoState,
   offlineDemoReducer,
@@ -11,6 +11,14 @@ import {
 } from '../src/demo/offline-demo';
 
 describe('Karaa tender lifecycle demo', () => {
+  it('exports the restrained mobile visual contract', () => {
+    expect(TENDER_BOARD_VISUAL_METRICS.overview).toEqual({ maxHeight: 170, paddingHorizontal: 12, paddingTop: 10, radius: 4 });
+    expect(TENDER_BOARD_VISUAL_METRICS.icon).toEqual({ size: 16, stroke: 1.5 });
+    expect(TENDER_BOARD_VISUAL_METRICS.spacing).toEqual([4, 8, 12, 16, 24]);
+    expect(TENDER_BOARD_VISUAL_METRICS.type).toEqual({ title: 32, section: 20, tender: 13, metadata: 10, label: 9 });
+    expect(TENDER_BOARD_VISUAL_METRICS.rows).toEqual({ borderWidth: 1, shadow: 0, minHeight: 64 });
+    expect(TENDER_BOARD_VISUAL_METRICS.maxRaisedSurfaces).toBe(1);
+  });
   it('keeps the Amaravati change ledger as the immutable baseline source', () => {
     const state = createOfflineDemoState('management');
     const updates = tenderUpdatesFor(state, 'solar-bop');
