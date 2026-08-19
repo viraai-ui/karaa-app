@@ -12,7 +12,7 @@ import {
   projectTimelineFilters,
   s as projectDetailStyles,
 } from "../src/demo/PortfolioProjectDetail";
-import { a as aarohanStyles, aarohanGallerySizes, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
+import { a as aarohanStyles, aarohanGallerySizes, aarohanMotionContract, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
 import {
   portfolioForProjectId,
   portfolioProjectForId,
@@ -45,6 +45,17 @@ describe("portfolio project timeline experience", () => {
     expect(projectDetailResponsiveMetrics.filterMinFont).toBeGreaterThanOrEqual(10);
     expect(projectDetailResponsiveMetrics.touchTarget).toBe(44);
     expect(projectDetailStyles.page).not.toHaveProperty("backgroundColor", "#090A09");
+  });
+  it("defines finite, reduced-motion-safe transform and opacity reveals", () => {
+    expect(aarohanMotionContract).toMatchObject({
+      transformOnly: true,
+      opacityOnly: true,
+      repeats: false,
+      finite: true,
+      reducedMotionSafe: true,
+      reducedMotionFinalValue: 1,
+    });
+    expect(aarohanMotionContract.revealOrder).toEqual(["summary", "navigation", "timeline"]);
   });
   it("puts the subvertical back bar before the summary and removes the old summary crumb", () => {
     const state = projectState("aarohan-medical-city-pune");
