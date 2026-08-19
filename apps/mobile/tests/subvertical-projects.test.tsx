@@ -24,7 +24,14 @@ const pageState = (verticalId: string, subverticalId: string) =>
 
 describe("36 sub-vertical project portfolios", () => {
   beforeEach(() => {
-    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    // Resolve during React's render act() boundary so reduced-motion setup does
+    // not leave queued Animated updates (and warning noise) between tests.
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockImplementation(
+      () => ({ then: (resolve: (value: boolean) => unknown) => {
+        resolve(true);
+        return Promise.resolve(true);
+      } }) as Promise<boolean>,
+    );
   });
   afterEach(() => jest.restoreAllMocks());
   it("resolves 36 unique pages with three complete project records each", () => {
@@ -41,7 +48,7 @@ describe("36 sub-vertical project portfolios", () => {
         expect(project.progress).toBeGreaterThan(0);
         expect(project.update).toBeTruthy();
         expect(project.currentMilestone).toBeTruthy();
-        expect(project.stages).toHaveLength(4);
+        expect(project.stages.length).toBeGreaterThanOrEqual(4);
         expect(project.completedActivity).toBeTruthy();
         expect(project.openingYear).toBeTruthy();
         expect(project.image).toBeTruthy();
@@ -88,7 +95,7 @@ describe("36 sub-vertical project portfolios", () => {
     expect(
       rendered.getByText("HEALTHCARE & LIFE SCIENCES  /  01"),
     ).toBeTruthy();
-    expect(rendered.getByText("03")).toBeTruthy();
+    expect(rendered.getAllByText("03").length).toBeGreaterThan(0);
     expect(rendered.getAllByText("42%").length).toBeGreaterThan(0);
     expect(rendered.getAllByText("2030").length).toBeGreaterThan(0);
     [
@@ -100,7 +107,7 @@ describe("36 sub-vertical project portfolios", () => {
         `portfolio-project-${page.projects.find((p) => p.name === name)!.id}`,
       );
       expect(within(card).getByText(name)).toBeTruthy();
-      expect(within(card).getByText(location)).toBeTruthy();
+      expect(within(card).getByText(location.toUpperCase())).toBeTruthy();
       expect(within(card).getAllByText(progress).length).toBeGreaterThan(0);
       expect(
         within(card).getByRole("button", {
@@ -157,6 +164,7 @@ describe("36 sub-vertical project portfolios", () => {
     expect(rendered.getByTestId("hospital-hero")).toBeTruthy();
     expect(rendered.getByTestId("hospital-metrics")).toBeTruthy();
     expect(rendered.getAllByTestId("project-timeline")).toHaveLength(3);
+    page.projects.forEach(project => expect(project.stages).toHaveLength(6));
     expect(rendered.getByText("Track every hospital from construction to opening.")).toBeTruthy();
     ["Structural frame underway", "Main hospital block rising", "Foundation phase in progress",
       "Structure · 2026", "Main Block · 2026", "Foundations · 2026"].forEach(copy => expect(rendered.getByText(copy)).toBeTruthy());
@@ -196,20 +204,20 @@ describe("36 sub-vertical project portfolios", () => {
     expect(onAction.mock.calls.map(([action]) => action)).toEqual(page.projects.map(project => ({ type: "select-project", projectId: project.id })));
   });
 
-  it("uses a semantic milestone flag and one compact, 360px-safe footer on all three cards", () => {
+  it("uses a construction milestone icon and one compact, 360px-safe footer on all three cards", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(rendered.getAllByLabelText("Current milestone flag icon")).toHaveLength(3);
+    expect(rendered.getAllByLabelText("Construction milestone icon")).toHaveLength(3);
     page.projects.forEach(project => {
       const card = rendered.getByTestId(`portfolio-project-${project.id}`);
       expect(within(card).queryByText(project.completedActivity)).toBeNull();
       const footer = rendered.getByTestId(`project-footer-${project.id}`);
       expect(within(footer).getByText(`Opening ${project.openingYear}`)).toBeTruthy();
       const target = within(footer).getByRole("button", { name: `View full timeline for ${project.name}` });
-      expect(within(target).getByText("View full timeline")).toBeTruthy();
-      expect(StyleSheet.flatten(target.props.style)).toMatchObject({ height: 44, minWidth: 134, flexShrink: 0 });
-      expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 44 });
-      expect(134).toBeLessThan(360 - 32 - 20);
+      expect(within(target).getByText("Timeline →")).toBeTruthy();
+      expect(StyleSheet.flatten(target.props.style)).toMatchObject({ height: 44, minWidth: 82, flexShrink: 0 });
+      expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 48 });
+      expect(82).toBeLessThan(360 - 32 - 36);
     });
   });
 
@@ -219,11 +227,12 @@ describe("36 sub-vertical project portfolios", () => {
     const timing = jest.spyOn(Animated, "timing").mockReturnValue({ start, stop: jest.fn(), reset: jest.fn() } as never);
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(currentTimelineFraction(page.projects[0].stages)).toBe(1 / 3);
+    expect(currentTimelineFraction(page.projects[0].stages)).toBe(2 / 5);
     await waitFor(() => expect(timing).toHaveBeenCalledTimes(3));
-    timing.mock.calls.forEach(([, config]) => expect(config).toMatchObject({ duration: 650, toValue: 1 / 3, useNativeDriver: false }));
+    expect(timing.mock.calls.map(([, config]) => config.toValue)).toEqual([2 / 5, 3 / 5, 2 / 5]);
+    timing.mock.calls.forEach(([, config]) => expect(config).toMatchObject({ duration: 650, useNativeDriver: false }));
     expect(start).toHaveBeenCalledTimes(3);
-    expect(rendered.getAllByLabelText("Project milestone timeline").every(node => node.props.accessibilityValue.now === 1 / 3)).toBe(true);
+    expect(rendered.getAllByLabelText("Project milestone timeline").map(node => node.props.accessibilityValue.now)).toEqual([2 / 5, 3 / 5, 2 / 5]);
     rendered.unmount();
     timing.mockRestore();
   });
@@ -234,7 +243,7 @@ describe("36 sub-vertical project portfolios", () => {
     const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    await waitFor(() => expect(setValue).toHaveBeenCalledWith(1 / 3));
+    await waitFor(() => expect(setValue).toHaveBeenCalledWith(2 / 5));
     expect(timing).not.toHaveBeenCalled();
     rendered.unmount();
     timing.mockRestore();

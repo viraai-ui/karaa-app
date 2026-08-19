@@ -167,17 +167,11 @@ type HospitalPageProps = {
   visible: readonly PortfolioProject[];
 };
 
-function LineIcon({ kind }: { kind: "search" | "flag" | "calendar" | "arrow" }) {
+function LineIcon({ kind }: { kind: "search" | "calendar" }) {
   return (
-    <View
-      accessibilityElementsHidden={kind !== "flag"}
-      accessibilityLabel={kind === "flag" ? "Current milestone flag icon" : undefined}
-      style={[styles.hIcon, kind === "search" && styles.hSearchIcon, kind === "flag" && styles.hFlagIcon]}
-    >
+    <View accessibilityElementsHidden style={[styles.hIcon, kind === "search" && styles.hSearchIcon]}>
       {kind === "search" ? <View style={styles.hSearchHandle} /> : null}
-      {kind === "flag" ? <><View style={styles.hFlagPole} /><View style={styles.hFlagPennant} /></> : null}
       {kind === "calendar" ? <View style={styles.hCalendarTop} /> : null}
-      {kind === "arrow" ? <Text style={styles.hArrow}>→</Text> : null}
     </View>
   );
 }
@@ -220,20 +214,33 @@ function HospitalPortfolioPage({ data, filter, onAction, query, setFilter, setQu
 }
 
 function HospitalProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
+  const projectNumber = ["aarohan-medical-city-pune", "sanjeevani-advanced-care-hospital", "narmada-integrated-health-campus"].indexOf(project.id) + 1;
   return <View style={styles.hCard} testID={`portfolio-project-${project.id}`}>
-    <View style={styles.hCardTop}><Image accessibilityLabel={`${project.name} construction site`} resizeMode="cover" source={project.image} style={styles.hProjectImage} />
-      <View style={styles.hCardLead}><Text numberOfLines={2} style={styles.hProjectName}>{project.name}</Text>
-        <Text style={styles.hLocation}>{project.location}</Text><View style={styles.hProgressRow}><Text style={styles.hProgress}>{project.progress}%</Text>
-          <View style={[styles.hStatus, project.status === "In Progress" && styles.hStatusProgress]}><Text style={[styles.hStatusText, project.status === "In Progress" && styles.hStatusProgressText]}>● {project.status.toUpperCase()}</Text></View></View>
-        <Text numberOfLines={2} style={styles.hUpdate}>{project.update}</Text><View style={styles.hTrack}><View style={[styles.hFill, { width: `${project.progress}%` }]} /></View>
-      </View></View>
-    <View style={styles.hMilestone}><LineIcon kind="flag" /><Text style={styles.hMilestoneLabel}>Current milestone</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View>
-    <ProjectTimeline stages={project.stages} />
+    <View style={styles.hImageWrap}>
+      <Image accessibilityLabel={`${project.name} construction site`} resizeMode="cover" source={project.image} style={styles.hProjectImage} />
+      <View style={styles.hIndexBadge}><Text style={styles.hIndexText}>{String(projectNumber).padStart(2, "0")}</Text></View>
+    </View>
+    <View style={styles.hCardLead}>
+      <Text style={styles.hLocation}>{project.location.toUpperCase()}</Text>
+      <Text style={styles.hProjectName}>{project.name}</Text>
+      <Text style={styles.hDescription}>A next-generation care campus designed for accessible, advanced treatment.</Text>
+      <View style={styles.hMetricsRow}>
+        <View style={styles.hCardMetric}><Text style={styles.hProgress}>{project.progress}%</Text><Text style={styles.hMetricCaption}>Complete</Text></View>
+        <View style={styles.hCardMetric}><Text style={styles.hProgress}>{project.openingYear}</Text><Text style={styles.hMetricCaption}>Opening target</Text></View>
+      </View>
+      <View style={styles.hMilestone}><ConstructionIcon /><View style={styles.hMilestoneCopy}><Text style={styles.hMilestoneLabel}>CURRENT UPDATE</Text><Text style={styles.hUpdateText}>{project.update}</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View></View>
+      <VerticalMilestoneTimeline stages={project.stages} status={project.status} />
+    </View>
     <View style={styles.hFooter} testID={`project-footer-${project.id}`}>
       <View style={styles.hOpening}><LineIcon kind="calendar" /><Text numberOfLines={1} style={styles.hFooterText}>Opening {project.openingYear}</Text></View>
       <Pressable accessibilityLabel={`View full timeline for ${project.name}`} accessibilityRole="button" onPress={() => onAction({ type: "select-project", projectId: project.id })} style={styles.hTimelineTarget}>
-        <Text style={styles.hTimelineLink}>View full timeline</Text><LineIcon kind="arrow" /></Pressable></View>
+        <Text style={styles.hTimelineLink}>Timeline →</Text></Pressable>
+    </View>
   </View>;
+}
+
+function ConstructionIcon() {
+  return <View accessibilityLabel="Construction milestone icon" style={styles.hCrane}><View style={styles.hCraneMast} /><View style={styles.hCraneArm} /><View style={styles.hCraneCable} /><View style={styles.hCraneHook} /><View style={styles.hCraneBase} /></View>;
 }
 
 export function currentTimelineFraction(stages: PortfolioProject["stages"]): number {
@@ -241,10 +248,13 @@ export function currentTimelineFraction(stages: PortfolioProject["stages"]): num
   return currentIndex / Math.max(1, stages.length - 1);
 }
 
-function ProjectTimeline({ stages }: { stages: PortfolioProject["stages"] }) {
+export function VerticalMilestoneTimeline({ stages, status }: { stages: PortfolioProject["stages"]; status: PortfolioStatus }) {
   const progress = useRef(new Animated.Value(0)).current;
-  const [ruleWidth, setRuleWidth] = useState(0);
   const fraction = currentTimelineFraction(stages);
+  const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
+  // Both rules originate at the centre of the first node. The animated rule
+  // therefore ends exactly at (and underneath) the current node.
+  const targetHeight = currentIndex * 44;
   useEffect(() => {
     let active = true;
     AccessibilityInfo.isReduceMotionEnabled().then(reduced => {
@@ -254,31 +264,20 @@ function ProjectTimeline({ stages }: { stages: PortfolioProject["stages"] }) {
     });
     return () => { active = false; progress.stopAnimation(); };
   }, [fraction, progress]);
-  return <View accessibilityLabel="Project milestone timeline" accessibilityValue={{ max: 1, min: 0, now: fraction }}
-    onLayout={event => setRuleWidth(event.nativeEvent.layout.width * .8)} style={styles.hTimeline} testID="project-timeline">
+  return <View accessibilityLabel="Project milestone timeline" accessibilityValue={{ max: 1, min: 0, now: fraction }} style={styles.hTimeline} testID="project-timeline">
     <View style={styles.hTimelineRule} />
-    <Animated.View testID="project-timeline-progress" style={[styles.hTimelineProgress, { width: progress.interpolate({ inputRange: [0, 1], outputRange: [0, ruleWidth] }) }]} />
+    <Animated.View testID="project-timeline-progress" style={[styles.hTimelineProgress, { height: progress.interpolate({ inputRange: [0, fraction || 1], outputRange: [0, targetHeight] }) }]} />
     {stages.map((stage, index) => {
-    const [label, marker] = stage.replace(" ✓", "|✓").replace(" NOW", "|NOW").replace(" Next", "|Next").split("|");
-    const reached = index <= Math.round(fraction * (stages.length - 1));
-    return (
-      <Animated.View
-        key={stage}
-        style={[
-          styles.hStage,
-          { opacity: progress.interpolate({
-            inputRange: [Math.max(0, index / (stages.length - 1) - .08), Math.max(.01, index / (stages.length - 1))],
-            outputRange: [.45, 1],
-            extrapolate: "clamp",
-          }) },
-        ]}
-      >
-        <View style={[styles.hDot, reached && styles.hDotActive]} />
-        <Text style={[styles.hStageText, index < 2 && styles.hStageActive]}>{label}</Text>
-        {marker ? <Text style={styles.hStageMarker}>{marker}</Text> : null}
-      </Animated.View>
-    );
-  })}</View>;
+      const label = stage.replace(" ✓", "").replace(" NOW", "").replace(" Next", "");
+      const completed = index < currentIndex;
+      const current = index === currentIndex;
+      return <Animated.View key={stage} style={[styles.hStage, { opacity: progress.interpolate({ inputRange: [Math.max(0, index / (stages.length - 1) - .08), Math.max(.01, index / (stages.length - 1))], outputRange: [.45, 1], extrapolate: "clamp" }) }]}>
+        <View style={[styles.hDot, completed && styles.hDotComplete, current && styles.hDotCurrent]}><Text style={[styles.hNodeText, (completed || current) && styles.hNodeTextActive]}>{completed ? "✓" : index + 1}</Text></View>
+        <Text style={[styles.hStageText, (completed || current) && styles.hStageActive]}>{label}</Text>
+        {current ? <Text style={styles.hStageMarker}>{status === "On Track" ? "ON TRACK" : "IN PROGRESS"}</Text> : null}
+      </Animated.View>;
+    })}
+  </View>;
 }
 
 function Metric({
@@ -632,31 +631,46 @@ const styles = StyleSheet.create({
   hBody: { paddingHorizontal: 16, paddingTop: 17 },
   hSectionTitle: { color: "#292721", fontFamily: "serif", fontSize: 22, marginBottom: 10 },
   hList: { gap: 14 },
-  hCard: { backgroundColor: "#FFF", borderColor: "#DDD5C8", borderRadius: 12, borderWidth: 1, overflow: "hidden", padding: 10 },
-  hCardTop: { flexDirection: "row", height: 156 },
-  hProjectImage: { borderRadius: 7, height: 156, width: "45%" },
-  hCardLead: { flex: 1, paddingLeft: 12 },
-  hProjectName: { color: "#25231E", fontFamily: "serif", fontSize: 18, lineHeight: 20 },
-  hLocation: { color: "#6C665D", fontSize: 11, lineHeight: 15, marginTop: 3 },
-  hProgressRow: { alignItems: "center", flexDirection: "row", gap: 7, marginTop: 7 },
-  hProgress: { color: "#27251F", fontSize: 20, fontWeight: "700" },
-  hStatus: { backgroundColor: "#EAF3E8", borderRadius: 12, paddingHorizontal: 7, paddingVertical: 4 },
-  hStatusProgress: { backgroundColor: "#E7EFF4" }, hStatusText: { color: "#54844F", fontSize: 10, fontWeight: "900" }, hStatusProgressText: { color: "#527789" },
-  hUpdate: { color: "#514D45", fontSize: 13, fontWeight: "700", lineHeight: 17, marginTop: 5 },
-  hTrack: { backgroundColor: "#EAE4D9", borderRadius: 2, height: 4, marginTop: 9 }, hFill: { backgroundColor: "#C79129", borderRadius: 2, height: 4 },
-  hMilestone: { alignItems: "center", borderBottomColor: "#EAE4DA", borderBottomWidth: 1, flexDirection: "row", minHeight: 44 },
-  hMilestoneLabel: { color: "#5F5A52", fontSize: 11, marginLeft: 7 }, hMilestoneValue: { color: "#665F56", fontSize: 11, fontWeight: "800", marginLeft: "auto" },
-  hTimeline: { flexDirection: "row", minHeight: 88, position: "relative" },
-  hTimelineRule: { backgroundColor: "#DCD5C9", height: 2, left: "10%", position: "absolute", right: "10%", top: 18 },
-  hTimelineProgress: { backgroundColor: "#CA9228", height: 2, left: "10%", position: "absolute", top: 18 },
-  hStage: { alignItems: "center", flex: 1, paddingHorizontal: 2, zIndex: 2 }, hDot: { backgroundColor: "#FFF", borderColor: "#C5BEB2", borderRadius: 6, borderWidth: 1, height: 11, marginTop: 13, width: 11 },
-  hDotActive: { backgroundColor: "#CA9228", borderColor: "#CA9228" }, hStageText: { color: "#625D55", fontSize: 11, lineHeight: 14, marginTop: 5, textAlign: "center" }, hStageActive: { color: "#9D7223", fontWeight: "800" }, hStageMarker: { color: "#8C867D", fontSize: 10, marginTop: 1 },
-  hFooter: { alignItems: "center", borderTopColor: "#EAE4DA", borderTopWidth: 1, flexDirection: "row", height: 44 },
-  hOpening: { alignItems: "center", flexDirection: "row", flexShrink: 1, height: 44, minWidth: 0 }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 5 },
-  hTimelineTarget: { alignItems: "center", flexDirection: "row", flexShrink: 0, height: 44, justifyContent: "flex-end", marginLeft: "auto", minWidth: 134, paddingLeft: 8 }, hTimelineLink: { color: "#A8761E", fontSize: 11, fontWeight: "800", marginRight: 5 },
+  hCard: { backgroundColor: "#FFF", borderColor: "#DDD5C8", borderRadius: 14, borderWidth: 1, overflow: "hidden" },
+  hImageWrap: { height: 138, maxHeight: 138, overflow: "hidden", position: "relative", width: "100%" },
+  hProjectImage: { height: "100%", width: "100%" },
+  hIndexBadge: { alignItems: "center", backgroundColor: "#B78629", borderRadius: 16, height: 32, justifyContent: "center", left: 12, position: "absolute", top: 12, width: 32 },
+  hIndexText: { color: "#FFF", fontSize: 11, fontWeight: "800", letterSpacing: .5 },
+  hCardLead: { paddingHorizontal: 16, paddingTop: 13 },
+  hProjectName: { color: "#25231E", fontFamily: "serif", fontSize: 21, lineHeight: 25, marginTop: 4 },
+  hLocation: { color: "#A27625", fontSize: 9, fontWeight: "800", letterSpacing: 1.05 },
+  hDescription: { color: "#625D54", fontSize: 11, lineHeight: 16, marginTop: 6 },
+  hMetricsRow: { borderBottomColor: "#E8E1D6", borderBottomWidth: 1, borderTopColor: "#E8E1D6", borderTopWidth: 1, flexDirection: "row", marginTop: 10, paddingVertical: 9 },
+  hCardMetric: { flex: 1 },
+  hProgress: { color: "#27251F", fontFamily: "serif", fontSize: 21 },
+  hMetricCaption: { color: "#777168", fontSize: 10, marginTop: 2, textTransform: "uppercase" },
+  hMilestone: { alignItems: "center", flexDirection: "row", minHeight: 58 },
+  hMilestoneCopy: { marginLeft: 11 },
+  hMilestoneLabel: { color: "#9B7124", fontSize: 9, fontWeight: "900", letterSpacing: .9 },
+  hUpdateText: { color: "#332F29", fontSize: 12, fontWeight: "700", marginTop: 3 },
+  hMilestoneValue: { color: "#332F29", fontFamily: "serif", fontSize: 15, marginTop: 3 },
+  hTimeline: { height: 264, position: "relative" },
+  hTimelineRule: { backgroundColor: "#DDD6CA", bottom: 22, left: 14, position: "absolute", top: 22, width: 1 },
+  hTimelineProgress: { backgroundColor: "#C28D2A", left: 14, position: "absolute", top: 22, width: 2 },
+  hStage: { alignItems: "center", flexDirection: "row", height: 44, paddingLeft: 0, zIndex: 2 },
+  hDot: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#C7C0B5", borderRadius: 14, borderWidth: 1, height: 28, justifyContent: "center", width: 28 },
+  hDotComplete: { backgroundColor: "#C28D2A", borderColor: "#C28D2A" },
+  hDotCurrent: { backgroundColor: "#FFF", borderColor: "#C28D2A", borderWidth: 2 },
+  hNodeText: { color: "#908A81", fontSize: 10, fontWeight: "800" }, hNodeTextActive: { color: "#A87720" },
+  hStageText: { color: "#777168", flex: 1, fontSize: 12, lineHeight: 16, marginLeft: 12, paddingRight: 8 },
+  hStageActive: { color: "#342F28", fontWeight: "700" },
+  hStageMarker: { color: "#9C7123", fontSize: 8, fontWeight: "900", letterSpacing: .65, marginLeft: "auto" },
+  hFooter: { alignItems: "center", borderTopColor: "#E8E1D6", borderTopWidth: 1, flexDirection: "row", height: 48, marginHorizontal: 16 },
+  hOpening: { alignItems: "center", flexDirection: "row", flexShrink: 1, height: 44, minWidth: 0 }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 6 },
+  hTimelineTarget: { alignItems: "center", flexShrink: 0, height: 44, justifyContent: "center", marginLeft: "auto", minWidth: 82, paddingLeft: 10 }, hTimelineLink: { color: "#A8761E", fontSize: 12, fontWeight: "800" },
   hEmpty: { color: "#6D675E", fontSize: 13, paddingVertical: 24, textAlign: "center" },
   hIcon: { borderColor: "#A87A27", borderRadius: 2, borderWidth: 1.2, height: 15, position: "relative", width: 15 },
   hSearchIcon: { borderColor: "#817B72", borderRadius: 8, height: 14, width: 14 }, hSearchHandle: { backgroundColor: "#817B72", height: 1.5, position: "absolute", right: -4, top: 12, transform: [{ rotate: "45deg" }], width: 6 },
-  hFlagIcon: { borderWidth: 0 }, hFlagPole: { backgroundColor: "#A87A27", bottom: 1, left: 3, position: "absolute", top: 1, width: 1.5 }, hFlagPennant: { borderColor: "#A87A27", borderLeftWidth: 1.5, borderTopWidth: 1.5, height: 8, left: 4, position: "absolute", top: 1, transform: [{ skewY: "-12deg" }], width: 8 },
-  hCalendarTop: { borderBottomColor: "#A87A27", borderBottomWidth: 1, left: 1, position: "absolute", right: 1, top: 4 }, hArrow: { color: "#A8761E", fontSize: 17, left: 1, position: "absolute", top: -5 }, hTimelineDot: { backgroundColor: "#A87A27", borderRadius: 2, height: 4, left: 4, position: "absolute", top: 4, width: 4 },
+  hCalendarTop: { borderBottomColor: "#A87A27", borderBottomWidth: 1, left: 1, position: "absolute", right: 1, top: 4 },
+  hCrane: { height: 31, position: "relative", width: 34 },
+  hCraneMast: { borderLeftColor: "#AD7C24", borderLeftWidth: 1.5, bottom: 4, left: 9, position: "absolute", top: 3 },
+  hCraneArm: { borderTopColor: "#AD7C24", borderTopWidth: 1.5, left: 4, position: "absolute", right: 1, top: 4 },
+  hCraneCable: { backgroundColor: "#AD7C24", height: 14, position: "absolute", right: 5, top: 5, width: 1 },
+  hCraneHook: { borderBottomColor: "#AD7C24", borderBottomWidth: 1.5, borderRightColor: "#AD7C24", borderRightWidth: 1.5, height: 5, position: "absolute", right: 5, top: 17, width: 5 },
+  hCraneBase: { borderTopColor: "#AD7C24", borderTopWidth: 1.5, bottom: 3, left: 3, position: "absolute", width: 14 },
 });

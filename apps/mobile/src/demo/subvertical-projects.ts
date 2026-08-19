@@ -11,7 +11,7 @@ export type PortfolioProject = {
   update: string;
   currentMilestone: string;
   currentYear: string;
-  stages: readonly [string, string, string, string];
+  stages: readonly string[];
   completedActivity: string;
   openingYear: string;
   image: ImageSourcePropType;
@@ -117,8 +117,8 @@ const healthcareProjects: PortfolioProject[] = [
     update: "Structural frame underway",
     currentMilestone: "Structure",
     currentYear: "2026",
-    stages: ["Planning ✓", "Structure NOW", "Envelope Next", "Opening 2030"],
-    completedActivity: "Foundation complete",
+    stages: ["Planning ✓", "Site Preparation ✓", "Structure NOW", "Building Envelope Next", "Clinical Fit-out", "Opening 2030"],
+    completedActivity: "Site preparation complete",
     openingYear: "2030",
     image: require("../../assets/subverticals/multi-specialty-hospitals/aarohan-medical-city.webp"),
   },
@@ -131,7 +131,7 @@ const healthcareProjects: PortfolioProject[] = [
     update: "Main hospital block rising",
     currentMilestone: "Main Block",
     currentYear: "2026",
-    stages: ["Design ✓", "Main Block NOW", "Façade Next", "Opening 2030"],
+    stages: ["Concept Design ✓", "Detailed Design ✓", "Substructure ✓", "Main Block NOW", "Façade & MEP Next", "Opening 2030"],
     completedActivity: "Substructure complete",
     openingYear: "2030",
     image: require("../../assets/subverticals/multi-specialty-hospitals/sanjeevani-advanced-care-hospital.webp"),
@@ -145,7 +145,7 @@ const healthcareProjects: PortfolioProject[] = [
     update: "Foundation phase in progress",
     currentMilestone: "Foundations",
     currentYear: "2026",
-    stages: ["Approvals ✓", "Foundations NOW", "Superstructure Next", "Opening 2030"],
+    stages: ["Land & Approvals ✓", "Site Mobilisation ✓", "Foundations NOW", "Superstructure Next", "Services & Fit-out", "Opening 2030"],
     completedActivity: "Site mobilised",
     openingYear: "2030",
     image: require("../../assets/subverticals/multi-specialty-hospitals/narmada-integrated-health-campus.webp"),
