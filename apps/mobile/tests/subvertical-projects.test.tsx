@@ -156,6 +156,32 @@ describe("36 sub-vertical project portfolios", () => {
       "Structure · 2026", "Main Block · 2026", "Foundations · 2026"].forEach(copy => expect(rendered.getByText(copy)).toBeTruthy());
   });
 
+  it("uses one full-width hospital hero image and one smooth stretched fade", () => {
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    const hero = rendered.getByTestId("hospital-hero");
+    const background = rendered.getByTestId("hospital-hero-background");
+    const fade = rendered.getByTestId("hospital-hero-fade");
+
+    expect(within(hero).getAllByTestId("hospital-hero-background")).toHaveLength(1);
+    expect(within(hero).getAllByTestId("hospital-hero-fade")).toHaveLength(1);
+    expect(background.props.resizeMode).toBe("cover");
+    expect(background.props.style).toEqual(expect.objectContaining({
+      left: 0,
+      position: "absolute",
+      right: 0,
+      width: "100%",
+    }));
+    expect(fade.props.resizeMode).toBe("stretch");
+    expect(fade.props.style).toEqual(expect.objectContaining({
+      height: "100%",
+      left: 0,
+      position: "absolute",
+      width: "82%",
+    }));
+    expect(fade.props.style).not.toHaveProperty("backgroundColor");
+  });
+
   it("routes all three full-timeline targets", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const onAction = jest.fn();

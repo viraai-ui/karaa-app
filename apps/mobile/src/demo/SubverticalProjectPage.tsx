@@ -16,6 +16,8 @@ import {
   type SubverticalPortfolio,
 } from "./subvertical-projects";
 
+const hospitalHeroFade = require("../../assets/subverticals/multi-specialty-hospitals/hero-left-fade.png");
+
 const filters: readonly ("All" | PortfolioStatus)[] = [
   "All",
   "On Track",
@@ -183,8 +185,8 @@ function HospitalPortfolioPage({ data, filter, onAction, query, setFilter, setQu
         <Text style={styles.backArrow}>‹</Text><Text style={styles.backLabel}>{data.verticalTitle.toUpperCase()}</Text>
       </Pressable>
       <View style={styles.hHero} testID="hospital-hero">
-        <Image accessibilityLabel="Hospital construction site" resizeMode="cover" source={data.hero} style={styles.hHeroImage} />
-        <View style={styles.hHeroWash} />
+        <Image accessibilityLabel="Hospital construction site" resizeMode="cover" source={data.hero} style={styles.hHeroImage} testID="hospital-hero-background" />
+        <Image accessible={false} resizeMode="stretch" source={hospitalHeroFade} style={styles.hHeroWash} testID="hospital-hero-fade" />
         <View style={styles.hHeroCopy}>
           <Text style={styles.hEyebrow}>HEALTHCARE &amp; LIFE SCIENCES  /  01</Text>
           <Text style={styles.hTitle}>Multi-Specialty Hospitals</Text>
@@ -569,9 +571,9 @@ const styles = StyleSheet.create({
   },
   hPage: { backgroundColor: "#F8F5EE", marginHorizontal: -16, marginTop: -16, paddingBottom: 24 },
   hHero: { height: 196, overflow: "hidden", position: "relative" },
-  hHeroImage: { height: "100%", position: "absolute", right: 0, top: 0, width: "73%" },
-  hHeroWash: { backgroundColor: "rgba(248,245,238,.76)", height: "100%", left: "35%", position: "absolute", top: 0, width: "31%" },
-  hHeroCopy: { height: "100%", justifyContent: "center", paddingHorizontal: 18, width: "67%" },
+  hHeroImage: { bottom: 0, height: "100%", left: 0, position: "absolute", right: 0, top: 0, width: "100%" },
+  hHeroWash: { bottom: 0, height: "100%", left: 0, position: "absolute", top: 0, width: "82%", zIndex: 1 },
+  hHeroCopy: { height: "100%", justifyContent: "center", paddingHorizontal: 18, width: "67%", zIndex: 2 },
   hEyebrow: { color: "#A77A20", fontSize: 10, fontWeight: "900", letterSpacing: .75, marginBottom: 9 },
   hTitle: { color: "#24221D", fontFamily: "serif", fontSize: 23, lineHeight: 27 },
   hSubtitle: { color: "#5D584F", fontSize: 13, lineHeight: 18, marginTop: 8 },
