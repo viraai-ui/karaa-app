@@ -11,13 +11,34 @@ describe('healthcare-only vertical detail reference composition', () => {
   it('renders exact healthcare content, ordering, fade and four solid-image cards', () => {
     const rendered = render(<VerticalDetailPage onAction={jest.fn()} verticalId={healthcare.id} />);
     expect(rendered.getByTestId('healthcare-white-hero-fade')).toBeTruthy();
-    expect(rendered.getByText('POWER OF 9  •  04')).toBeTruthy();
+    expect(rendered.queryByText('POWER OF 9  •  04')).toBeNull();
     expect(rendered.getByText('Healthcare &\nLife Sciences')).toBeTruthy();
-    expect(rendered.getByText('04 SUB-VERTICALS')).toBeTruthy();
+    expect(rendered.queryByText('04 SUB-VERTICALS')).toBeNull();
     expect(rendered.getByText('EXPLORE HEALTHCARE')).toBeTruthy();
     expect(rendered.getByText('Choose a pathway')).toBeTruthy();
-    expect(rendered.getAllByTestId(/healthcare-pathway-\d/)).toHaveLength(4);
-    expect(['01', '02', '03', '04'].map((number) => rendered.getByText(number).props.children)).toEqual(['01', '02', '03', '04']);
+    expect(rendered.getAllByTestId(/^healthcare-pathway-\d$/)).toHaveLength(4);
+    ['01', '02', '03', '04', '♜', '♨', '▣', '▤'].forEach((removedContent) => {
+      expect(rendered.queryByText(removedContent)).toBeNull();
+    });
+    const heroDescriptionStyle = StyleSheet.flatten(rendered.getByTestId('healthcare-hero-description').props.style);
+    expect(heroDescriptionStyle).toMatchObject({ fontSize: 10, lineHeight: 14 });
+    expect(heroDescriptionStyle.fontSize).toBeGreaterThanOrEqual(10);
+    expect(rendered.getByTestId('healthcare-hero-description').props).toMatchObject({ ellipsizeMode: 'tail', numberOfLines: 6 });
+    healthcare.pathways.forEach((_, index) => {
+      const title = rendered.getByTestId(`healthcare-pathway-title-${index + 1}`);
+      const description = rendered.getByTestId(`healthcare-pathway-description-${index + 1}`);
+      expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 16, lineHeight: 17 });
+      expect(StyleSheet.flatten(title.props.style).fontSize).toBeGreaterThanOrEqual(16);
+      expect(StyleSheet.flatten(description.props.style)).toMatchObject({ fontSize: 9, lineHeight: 12 });
+      expect(StyleSheet.flatten(description.props.style).fontSize).toBeGreaterThanOrEqual(9);
+      expect(title.props).toMatchObject({ ellipsizeMode: 'tail', numberOfLines: 3 });
+      expect(description.props).toMatchObject({ ellipsizeMode: 'tail', numberOfLines: 3 });
+      const cardHeight = StyleSheet.flatten(rendered.getByTestId(`healthcare-pathway-${index + 1}`).props.style).height;
+      const copyStyle = StyleSheet.flatten(rendered.getByTestId(`healthcare-pathway-copy-${index + 1}`).props.style);
+      const maximumTextBlockHeight = (17 * 3) + 3 + (12 * 3) + (copyStyle.paddingVertical * 2);
+      expect(cardHeight).toBe(101);
+      expect(maximumTextBlockHeight).toBeLessThanOrEqual(cardHeight - 2);
+    });
     const cardImages = rendered.UNSAFE_getAllByType(Image).filter((image) => String(image.props.accessibilityLabel).endsWith(' pathway'));
     expect(cardImages).toHaveLength(4);
     cardImages.forEach((image) => {

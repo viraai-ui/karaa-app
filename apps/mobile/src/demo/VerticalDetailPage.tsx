@@ -8,7 +8,6 @@ import { subverticalPortfolioForPathway } from './subvertical-projects';
 
 const HEALTHCARE_ID = 'healthcare-life-sciences';
 const whiteFade = require('../../assets/verticals/white-fade-left.png');
-const pathwayIcons = ['♜', '♨', '▣', '▤'];
 const matterIcons = ['♧', '⌘', '♢'];
 const serifFamily = Platform.select({ android: 'serif', ios: 'Georgia', web: 'Georgia, Times New Roman, serif' });
 const sansFamily = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Arial, Helvetica, sans-serif' });
@@ -29,10 +28,8 @@ function HealthcareVerticalPage({ vertical, onAction }: { vertical: VerticalDeta
       <Image accessibilityLabel="Healthcare & Life Sciences hero" resizeMode="cover" source={vertical.hero} style={health.heroImage} />
       <Image resizeMode="stretch" source={whiteFade} style={health.heroFade} testID="healthcare-white-hero-fade" />
       <View style={health.heroCopy}>
-        <Text style={health.heroEyebrow}>POWER OF 9  •  04</Text>
         <Text style={health.heroTitle}>Healthcare &{`\n`}Life Sciences</Text>
-        <Text style={health.intro}>{vertical.intro}</Text>
-        <Text style={health.subverticalCount}>04 SUB-VERTICALS</Text>
+        <Text ellipsizeMode="tail" numberOfLines={6} style={health.intro} testID="healthcare-hero-description">{vertical.intro}</Text>
       </View>
     </View>
 
@@ -44,10 +41,9 @@ function HealthcareVerticalPage({ vertical, onAction }: { vertical: VerticalDeta
       <View style={health.cards} testID="pathway-list">{vertical.pathways.map((item, index) =>
         <Pressable accessibilityLabel={`Explore ${item.title}`} accessibilityRole="button" key={item.title} onPress={() => openPathway(vertical, item.title, onAction)} style={health.card} testID={`healthcare-pathway-${index + 1}`}>
           <Image accessibilityLabel={`${item.title} pathway`} resizeMode="cover" source={item.image} style={health.cardImage} />
-          <View style={health.cardCopy}>
-            <View style={health.cardMeta}><Text style={health.cardNumber}>{String(index + 1).padStart(2, '0')}</Text><Text style={health.pathIcon}>{pathwayIcons[index]}</Text></View>
-            <Text style={health.cardTitle}>{item.title}</Text>
-            <Text numberOfLines={3} style={health.cardDescription}>{item.description}</Text>
+          <View style={health.cardCopy} testID={`healthcare-pathway-copy-${index + 1}`}>
+            <Text ellipsizeMode="tail" numberOfLines={3} style={health.cardTitle} testID={`healthcare-pathway-title-${index + 1}`}>{item.title}</Text>
+            <Text ellipsizeMode="tail" numberOfLines={3} style={health.cardDescription} testID={`healthcare-pathway-description-${index + 1}`}>{item.description}</Text>
             <Text style={health.cardArrow}>→</Text>
           </View>
         </Pressable>)}</View>
@@ -80,10 +76,8 @@ const health = StyleSheet.create({
   heroImage:{ bottom:0, height:'100%', position:'absolute', right:0, top:0, width:'68%' },
   heroFade:{ bottom:0, height:'100%', left:'32%', position:'absolute', width:'37%' },
   heroCopy:{ bottom:0, justifyContent:'center', left:0, paddingLeft:20, position:'absolute', top:0, width:'54%' },
-  heroEyebrow:{ color:'#8C806D', fontFamily:sansFamily, fontSize:6, fontWeight:'700', letterSpacing:.65, marginBottom:8 },
   heroTitle:{ color:'#171814', fontFamily:serifFamily, fontSize:25, lineHeight:24 },
-  intro:{ color:'#4F4D47', fontFamily:sansFamily, fontSize:7, lineHeight:10, marginTop:9 },
-  subverticalCount:{ color:'#B58A3A', fontSize:6, fontWeight:'800', letterSpacing:.65, marginTop:12 },
+  intro:{ color:'#4F4D47', fontFamily:sansFamily, fontSize:10, lineHeight:14, marginTop:9 },
   explore:{ backgroundColor:'#FFFEFB', paddingBottom:25, paddingHorizontal:20, paddingTop:20 },
   eyebrow:{ color:'#B18435', fontSize:7, fontWeight:'900', letterSpacing:.75, marginBottom:5 },
   sectionTitle:{ color:'#20211D', fontFamily:serifFamily, fontSize:22, lineHeight:25 },
@@ -92,12 +86,9 @@ const health = StyleSheet.create({
   cards:{ gap:7 },
   card:{ backgroundColor:'#FFF', borderColor:'#DED8CC', borderRadius:10, borderWidth:1, flexDirection:'row', height:101, overflow:'hidden' },
   cardImage:{ height:'100%', width:'44%' },
-  cardCopy:{ flex:1, justifyContent:'center', paddingHorizontal:14, position:'relative' },
-  cardMeta:{ alignItems:'center', flexDirection:'row', gap:12, marginBottom:3 },
-  cardNumber:{ color:'#C0923D', fontSize:14, fontWeight:'500' },
-  pathIcon:{ color:'#BD8E36', fontSize:18, lineHeight:19 },
-  cardTitle:{ color:'#24241F', fontFamily:serifFamily, fontSize:12, lineHeight:13, paddingRight:9 },
-  cardDescription:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:6.5, lineHeight:9, marginTop:4, paddingRight:7 },
+  cardCopy:{ flex:1, justifyContent:'center', paddingLeft:12, paddingRight:25, paddingVertical:4, position:'relative' },
+  cardTitle:{ color:'#24241F', fontFamily:serifFamily, fontSize:16, lineHeight:17 },
+  cardDescription:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:9, lineHeight:12, marginTop:3, paddingRight:3 },
   cardArrow:{ bottom:7, color:'#C39135', fontSize:17, position:'absolute', right:8 },
   matters:{ backgroundColor:'#F1EEE7', paddingBottom:16, paddingHorizontal:20, paddingTop:18 },
   mattersTitle:{ color:'#22231F', fontFamily:serifFamily, fontSize:19, lineHeight:23, marginBottom:8 },

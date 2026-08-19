@@ -101,7 +101,7 @@ describe('Power-of-9 explorer', () => {
 
   it('uses the reference Healthcare composition and copy', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={offlineDemoReducer(createOfflineDemoState(), { type:'select-vertical', verticalId:'healthcare-life-sciences' })} />);
-    expect(rendered.getByText('POWER OF 9  •  04')).toBeTruthy();
+    expect(rendered.queryByText('POWER OF 9  •  04')).toBeNull();
     expect(rendered.getByText('Care designed as a continuum')).toBeTruthy();
     expect(rendered.getByRole('button', { name:'Explore Multi-Specialty Hospitals' })).toBeTruthy();
     expect(rendered.getByText('Why continuity matters')).toBeTruthy();
