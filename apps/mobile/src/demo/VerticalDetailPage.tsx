@@ -120,8 +120,8 @@ const health = StyleSheet.create({
   continuityRing:{ borderColor:gold, borderRadius:9, borderWidth:1.5, height:18, left:3, position:'absolute', top:3, width:18 },
   continuityArrow:{ borderRightColor:gold, borderRightWidth:1.5, borderTopColor:gold, borderTopWidth:1.5, height:6, position:'absolute', right:1, top:4, transform:[{ rotate:'20deg' }], width:6 },
   matterCopy:{ flex:1 },
-  matterTitle:{ color:'#282823', fontFamily:serifFamily, fontSize:11.5, lineHeight:15, marginBottom:2 },
-  matterText:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:13, lineHeight:17 },
+  matterTitle:{ color:'#282823', fontFamily:serifFamily, fontSize:11.5, fontWeight:'700', lineHeight:15, marginBottom:2 },
+  matterText:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:9, lineHeight:12 },
 });
 
 const styles=StyleSheet.create({

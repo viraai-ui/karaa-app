@@ -66,7 +66,8 @@ describe('healthcare-only vertical detail reference composition', () => {
     healthcare.matters.forEach((matter) => {
       expect(rendered.getByText(matter.title)).toBeTruthy();
       expect(rendered.getByText(matter.copy)).toBeTruthy();
-      expect(StyleSheet.flatten(rendered.getByText(matter.copy).props.style)).toMatchObject({ fontSize: 13, lineHeight: 17 });
+      expect(StyleSheet.flatten(rendered.getByText(matter.title).props.style)).toMatchObject({ fontWeight: '700' });
+      expect(StyleSheet.flatten(rendered.getByText(matter.copy).props.style)).toMatchObject({ fontSize: 9, lineHeight: 12 });
     });
     expect(rendered.getByLabelText('Continuous care heart icon')).toBeTruthy();
     expect(rendered.getByLabelText('Connected care network icon')).toBeTruthy();
