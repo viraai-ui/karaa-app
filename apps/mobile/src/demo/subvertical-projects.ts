@@ -120,7 +120,7 @@ const healthcareProjects: PortfolioProject[] = [
     stages: ["Planning ✓", "Structure NOW", "Envelope Next", "Opening 2030"],
     completedActivity: "Foundation complete",
     openingYear: "2030",
-    image: require("../../assets/demo/amaravati-structure.webp"),
+    image: require("../../assets/subverticals/multi-specialty-hospitals/aarohan-medical-city.webp"),
   },
   {
     id: "sanjeevani-advanced-care-hospital",
@@ -134,7 +134,7 @@ const healthcareProjects: PortfolioProject[] = [
     stages: ["Design ✓", "Main Block NOW", "Façade Next", "Opening 2030"],
     completedActivity: "Substructure complete",
     openingYear: "2030",
-    image: require("../../assets/demo/amaravati-structure-progress.webp"),
+    image: require("../../assets/subverticals/multi-specialty-hospitals/sanjeevani-advanced-care-hospital.webp"),
   },
   {
     id: "narmada-integrated-health-campus",
@@ -148,7 +148,7 @@ const healthcareProjects: PortfolioProject[] = [
     stages: ["Approvals ✓", "Foundations NOW", "Superstructure Next", "Opening 2030"],
     completedActivity: "Site mobilised",
     openingYear: "2030",
-    image: require("../../assets/demo/amaravati-pour.webp"),
+    image: require("../../assets/subverticals/multi-specialty-hospitals/narmada-integrated-health-campus.webp"),
   },
 ];
 
@@ -173,7 +173,7 @@ export const subverticalPortfolios: readonly SubverticalPortfolio[] =
         searchCategory: category,
         horizon: "2030",
         hero: healthcare
-          ? require("../../assets/verticals/multi-specialty-hospitals-user-supplied.webp")
+          ? require("../../assets/subverticals/multi-specialty-hospitals/hero.webp")
           : pathway.image,
         projects: healthcare
           ? healthcareProjects
