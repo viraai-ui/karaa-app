@@ -3,7 +3,7 @@ import { portfolioForProjectId, subverticalPortfolioForId } from './subvertical-
 
 export type OfflineDemoRole = 'customer' | 'employee' | 'management';
 
-export type OfflineDemoTabKey = 'power' | 'tenders' | 'portfolio' | 'support' | 'work' | 'chat' | 'command' | 'map';
+export type OfflineDemoTabKey = 'power' | 'tenders' | 'portfolio' | 'support' | 'attendance' | 'projects' | 'tasks' | 'chat' | 'command' | 'map';
 export type OfflineDemoIcon = 'grid' | 'file' | 'briefcase' | 'chat' | 'tool' | 'gauge' | 'pin';
 
 export interface OfflineDemoTab {
@@ -34,9 +34,9 @@ export const offlineRoleTabs: Readonly<Record<OfflineDemoRole, readonly OfflineD
     { key: 'support', label: 'Support', icon: 'chat' },
   ],
   employee: [
-    { key: 'power', label: 'Power of 9', icon: 'grid' },
-    { key: 'tenders', label: 'Tenders', icon: 'file' },
-    { key: 'work', label: 'My Work', icon: 'tool' },
+    { key: 'attendance', label: 'Attendance', icon: 'gauge' },
+    { key: 'projects', label: 'My Projects', icon: 'briefcase' },
+    { key: 'tasks', label: 'My Tasks', icon: 'tool' },
     { key: 'chat', label: 'Chat', icon: 'chat' },
   ],
   management: [
@@ -661,14 +661,28 @@ function requireManagementEmployee(employeeId: string): void {
 export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: OfflineDemoAction): OfflineDemoState {
   switch (action.type) {
     case 'set-active-role':
-      return { ...state, activeRole: action.role };
+      return {
+        ...state,
+        activeRole: action.role,
+        selectedTab: offlineRoleTabs[action.role][0].key,
+        surface: 'root',
+        selectedChatThreadId: null,
+        selectedMapProjectId: null,
+        selectedEmployeeId: null,
+        fieldReviewOpen: false,
+      };
     case 'select-tab':
+      if (!offlineRoleTabs[state.activeRole].some((tab) => tab.key === action.tab)) {
+        throw new Error(`Tab ${action.tab} is not available to ${state.activeRole}`);
+      }
       return {
         ...state,
         selectedTab: action.tab,
-        surface: action.tab === 'chat' || action.tab === 'support' ? 'root' : state.surface,
-        selectedChatThreadId: action.tab === 'chat' || action.tab === 'support' ? null : state.selectedChatThreadId,
-        fieldReviewOpen: action.tab === 'work' ? state.fieldReviewOpen : false,
+        surface: 'root',
+        selectedChatThreadId: null,
+        selectedMapProjectId: null,
+        selectedEmployeeId: null,
+        fieldReviewOpen: action.tab === 'tasks' ? state.fieldReviewOpen : false,
       };
     case 'select-vertical':
       verticalForId(action.verticalId);
@@ -787,9 +801,9 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
     case 'back-to-root':
       return { ...state, surface: 'root', selectedVerticalId: null, selectedSubverticalId: null, selectedProjectId: null, selectedTenderId: null };
     case 'open-field-review':
-      return { ...state, selectedTab: 'work', fieldReviewOpen: true };
+      return { ...state, selectedTab: 'tasks', fieldReviewOpen: true };
     case 'review-field-update': {
-      const reviewed: OfflineDemoState = { ...state, currentProgress: offlineProject.reviewedProgress, fieldReviewOpen: false, fieldUpdateReviewed: true, selectedTab: 'work' };
+      const reviewed: OfflineDemoState = { ...state, currentProgress: offlineProject.reviewedProgress, fieldReviewOpen: false, fieldUpdateReviewed: true, selectedTab: 'tasks' };
       return appendReviewFieldMessage(reviewed);
     }
     case 'open-field-thread':

@@ -24,7 +24,7 @@ describe('Karaa Global standalone demo model', () => {
 
   it('uses the approved Karaa Global navigation per role', () => {
     expect(offlineRoleTabs.customer.map((tab) => tab.label)).toEqual(['Power of 9', 'Tenders', 'My Portfolio', 'Support']);
-    expect(offlineRoleTabs.employee.map((tab) => tab.label)).toEqual(['Power of 9', 'Tenders', 'My Work', 'Chat']);
+    expect(offlineRoleTabs.employee.map((tab) => tab.label)).toEqual(['Attendance', 'My Projects', 'My Tasks', 'Chat']);
     expect(offlineRoleTabs.management.map((tab) => tab.label)).toEqual(['Power of 9', 'Tenders', 'Command Centre', 'Geo Location', 'Chat']);
   });
 

@@ -28,7 +28,7 @@ describe('Karaa Global role demo surfaces', () => {
 
     expect(rendered.getByText('KARAA')).toBeTruthy();
     expect(rendered.getByRole('button', { name: 'Switch workspace' })).toBeTruthy();
-    expect(rendered.getByRole('tab', { name: 'My Work' })).toBeTruthy();
+    expect(rendered.getByRole('tab', { name: 'My Tasks' })).toBeTruthy();
     expect(rendered.queryByText(/offline presentation|local session|presentation session/i)).toBeNull();
   });
 
@@ -112,10 +112,10 @@ describe('Karaa Global role demo surfaces', () => {
     expect(contentStyle.paddingRight).toBeGreaterThanOrEqual(26);
   });
 
-  it('moves Employee from My Work into a visual field-update review and activity result', () => {
+  it('moves Employee from My Tasks into a visual field-update review and activity result', () => {
     const rendered = renderDemoShell(<OfflineAppShell role="employee" onSwitchRole={jest.fn()} />);
 
-    fireEvent.press(rendered.getByRole('tab', { name: 'My Work' }));
+    fireEvent.press(rendered.getByRole('tab', { name: 'My Tasks' }));
     expect(rendered.getByText('Current work package')).toBeTruthy();
     expect(rendered.getByText('Inverter row commissioning')).toBeTruthy();
     expect(StyleSheet.flatten(rendered.getByTestId('employee-work-progress-label').props.style).color).toBe('#FFFDF8');
@@ -138,7 +138,7 @@ describe('Karaa Global role demo surfaces', () => {
     };
     const rendered = renderDemoShell(<App />);
 
-    fireEvent.press(rendered.getByRole('tab', { name: 'My Work' }));
+    fireEvent.press(rendered.getByRole('tab', { name: 'My Tasks' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Record progress update' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Add update to project timeline' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Switch workspace' }));

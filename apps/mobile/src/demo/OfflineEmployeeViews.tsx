@@ -4,7 +4,7 @@ import { colors, radii, spacing } from '../theme/tokens';
 import { DemoAction, DemoImageFrame, DemoListRow, DemoProgressRail, DemoSectionTitle } from './OfflineDemoPrimitives';
 import { DemoChatExperience } from './DemoChatExperience';
 import { DemoExplorer } from './DemoExplorer';
-import { DemoTenderExperience } from './DemoTenderExperience';
+
 import { demoVisualAssets } from './demo-visual-assets';
 import { currentDelivery, offlineProject, type OfflineDemoAction, type OfflineDemoState } from './offline-demo';
 
@@ -15,21 +15,25 @@ type Props = { state: OfflineDemoState; onAction: (action: OfflineDemoAction) =>
 
 export function OfflineEmployeeViews({ state, onAction }: Props) {
   switch (state.selectedTab) {
-    case 'tenders': return <DemoTenderExperience onAction={onAction} role="employee" state={state} />;
-    case 'work': return state.fieldReviewOpen ? <ReviewView onAction={onAction} /> : <WorkView onAction={onAction} state={state} />;
+    case 'attendance': return <AttendanceView />;
+    case 'projects': return <ProjectsView onAction={onAction} state={state} />;
+    case 'tasks': return state.fieldReviewOpen ? <ReviewView onAction={onAction} /> : <WorkView onAction={onAction} state={state} />;
     case 'chat': return <DemoChatExperience state={state} onAction={onAction} />;
-    case 'power':
-    default: return <PowerView onAction={onAction} state={state} />;
+    default: return <AttendanceView />;
   }
 }
 
-function PowerView({ state, onAction }: Pick<Props, 'state' | 'onAction'>) {
-  return <DemoExplorer onAction={onAction} state={state} />;
+function ProjectsView({ state, onAction }: Pick<Props, 'state' | 'onAction'>) {
+  return <View style={styles.page}><Text style={styles.eyebrow}>ASSIGNED PORTFOLIO</Text><Text style={styles.title}>My Projects</Text><DemoExplorer onAction={onAction} state={state} /></View>;
+}
+
+function AttendanceView() {
+  return <View style={styles.page}><Text style={styles.eyebrow}>FIELD EMPLOYEE</Text><Text style={styles.title}>Attendance</Text><View style={styles.projectCard}><Text style={styles.category}>TODAY · ON SITE</Text><Text style={styles.project}>Checked in</Text><Text style={styles.subtitle}>Amaravati Solar Commons · 08:42 IST</Text></View></View>;
 }
 
 
 function WorkView({ state, onAction }: Pick<Props, 'state' | 'onAction'>) {
-  return <View style={styles.page}><Text style={styles.eyebrow}>AMARAVATI SOLAR COMMONS</Text><Text style={styles.title}>My Work</Text><View style={styles.workCard}><Text style={styles.workLabel}>Current work package</Text><Text style={styles.workTitle}>{offlineProject.workPackage}</Text><View style={styles.metaRow}><Text style={styles.workMeta}>MILESTONE</Text><Text style={styles.workMetaValue}>{offlineProject.milestone}</Text></View><Text style={styles.workMeta}>NEXT REVIEW · 22 AUG</Text><DemoProgressRail detail="Project delivery" detailColor="#D6D3CD" labelColor={colors.paper} labelTestID="employee-work-progress-label" progress={state.currentProgress} valueLabel={currentDelivery(state)} /></View><DemoSectionTitle title="Recent submissions" trailing="View all" /><DemoImageFrame accessibilityLabel="Demo visual: Amaravati inverter inspection" source={evidence} /><DemoListRow detail="Cabinet checks and inverter-row alignment" meta="TODAY · FIELD UPDATE" title={state.fieldUpdateReviewed ? 'Update added to project activity' : 'Alignment review in progress'} /><DemoAction label="Record progress update" onPress={() => onAction({ type: 'open-field-review' })} /></View>;
+  return <View style={styles.page}><Text style={styles.eyebrow}>AMARAVATI SOLAR COMMONS</Text><Text style={styles.title}>My Tasks</Text><View style={styles.workCard}><Text style={styles.workLabel}>Current work package</Text><Text style={styles.workTitle}>{offlineProject.workPackage}</Text><View style={styles.metaRow}><Text style={styles.workMeta}>MILESTONE</Text><Text style={styles.workMetaValue}>{offlineProject.milestone}</Text></View><Text style={styles.workMeta}>NEXT REVIEW · 22 AUG</Text><DemoProgressRail detail="Project delivery" detailColor="#D6D3CD" labelColor={colors.paper} labelTestID="employee-work-progress-label" progress={state.currentProgress} valueLabel={currentDelivery(state)} /></View><DemoSectionTitle title="Recent submissions" trailing="View all" /><DemoImageFrame accessibilityLabel="Demo visual: Amaravati inverter inspection" source={evidence} /><DemoListRow detail="Cabinet checks and inverter-row alignment" meta="TODAY · FIELD UPDATE" title={state.fieldUpdateReviewed ? 'Update added to project activity' : 'Alignment review in progress'} /><DemoAction label="Record progress update" onPress={() => onAction({ type: 'open-field-review' })} /></View>;
 }
 
 function ReviewView({ onAction }: Pick<Props, 'onAction'>) {

@@ -22,7 +22,7 @@ export interface Session {
 
 export interface RoleRoute {
   pathname: '/login' | '/customer' | '/employee' | '/management';
-  title: 'Sign in' | 'Power of 9' | 'My Work' | 'Command Centre';
+  title: 'Sign in' | 'Power of 9' | 'Attendance' | 'Command Centre';
 }
 
 const sessionStorageKey = 'karaa.active-session.v1';
@@ -84,7 +84,7 @@ export function selectRoleRoute(session: Session | undefined): RoleRoute {
     case 'customer':
       return { pathname: '/customer', title: 'Power of 9' };
     case 'employee':
-      return { pathname: '/employee', title: 'My Work' };
+      return { pathname: '/employee', title: 'Attendance' };
     case 'management':
       return { pathname: '/management', title: 'Command Centre' };
   }

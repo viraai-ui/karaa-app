@@ -155,11 +155,15 @@ describe('Power-of-9 explorer', () => {
     expect(rendered.getByText('No projects match these filters.')).toBeTruthy();
   });
 
-  it('replaces every role Power adapter with the full catalog rather than a four-card subset', () => {
-    const adapters = [OfflineCustomerViews, OfflineEmployeeViews, OfflineManagementViews];
+  it('uses the full catalog for each role surface that owns the Power or Projects explorer', () => {
+    const adapters = [
+      [OfflineCustomerViews, createOfflineDemoState('customer')],
+      [OfflineEmployeeViews, { ...createOfflineDemoState('employee'), selectedTab: 'projects' as const }],
+      [OfflineManagementViews, createOfflineDemoState('management')],
+    ] as const;
 
-    adapters.forEach((Adapter) => {
-      const rendered = render(<Adapter onAction={jest.fn()} state={createOfflineDemoState()} />);
+    adapters.forEach(([Adapter, state]) => {
+      const rendered = render(<Adapter onAction={jest.fn()} state={state} />);
       expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(9);
     });
   });

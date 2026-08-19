@@ -3,7 +3,7 @@ import { expiresAtFromJwt, selectRoleRoute } from '../src/lib/session';
 describe('server-defined role routing', () => {
   it.each([
     ['customer', '/customer', 'Power of 9'],
-    ['employee', '/employee', 'My Work'],
+    ['employee', '/employee', 'Attendance'],
     ['management', '/management', 'Command Centre'],
   ] as const)('routes an authenticated %s user to the URL-addressable %s workspace', (role, pathname, title) => {
     expect(selectRoleRoute({
