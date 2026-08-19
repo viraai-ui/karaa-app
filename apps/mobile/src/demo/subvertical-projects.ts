@@ -1,5 +1,6 @@
 import type { ImageSourcePropType } from "react-native";
 import { verticalDetails } from "./vertical-detail";
+import { generatedSubverticalProjectImages } from "./subvertical-project-assets";
 
 export type PortfolioStatus = "On Track" | "In Progress";
 export type PortfolioProject = {
@@ -39,17 +40,7 @@ export const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-const imagePool = [
-  require("../../assets/verticals/conceptual-urban-district.webp"),
-  require("../../assets/verticals/conceptual-logistics-port.webp"),
-  require("../../assets/verticals/conceptual-clean-energy.webp"),
-  require("../../assets/verticals/conceptual-healthcare-campus.webp"),
-  require("../../assets/verticals/conceptual-hospitality-resort.webp"),
-  require("../../assets/verticals/conceptual-real-estate-district.webp"),
-  require("../../assets/verticals/conceptual-advanced-manufacturing.webp"),
-  require("../../assets/verticals/conceptual-spiritual-heritage.webp"),
-  require("../../assets/verticals/conceptual-education-innovation.webp"),
-] as const;
+const healthcareConceptualImage = require("../../assets/verticals/conceptual-healthcare-campus.webp");
 const cities = [
   ["Pune", "Maharashtra"],
   ["Hyderabad", "Telangana"],
@@ -84,7 +75,7 @@ function genericProjects(
   title: string,
   verticalIndex: number,
   pathwayIndex: number,
-  image: ImageSourcePropType,
+  images: readonly [ImageSourcePropType, ImageSourcePropType, ImageSourcePropType],
 ): PortfolioProject[] {
   const subject = title.split(/[:&,]/)[0].trim();
   return [0, 1, 2].map((index) => {
@@ -106,7 +97,7 @@ function genericProjects(
       }),
       completedActivity: completed[index],
       openingYear: "2030",
-      image,
+      image: images[index],
       description: `${subject} delivery shaped for ${place[0]}.`,
     };
   });
@@ -192,7 +183,9 @@ export const subverticalPortfolios: readonly SubverticalPortfolio[] =
               pathway.title,
               verticalIndex,
               pathwayIndex,
-              imagePool[verticalIndex],
+              vertical.id === "healthcare-life-sciences"
+                ? [healthcareConceptualImage, healthcareConceptualImage, healthcareConceptualImage]
+                : generatedSubverticalProjectImages[id],
             ),
       };
     }),
