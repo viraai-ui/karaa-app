@@ -157,7 +157,7 @@ describe('Karaa tender lifecycle demo', () => {
     const board = render(React.createElement(DemoTenderExperience, { onAction: jest.fn(), role: 'customer' as const, state: createOfflineDemoState('customer') }));
     const allFilter = board.getByRole('tab', { name: 'Filter All' });
     expect(allFilter.props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
-    expect(StyleSheet.flatten(allFilter.props.style).height).toBe(24);
+    expect(StyleSheet.flatten(allFilter.props.style).height).toBeGreaterThanOrEqual(28);
 
     let managementState = createOfflineDemoState('management');
     managementState = offlineDemoReducer(managementState, { type: 'select-tender', tenderId: 'solar-bop' });
@@ -223,18 +223,30 @@ describe('Karaa tender lifecycle demo', () => {
     expect(board.getByRole('tab', { name: 'Show Applied tenders' }).props.accessibilityState.selected).toBe(true);
     expect(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' })).toBeTruthy();
 
-    for (const [button, title, close] of [
-      ['Filter tenders', 'Search & filters', 'Close Search & filters'],
-      ['View all latest applied tenders', 'Latest applied tenders', 'Close Latest applied tenders'],
-      ['Change tender list view', 'List view', 'Close List view'],
-    ] as const) {
-      fireEvent.press(board.getByRole('button', { name: button }));
-      expect(board.getByText(title)).toBeTruthy();
-      fireEvent.press(board.getByRole('button', { name: close }));
-    }
+    fireEvent.press(board.getByRole('button', { name: 'Filter tenders' }));
+    expect(board.getByText('Search & filters')).toBeTruthy();
+    fireEvent.press(board.getByRole('radio', { name: 'Electrical' }));
+    fireEvent.press(board.getByRole('button', { name: 'Apply tender filters' }));
+    expect(board.getByRole('button', { name: 'Open Supply of Electrical Equipment tender details' })).toBeTruthy();
+
+    fireEvent.press(board.getByRole('button', { name: 'Filter tenders' }));
+    fireEvent.press(board.getByRole('button', { name: 'Clear tender filters' }));
+    fireEvent.press(board.getByRole('button', { name: 'Close Search & filters' }));
+    fireEvent.press(board.getByRole('button', { name: 'Filter tenders' }));
+    expect(board.getByRole('radio', { name: 'All' }).props.accessibilityState.checked).toBe(true);
+    expect(board.getByRole('radio', { name: 'All categories' }).props.accessibilityState.checked).toBe(true);
+    fireEvent.press(board.getByTestId('tender-modal-backdrop'));
+    expect(board.queryByText('Search & filters')).toBeNull();
+
+    fireEvent.press(board.getByRole('button', { name: 'View all latest applied tenders' }));
+    expect(board.getByRole('tab', { name: 'Show Applied tenders' }).props.accessibilityState.selected).toBe(true);
+    const toggle = board.getByRole('button', { name: 'Change tender list view' });
+    expect(toggle.props.accessibilityHint).toBe('Switch to comfortable density');
+    fireEvent.press(toggle);
+    expect(board.getByRole('button', { name: 'Change tender list view' }).props.accessibilityHint).toBe('Switch to compact density');
 
     const compactChip = board.getByRole('tab', { name: 'Filter Applied' });
-    expect(StyleSheet.flatten(compactChip.props.style).height).toBe(24);
+    expect(StyleSheet.flatten(compactChip.props.style).height).toBeGreaterThanOrEqual(28);
     expect(compactChip.props.hitSlop).toBe(10);
     expect(board.getByTestId('tenders-page')).toBeTruthy();
   });
