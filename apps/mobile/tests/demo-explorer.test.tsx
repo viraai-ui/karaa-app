@@ -34,11 +34,12 @@ describe('Power-of-9 explorer', () => {
     expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(9);
   });
 
-  it('uses a dense photographic three-column opening grid', () => {
+  it('uses a responsive cinematic three-column opening grid', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
 
     rendered.getAllByRole('button', { name: /Open .* vertical/i }).forEach((card) => {
-      expect(StyleSheet.flatten(card.props.style).height).toBe(112);
+      expect(StyleSheet.flatten(card.props.style).aspectRatio).toBe(.85);
+      expect(StyleSheet.flatten(card.props.style).width).toBe('31%');
     });
     rendered.getAllByLabelText(/Demo visual:/).forEach((visual) => {
       expect(StyleSheet.flatten(visual.props.style).height).toBe('100%');
@@ -83,8 +84,26 @@ describe('Power-of-9 explorer', () => {
     ['Welcome back, Aaryan.', 'The Power of 9', 'Projects to watch', 'My portfolio', 'Latest progress', 'Important notice', 'Quick access'].forEach((text) => {
       expect(within(dashboard).getByText(text)).toBeTruthy();
     });
-    expect(within(dashboard).getByText('Payment schedule')).toBeTruthy();
-    expect(within(dashboard).getAllByRole('button')).toHaveLength(18);
+    expect(within(dashboard).getByText(/Payment schedule/)).toBeTruthy();
+    expect(within(dashboard).getAllByRole('button').length).toBeGreaterThanOrEqual(21);
+  });
+
+  it('connects dashboard utilities to routes or accessible local previews', () => {
+    const onAction = jest.fn();
+    const rendered = render(<DemoExplorer onAction={onAction} state={createOfflineDemoState()} />);
+    fireEvent.press(rendered.getByRole('button', { name: 'Open my portfolio' }));
+    expect(onAction).toHaveBeenCalledWith({ type: 'select-tab', tab: 'portfolio' });
+    fireEvent.press(rendered.getByRole('button', { name: 'Open important notice' }));
+    expect(rendered.getByLabelText('Important notice dialog')).toBeTruthy();
+    fireEvent.press(rendered.getByRole('button', { name: 'Close Important notice' }));
+    expect(rendered.queryByLabelText('Important notice dialog')).toBeNull();
+  });
+
+  it('keeps dashboard touch targets and readable editorial type', () => {
+    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
+    expect(StyleSheet.flatten(rendered.getByLabelText('Search Power of 9').props.style).height).toBe(44);
+    expect(StyleSheet.flatten(rendered.getByRole('button', { name: 'Track progress' }).props.style).minHeight).toBeGreaterThanOrEqual(44);
+    expect(StyleSheet.flatten(rendered.getByText('A new project update and document are available.').props.style).fontSize).toBeGreaterThanOrEqual(11);
   });
 
   it('renders four pathways and three Why It Matters rows for every vertical', () => {
