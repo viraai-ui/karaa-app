@@ -1,5 +1,7 @@
-import { fireEvent, render, within } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, within } from "@testing-library/react-native";
+import { AccessibilityInfo, Animated, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
+import { currentTimelineFraction } from "../src/demo/SubverticalProjectPage";
 import {
   createOfflineDemoState,
   offlineDemoReducer,
@@ -21,6 +23,10 @@ const pageState = (verticalId: string, subverticalId: string) =>
   });
 
 describe("36 sub-vertical project portfolios", () => {
+  beforeEach(() => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+  });
+  afterEach(() => jest.restoreAllMocks());
   it("resolves 36 unique pages with three complete project records each", () => {
     expect(subverticalPortfolios).toHaveLength(36);
     expect(new Set(subverticalPortfolios.map((item) => item.id)).size).toBe(36);
@@ -188,6 +194,51 @@ describe("36 sub-vertical project portfolios", () => {
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={onAction} />);
     page.projects.forEach(project => fireEvent.press(rendered.getByRole("button", { name: `View full timeline for ${project.name}` })));
     expect(onAction.mock.calls.map(([action]) => action)).toEqual(page.projects.map(project => ({ type: "select-project", projectId: project.id })));
+  });
+
+  it("uses a semantic milestone flag and one compact, 360px-safe footer on all three cards", () => {
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    expect(rendered.getAllByLabelText("Current milestone flag icon")).toHaveLength(3);
+    page.projects.forEach(project => {
+      const card = rendered.getByTestId(`portfolio-project-${project.id}`);
+      expect(within(card).queryByText(project.completedActivity)).toBeNull();
+      const footer = rendered.getByTestId(`project-footer-${project.id}`);
+      expect(within(footer).getByText(`Opening ${project.openingYear}`)).toBeTruthy();
+      const target = within(footer).getByRole("button", { name: `View full timeline for ${project.name}` });
+      expect(within(target).getByText("View full timeline")).toBeTruthy();
+      expect(StyleSheet.flatten(target.props.style)).toMatchObject({ height: 44, minWidth: 134, flexShrink: 0 });
+      expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 44 });
+      expect(134).toBeLessThan(360 - 32 - 20);
+    });
+  });
+
+  it("draws once to the current stage fraction and does not loop", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false);
+    const start = jest.fn();
+    const timing = jest.spyOn(Animated, "timing").mockReturnValue({ start, stop: jest.fn(), reset: jest.fn() } as never);
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    expect(currentTimelineFraction(page.projects[0].stages)).toBe(1 / 3);
+    await waitFor(() => expect(timing).toHaveBeenCalledTimes(3));
+    timing.mock.calls.forEach(([, config]) => expect(config).toMatchObject({ duration: 650, toValue: 1 / 3, useNativeDriver: false }));
+    expect(start).toHaveBeenCalledTimes(3);
+    expect(rendered.getAllByLabelText("Project milestone timeline").every(node => node.props.accessibilityValue.now === 1 / 3)).toBe(true);
+    rendered.unmount();
+    timing.mockRestore();
+  });
+
+  it("settles immediately at the current stage with reduced motion", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    const timing = jest.spyOn(Animated, "timing");
+    const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
+    const page = subverticalPortfolioForId("multi-specialty-hospitals");
+    const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
+    await waitFor(() => expect(setValue).toHaveBeenCalledWith(1 / 3));
+    expect(timing).not.toHaveBeenCalled();
+    rendered.unmount();
+    timing.mockRestore();
+    setValue.mockRestore();
   });
 
   it("keeps another subvertical on the unchanged generic structure", () => {

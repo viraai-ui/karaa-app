@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
   Image,
   Pressable,
   StyleSheet,
@@ -164,15 +167,17 @@ type HospitalPageProps = {
   visible: readonly PortfolioProject[];
 };
 
-function LineIcon({ kind }: { kind: "search" | "building" | "check" | "calendar" | "arrow" | "timeline" }) {
+function LineIcon({ kind }: { kind: "search" | "flag" | "calendar" | "arrow" }) {
   return (
-    <View accessibilityElementsHidden style={[styles.hIcon, kind === "search" && styles.hSearchIcon]}>
+    <View
+      accessibilityElementsHidden={kind !== "flag"}
+      accessibilityLabel={kind === "flag" ? "Current milestone flag icon" : undefined}
+      style={[styles.hIcon, kind === "search" && styles.hSearchIcon, kind === "flag" && styles.hFlagIcon]}
+    >
       {kind === "search" ? <View style={styles.hSearchHandle} /> : null}
-      {kind === "building" ? <><View style={styles.hWindow} /><View style={[styles.hWindow, styles.hWindowRight]} /></> : null}
-      {kind === "check" ? <Text style={styles.hCheck}>✓</Text> : null}
+      {kind === "flag" ? <><View style={styles.hFlagPole} /><View style={styles.hFlagPennant} /></> : null}
       {kind === "calendar" ? <View style={styles.hCalendarTop} /> : null}
       {kind === "arrow" ? <Text style={styles.hArrow}>→</Text> : null}
-      {kind === "timeline" ? <View style={styles.hTimelineDot} /> : null}
     </View>
   );
 }
@@ -222,20 +227,57 @@ function HospitalProjectCard({ project, onAction }: { project: PortfolioProject;
           <View style={[styles.hStatus, project.status === "In Progress" && styles.hStatusProgress]}><Text style={[styles.hStatusText, project.status === "In Progress" && styles.hStatusProgressText]}>● {project.status.toUpperCase()}</Text></View></View>
         <Text numberOfLines={2} style={styles.hUpdate}>{project.update}</Text><View style={styles.hTrack}><View style={[styles.hFill, { width: `${project.progress}%` }]} /></View>
       </View></View>
-    <View style={styles.hMilestone}><LineIcon kind="building" /><Text style={styles.hMilestoneLabel}>Current milestone</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View>
+    <View style={styles.hMilestone}><LineIcon kind="flag" /><Text style={styles.hMilestoneLabel}>Current milestone</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View>
     <ProjectTimeline stages={project.stages} />
-    <View style={styles.hFooter}><View style={styles.hActivity}><LineIcon kind="check" /><Text style={styles.hFooterText}>{project.completedActivity}</Text></View>
-      <View style={styles.hActivity}><LineIcon kind="calendar" /><Text style={styles.hFooterText}>Opening {project.openingYear}</Text></View>
+    <View style={styles.hFooter} testID={`project-footer-${project.id}`}>
+      <View style={styles.hOpening}><LineIcon kind="calendar" /><Text numberOfLines={1} style={styles.hFooterText}>Opening {project.openingYear}</Text></View>
       <Pressable accessibilityLabel={`View full timeline for ${project.name}`} accessibilityRole="button" onPress={() => onAction({ type: "select-project", projectId: project.id })} style={styles.hTimelineTarget}>
         <Text style={styles.hTimelineLink}>View full timeline</Text><LineIcon kind="arrow" /></Pressable></View>
   </View>;
 }
 
+export function currentTimelineFraction(stages: PortfolioProject["stages"]): number {
+  const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
+  return currentIndex / Math.max(1, stages.length - 1);
+}
+
 function ProjectTimeline({ stages }: { stages: PortfolioProject["stages"] }) {
-  return <View style={styles.hTimeline} testID="project-timeline"><View style={styles.hTimelineRule} />{stages.map((stage, index) => {
+  const progress = useRef(new Animated.Value(0)).current;
+  const [ruleWidth, setRuleWidth] = useState(0);
+  const fraction = currentTimelineFraction(stages);
+  useEffect(() => {
+    let active = true;
+    AccessibilityInfo.isReduceMotionEnabled().then(reduced => {
+      if (!active) return;
+      if (reduced) progress.setValue(fraction);
+      else Animated.timing(progress, { duration: 650, easing: Easing.out(Easing.cubic), toValue: fraction, useNativeDriver: false }).start();
+    });
+    return () => { active = false; progress.stopAnimation(); };
+  }, [fraction, progress]);
+  return <View accessibilityLabel="Project milestone timeline" accessibilityValue={{ max: 1, min: 0, now: fraction }}
+    onLayout={event => setRuleWidth(event.nativeEvent.layout.width * .8)} style={styles.hTimeline} testID="project-timeline">
+    <View style={styles.hTimelineRule} />
+    <Animated.View testID="project-timeline-progress" style={[styles.hTimelineProgress, { width: progress.interpolate({ inputRange: [0, 1], outputRange: [0, ruleWidth] }) }]} />
+    {stages.map((stage, index) => {
     const [label, marker] = stage.replace(" ✓", "|✓").replace(" NOW", "|NOW").replace(" Next", "|Next").split("|");
-    return <View key={stage} style={styles.hStage}><View style={[styles.hDot, index < 2 && styles.hDotActive]} />
-      <Text style={[styles.hStageText, index < 2 && styles.hStageActive]}>{label}</Text>{marker ? <Text style={styles.hStageMarker}>{marker}</Text> : null}</View>;
+    const reached = index <= Math.round(fraction * (stages.length - 1));
+    return (
+      <Animated.View
+        key={stage}
+        style={[
+          styles.hStage,
+          { opacity: progress.interpolate({
+            inputRange: [Math.max(0, index / (stages.length - 1) - .08), Math.max(.01, index / (stages.length - 1))],
+            outputRange: [.45, 1],
+            extrapolate: "clamp",
+          }) },
+        ]}
+      >
+        <View style={[styles.hDot, reached && styles.hDotActive]} />
+        <Text style={[styles.hStageText, index < 2 && styles.hStageActive]}>{label}</Text>
+        {marker ? <Text style={styles.hStageMarker}>{marker}</Text> : null}
+      </Animated.View>
+    );
   })}</View>;
 }
 
@@ -605,15 +647,16 @@ const styles = StyleSheet.create({
   hMilestone: { alignItems: "center", borderBottomColor: "#EAE4DA", borderBottomWidth: 1, flexDirection: "row", minHeight: 44 },
   hMilestoneLabel: { color: "#5F5A52", fontSize: 11, marginLeft: 7 }, hMilestoneValue: { color: "#665F56", fontSize: 11, fontWeight: "800", marginLeft: "auto" },
   hTimeline: { flexDirection: "row", minHeight: 88, position: "relative" },
-  hTimelineRule: { backgroundColor: "#DCD5C9", height: 1, left: "10%", position: "absolute", right: "10%", top: 18 },
+  hTimelineRule: { backgroundColor: "#DCD5C9", height: 2, left: "10%", position: "absolute", right: "10%", top: 18 },
+  hTimelineProgress: { backgroundColor: "#CA9228", height: 2, left: "10%", position: "absolute", top: 18 },
   hStage: { alignItems: "center", flex: 1, paddingHorizontal: 2, zIndex: 2 }, hDot: { backgroundColor: "#FFF", borderColor: "#C5BEB2", borderRadius: 6, borderWidth: 1, height: 11, marginTop: 13, width: 11 },
   hDotActive: { backgroundColor: "#CA9228", borderColor: "#CA9228" }, hStageText: { color: "#625D55", fontSize: 11, lineHeight: 14, marginTop: 5, textAlign: "center" }, hStageActive: { color: "#9D7223", fontWeight: "800" }, hStageMarker: { color: "#8C867D", fontSize: 10, marginTop: 1 },
-  hFooter: { alignItems: "center", borderTopColor: "#EAE4DA", borderTopWidth: 1, flexDirection: "row", flexWrap: "wrap", paddingTop: 6 },
-  hActivity: { alignItems: "center", flexDirection: "row", minHeight: 44, width: "50%" }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 4 },
-  hTimelineTarget: { alignItems: "center", borderTopColor: "#F0EBE2", borderTopWidth: 1, flexDirection: "row", height: 44, justifyContent: "flex-end", width: "100%" }, hTimelineLink: { color: "#A8761E", fontSize: 11, fontWeight: "800" },
+  hFooter: { alignItems: "center", borderTopColor: "#EAE4DA", borderTopWidth: 1, flexDirection: "row", height: 44 },
+  hOpening: { alignItems: "center", flexDirection: "row", flexShrink: 1, height: 44, minWidth: 0 }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 5 },
+  hTimelineTarget: { alignItems: "center", flexDirection: "row", flexShrink: 0, height: 44, justifyContent: "flex-end", marginLeft: "auto", minWidth: 134, paddingLeft: 8 }, hTimelineLink: { color: "#A8761E", fontSize: 11, fontWeight: "800", marginRight: 5 },
   hEmpty: { color: "#6D675E", fontSize: 13, paddingVertical: 24, textAlign: "center" },
   hIcon: { borderColor: "#A87A27", borderRadius: 2, borderWidth: 1.2, height: 15, position: "relative", width: 15 },
   hSearchIcon: { borderColor: "#817B72", borderRadius: 8, height: 14, width: 14 }, hSearchHandle: { backgroundColor: "#817B72", height: 1.5, position: "absolute", right: -4, top: 12, transform: [{ rotate: "45deg" }], width: 6 },
-  hWindow: { backgroundColor: "#A87A27", height: 3, left: 3, position: "absolute", top: 4, width: 3 }, hWindowRight: { left: 8 }, hCheck: { color: "#A87A27", fontSize: 12, fontWeight: "800", left: 1, position: "absolute", top: -2 },
+  hFlagIcon: { borderWidth: 0 }, hFlagPole: { backgroundColor: "#A87A27", bottom: 1, left: 3, position: "absolute", top: 1, width: 1.5 }, hFlagPennant: { borderColor: "#A87A27", borderLeftWidth: 1.5, borderTopWidth: 1.5, height: 8, left: 4, position: "absolute", top: 1, transform: [{ skewY: "-12deg" }], width: 8 },
   hCalendarTop: { borderBottomColor: "#A87A27", borderBottomWidth: 1, left: 1, position: "absolute", right: 1, top: 4 }, hArrow: { color: "#A8761E", fontSize: 17, left: 1, position: "absolute", top: -5 }, hTimelineDot: { backgroundColor: "#A87A27", borderRadius: 2, height: 4, left: 4, position: "absolute", top: 4, width: 4 },
 });

@@ -67,15 +67,14 @@ describe('Power-of-9 explorer', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'select-vertical', verticalId: 'energy-utilities' });
   });
 
-  it('opens and backs out of the polished Energy detail', () => {
+  it('opens the polished Energy detail without a legacy local header', () => {
     const rendered = render(<ReducerBackedExplorer />);
 
     fireEvent.press(rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' }));
     expect(rendered.getByText('Powering responsible progress')).toBeTruthy();
     expect(rendered.getAllByRole('button', { name: /Explore / })).toHaveLength(4);
 
-    fireEvent.press(rendered.getByRole('button', { name: 'Back to Power of 9' }));
-    expect(rendered.getByText('The Power of 9')).toBeTruthy();
+    expect(rendered.queryByRole('button', { name: 'Back to Power of 9' })).toBeNull();
   });
 
   it('renders every section of the customer dashboard in the mockup order', () => {
