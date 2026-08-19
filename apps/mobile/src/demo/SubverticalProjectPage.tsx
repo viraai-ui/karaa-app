@@ -215,56 +215,54 @@ function HospitalPortfolioPage({ data, filter, onAction, query, setFilter, setQu
 
 function HospitalProjectCard({ project, onAction }: { project: PortfolioProject; onAction: (action: OfflineDemoAction) => void }) {
   return <View style={styles.hCard} testID={`portfolio-project-${project.id}`}>
-    <View style={styles.hImageWrap} testID={`project-image-${project.id}`}>
-      <Image accessibilityLabel={`${project.name} construction site`} resizeMode="cover" source={project.image} style={styles.hProjectImage} />
-    </View>
-    <View style={styles.hCardLead}>
-      <Text style={styles.hLocation}>{project.location.toUpperCase()}</Text>
-      <Text style={styles.hProjectName}>{project.name}</Text>
-      <Text style={styles.hDescription}>A next-generation care campus designed for accessible, advanced treatment.</Text>
-      <View style={styles.hMetricsRow}>
-        <View style={styles.hCardMetric}><Text style={styles.hProgress}>{project.progress}%</Text><Text style={styles.hMetricCaption}>Complete</Text></View>
-        <View style={styles.hCardMetric}><Text style={styles.hProgress}>{project.openingYear}</Text><Text style={styles.hMetricCaption}>Opening target</Text></View>
+    <View style={styles.hSplitRow} testID={`project-split-${project.id}`}>
+      <View style={styles.hImageWrap} testID={`project-image-${project.id}`}>
+        <Image accessibilityLabel={`${project.name} construction site`} resizeMode="cover" source={project.image} style={styles.hProjectImage} />
       </View>
-      <View style={styles.hMilestone}><CurrentUpdateIcon /><View style={styles.hMilestoneCopy}><Text style={styles.hMilestoneLabel}>CURRENT UPDATE</Text><Text style={styles.hUpdateText}>{project.update}</Text><Text style={styles.hMilestoneValue}>{project.currentMilestone} · {project.currentYear}</Text></View></View>
+      <View style={styles.hCardLead} testID={`project-summary-${project.id}`}>
+        <Text numberOfLines={1} style={styles.hLocation}>{project.location.toUpperCase()}</Text>
+        <Text numberOfLines={2} style={styles.hProjectName}>{project.name}</Text>
+        <Text numberOfLines={1} style={styles.hDescription}>Advanced care, thoughtfully designed.</Text>
+        <View style={styles.hCompactMetrics}>
+          <View style={styles.hProgressMetric}><Text style={styles.hProgress}>{project.progress}%</Text><Text style={styles.hMetricCaption}> COMPLETE</Text></View>
+          <View style={styles.hOpeningMetric}><Text style={styles.hOpeningYear}>{project.openingYear}</Text><Text style={styles.hMetricCaption}> TARGET</Text></View>
+        </View>
+        <View style={styles.hProgressTrack} testID={`project-progress-track-${project.id}`}>
+          <View style={[styles.hProgressFill, { width: `${project.progress}%` }]} testID={`project-progress-fill-${project.id}`} />
+        </View>
+      </View>
+    </View>
+    <View style={styles.hTimelineWrap} testID={`project-timeline-wrap-${project.id}`}>
       <VerticalMilestoneTimeline stages={project.stages} status={project.status} />
     </View>
     <View style={styles.hFooter} testID={`project-footer-${project.id}`}>
-      <View style={styles.hOpening}><LineIcon kind="calendar" /><Text numberOfLines={1} style={styles.hFooterText}>Opening {project.openingYear}</Text></View>
       <Pressable accessibilityLabel={`View full timeline for ${project.name}`} accessibilityRole="button" onPress={() => onAction({ type: "select-project", projectId: project.id })} style={styles.hTimelineTarget}>
         <Text style={styles.hTimelineLink}>Timeline →</Text></Pressable>
     </View>
   </View>;
 }
 
-function CurrentUpdateIcon() {
-  return <View accessibilityLabel="Current update status icon" accessibilityRole="image" style={styles.hUpdateIcon} testID="current-update-icon">
-    <View style={styles.hUpdateCheckShort} />
-    <View style={styles.hUpdateCheckLong} />
-  </View>;
-}
-
-export const HOSPITAL_TIMELINE_HEIGHT = 184;
-export const HOSPITAL_TIMELINE_NODE_SIZE = 26;
+export const HOSPITAL_TIMELINE_HEIGHT = 176;
+export const HOSPITAL_TIMELINE_NODE_SIZE = 22;
 
 export function currentTimelineFraction(stages: PortfolioProject["stages"]): number {
   const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
   return currentIndex / Math.max(1, stages.length - 1);
 }
 
-export function currentTimelineTargetHeight(stages: PortfolioProject["stages"]): number {
-  const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
-  const rowStep = (HOSPITAL_TIMELINE_HEIGHT - HOSPITAL_TIMELINE_NODE_SIZE) / Math.max(1, stages.length - 1);
-  return currentIndex * rowStep;
+export function timelineRowStep(stageCount: number): number {
+  return (HOSPITAL_TIMELINE_HEIGHT - HOSPITAL_TIMELINE_NODE_SIZE) / Math.max(1, stageCount - 1);
+}
+
+export function timelineConnectorHeight(stageCount: number): number {
+  return timelineRowStep(stageCount) - HOSPITAL_TIMELINE_NODE_SIZE;
 }
 
 export function VerticalMilestoneTimeline({ stages, status }: { stages: PortfolioProject["stages"]; status: PortfolioStatus }) {
   const progress = useRef(new Animated.Value(0)).current;
   const fraction = currentTimelineFraction(stages);
   const currentIndex = Math.max(0, stages.findIndex(stage => stage.includes(" NOW")));
-  // Both rules originate at the centre of the first node. The animated rule
-  // therefore ends exactly at (and underneath) the current node.
-  const targetHeight = currentTimelineTargetHeight(stages);
+
   useEffect(() => {
     let active = true;
     AccessibilityInfo.isReduceMotionEnabled().then(reduced => {
@@ -275,16 +273,25 @@ export function VerticalMilestoneTimeline({ stages, status }: { stages: Portfoli
     return () => { active = false; progress.stopAnimation(); };
   }, [fraction, progress]);
   return <View accessibilityLabel="Project milestone timeline" accessibilityValue={{ max: 1, min: 0, now: fraction }} style={styles.hTimeline} testID="project-timeline">
-    <View style={styles.hTimelineRule} />
-    <Animated.View testID="project-timeline-progress" style={[styles.hTimelineProgress, { height: progress.interpolate({ inputRange: [0, fraction || 1], outputRange: [0, targetHeight] }) }]} />
     {stages.map((stage, index) => {
       const label = stage.replace(" ✓", "").replace(" NOW", "").replace(" Next", "");
       const completed = index < currentIndex;
       const current = index === currentIndex;
       return <Animated.View key={stage} style={[styles.hStage, { opacity: progress.interpolate({ inputRange: [Math.max(0, index / (stages.length - 1) - .08), Math.max(.01, index / (stages.length - 1))], outputRange: [.45, 1], extrapolate: "clamp" }) }]}>
-        <View style={[styles.hDot, completed && styles.hDotComplete, current && styles.hDotCurrent]}><Text style={[styles.hNodeText, (completed || current) && styles.hNodeTextActive]}>{completed ? "✓" : index + 1}</Text></View>
-        <Text style={[styles.hStageText, (completed || current) && styles.hStageActive]}>{label}</Text>
+        <View style={[styles.hDot, completed && styles.hDotComplete, current && styles.hDotCurrent]} testID="timeline-node"><Text style={[styles.hNodeText, (completed || current) && styles.hNodeTextActive]}>{completed ? "✓" : index + 1}</Text></View>
+        <Text style={[styles.hStageText, (completed || current) && styles.hStageActive]} testID="timeline-stage-text">{label}</Text>
         {current ? <Text style={styles.hStageMarker}>{status === "On Track" ? "ON TRACK" : "IN PROGRESS"}</Text> : null}
+        {index < stages.length - 1 ? <View pointerEvents="none" style={[styles.hConnector, {
+          height: timelineConnectorHeight(stages.length),
+          top: HOSPITAL_TIMELINE_NODE_SIZE,
+        }]} testID="timeline-connector">
+          {index < currentIndex ? <Animated.View style={[styles.hConnectorProgress, {
+            opacity: progress.interpolate({
+              inputRange: [index / (stages.length - 1), (index + 1) / (stages.length - 1)],
+              outputRange: [0, 1], extrapolate: "clamp",
+            }),
+          }]} testID="timeline-connector-progress" /> : null}
+        </View> : null}
       </Animated.View>;
     })}
   </View>;
@@ -642,26 +649,26 @@ const styles = StyleSheet.create({
   hSectionTitle: { color: "#292721", fontFamily: "serif", fontSize: 22, marginBottom: 10 },
   hList: { gap: 14 },
   hCard: { backgroundColor: "#FFF", borderColor: "#DDD5C8", borderRadius: 14, borderWidth: 1, overflow: "hidden" },
-  hImageWrap: { height: 138, maxHeight: 138, overflow: "hidden", position: "relative", width: "100%" },
+  hSplitRow: { flexDirection: "row", height: 140, maxHeight: 140, width: "100%" },
+  hImageWrap: { borderTopLeftRadius: 13, height: "100%", overflow: "hidden", position: "relative", width: "40%" },
   hProjectImage: { height: "100%", width: "100%" },
-
-  hCardLead: { paddingHorizontal: 16, paddingTop: 13 },
-  hProjectName: { color: "#25231E", fontFamily: "serif", fontSize: 21, lineHeight: 25, marginTop: 4 },
-  hLocation: { color: "#A27625", fontSize: 9, fontWeight: "800", letterSpacing: 1.05 },
-  hDescription: { color: "#625D54", fontSize: 11, lineHeight: 16, marginTop: 6 },
-  hMetricsRow: { borderBottomColor: "#E8E1D6", borderBottomWidth: 1, borderTopColor: "#E8E1D6", borderTopWidth: 1, flexDirection: "row", marginTop: 10, paddingVertical: 9 },
-  hCardMetric: { flex: 1 },
-  hProgress: { color: "#27251F", fontFamily: "serif", fontSize: 21 },
-  hMetricCaption: { color: "#777168", fontSize: 10, marginTop: 2, textTransform: "uppercase" },
-  hMilestone: { alignItems: "center", flexDirection: "row", minHeight: 58 },
-  hMilestoneCopy: { marginLeft: 11 },
-  hMilestoneLabel: { color: "#9B7124", fontSize: 9, fontWeight: "900", letterSpacing: .9 },
-  hUpdateText: { color: "#332F29", fontSize: 12, fontWeight: "700", marginTop: 3 },
-  hMilestoneValue: { color: "#332F29", fontFamily: "serif", fontSize: 15, marginTop: 3 },
+  hCardLead: { flex: 1, minWidth: 0, paddingBottom: 10, paddingHorizontal: 12, paddingTop: 10, width: "60%" },
+  hProjectName: { color: "#25231E", fontFamily: "serif", fontSize: 18, lineHeight: 20, marginTop: 2 },
+  hLocation: { color: "#A27625", fontSize: 8, fontWeight: "800", letterSpacing: .8 },
+  hDescription: { color: "#625D54", fontSize: 10, lineHeight: 13, marginTop: 3 },
+  hCompactMetrics: { alignItems: "flex-end", flexDirection: "row", marginTop: "auto" },
+  hProgressMetric: { alignItems: "baseline", flexDirection: "row" },
+  hOpeningMetric: { alignItems: "baseline", flexDirection: "row", marginLeft: "auto" },
+  hProgress: { color: "#27251F", fontFamily: "serif", fontSize: 18 },
+  hOpeningYear: { color: "#27251F", fontFamily: "serif", fontSize: 14 },
+  hMetricCaption: { color: "#777168", fontSize: 7, fontWeight: "700" },
+  hProgressTrack: { backgroundColor: "#E8E1D5", height: 2, marginTop: 4, overflow: "hidden", width: "100%" },
+  hProgressFill: { backgroundColor: "#C28D2A", height: 2 },
+  hTimelineWrap: { borderTopColor: "#E8E1D6", borderTopWidth: 1, paddingHorizontal: 16, paddingVertical: 12 },
   hTimeline: { height: HOSPITAL_TIMELINE_HEIGHT, justifyContent: "space-between", position: "relative" },
-  hTimelineRule: { backgroundColor: "#DDD6CA", bottom: HOSPITAL_TIMELINE_NODE_SIZE / 2, left: HOSPITAL_TIMELINE_NODE_SIZE / 2, position: "absolute", top: HOSPITAL_TIMELINE_NODE_SIZE / 2, width: 1 },
-  hTimelineProgress: { backgroundColor: "#C28D2A", left: HOSPITAL_TIMELINE_NODE_SIZE / 2, position: "absolute", top: HOSPITAL_TIMELINE_NODE_SIZE / 2, width: 2 },
-  hStage: { alignItems: "center", flexDirection: "row", height: HOSPITAL_TIMELINE_NODE_SIZE, paddingLeft: 0, zIndex: 2 },
+  hStage: { alignItems: "center", flexDirection: "row", height: HOSPITAL_TIMELINE_NODE_SIZE, paddingLeft: 0, position: "relative" },
+  hConnector: { backgroundColor: "#DDD6CA", left: (HOSPITAL_TIMELINE_NODE_SIZE - 1) / 2, overflow: "hidden", position: "absolute", width: 1 },
+  hConnectorProgress: { backgroundColor: "#C28D2A", bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
   hDot: { alignItems: "center", backgroundColor: "#FFF", borderColor: "#C7C0B5", borderRadius: HOSPITAL_TIMELINE_NODE_SIZE / 2, borderWidth: 1, height: HOSPITAL_TIMELINE_NODE_SIZE, justifyContent: "center", width: HOSPITAL_TIMELINE_NODE_SIZE },
   hDotComplete: { backgroundColor: "#C28D2A", borderColor: "#C28D2A" },
   hDotCurrent: { backgroundColor: "#FFF", borderColor: "#C28D2A", borderWidth: 2 },
@@ -669,14 +676,10 @@ const styles = StyleSheet.create({
   hStageText: { color: "#777168", flex: 1, fontSize: 12, lineHeight: 16, marginLeft: 12, paddingRight: 8 },
   hStageActive: { color: "#342F28", fontWeight: "700" },
   hStageMarker: { color: "#9C7123", fontSize: 8, fontWeight: "900", letterSpacing: .65, marginLeft: "auto" },
-  hFooter: { alignItems: "center", borderTopColor: "#E8E1D6", borderTopWidth: 1, flexDirection: "row", height: 48, marginHorizontal: 16 },
-  hOpening: { alignItems: "center", flexDirection: "row", flexShrink: 1, height: 44, minWidth: 0 }, hFooterText: { color: "#605B53", flexShrink: 1, fontSize: 11, marginLeft: 6 },
-  hTimelineTarget: { alignItems: "center", flexShrink: 0, height: 44, justifyContent: "center", marginLeft: "auto", minWidth: 82, paddingLeft: 10 }, hTimelineLink: { color: "#A8761E", fontSize: 12, fontWeight: "800" },
+  hFooter: { alignItems: "center", borderTopColor: "#E8E1D6", borderTopWidth: 1, flexDirection: "row", height: 44, paddingHorizontal: 16 },
+  hTimelineTarget: { alignItems: "center", flexShrink: 0, height: 44, justifyContent: "center", marginLeft: "auto", minWidth: 82 }, hTimelineLink: { color: "#A8761E", fontSize: 12, fontWeight: "800" },
   hEmpty: { color: "#6D675E", fontSize: 13, paddingVertical: 24, textAlign: "center" },
   hIcon: { borderColor: "#A87A27", borderRadius: 2, borderWidth: 1.2, height: 15, position: "relative", width: 15 },
   hSearchIcon: { borderColor: "#817B72", borderRadius: 8, height: 14, width: 14 }, hSearchHandle: { backgroundColor: "#817B72", height: 1.5, position: "absolute", right: -4, top: 12, transform: [{ rotate: "45deg" }], width: 6 },
   hCalendarTop: { borderBottomColor: "#A87A27", borderBottomWidth: 1, left: 1, position: "absolute", right: 1, top: 4 },
-  hUpdateIcon: { alignItems: "center", borderColor: "#AD7C24", borderRadius: 13, borderWidth: 1.5, height: 26, justifyContent: "center", position: "relative", width: 26 },
-  hUpdateCheckShort: { backgroundColor: "#AD7C24", height: 1.5, left: 6.5, position: "absolute", top: 13, transform: [{ rotate: "45deg" }], width: 6 },
-  hUpdateCheckLong: { backgroundColor: "#AD7C24", height: 1.5, left: 10, position: "absolute", top: 11.5, transform: [{ rotate: "-45deg" }], width: 10 },
 });

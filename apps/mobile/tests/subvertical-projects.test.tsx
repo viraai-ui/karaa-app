@@ -3,9 +3,10 @@ import { AccessibilityInfo, Animated, StyleSheet } from "react-native";
 import { DemoExplorer } from "../src/demo/DemoExplorer";
 import {
   currentTimelineFraction,
-  currentTimelineTargetHeight,
   HOSPITAL_TIMELINE_HEIGHT,
   HOSPITAL_TIMELINE_NODE_SIZE,
+  timelineConnectorHeight,
+  timelineRowStep,
 } from "../src/demo/SubverticalProjectPage";
 import {
   createOfflineDemoState,
@@ -163,7 +164,7 @@ describe("36 sub-vertical project portfolios", () => {
     });
   });
 
-  it("matches the hospital screenshot structure and exact milestone copy", () => {
+  it("matches the hospital screenshot structure without a redundant current-update block", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
     expect(rendered.getByTestId("hospital-hero")).toBeTruthy();
@@ -171,8 +172,10 @@ describe("36 sub-vertical project portfolios", () => {
     expect(rendered.getAllByTestId("project-timeline")).toHaveLength(3);
     page.projects.forEach(project => expect(project.stages).toHaveLength(6));
     expect(rendered.getByText("Track every hospital from construction to opening.")).toBeTruthy();
+    expect(rendered.queryByText("CURRENT UPDATE")).toBeNull();
+    expect(rendered.queryByLabelText("Current update status icon")).toBeNull();
     ["Structural frame underway", "Main hospital block rising", "Foundation phase in progress",
-      "Structure · 2026", "Main Block · 2026", "Foundations · 2026"].forEach(copy => expect(rendered.getByText(copy)).toBeTruthy());
+      "Structure · 2026", "Main Block · 2026", "Foundations · 2026"].forEach(copy => expect(rendered.queryByText(copy)).toBeNull());
   });
 
   it("uses one full-width hospital hero image and one smooth stretched fade", () => {
@@ -209,42 +212,73 @@ describe("36 sub-vertical project portfolios", () => {
     expect(onAction.mock.calls.map(([action]) => action)).toEqual(page.projects.map(project => ({ type: "select-project", projectId: project.id })));
   });
 
-  it("uses an unbadged image, minimalist current-update icon, and compact, 360px-safe footer on every card", () => {
+  it("uses an unbadged 40/60 split header, exact progress bars, and a compact 360px-safe footer on every card", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    const icons = rendered.getAllByLabelText("Current update status icon");
-    expect(icons).toHaveLength(3);
-    icons.forEach(icon => expect(StyleSheet.flatten(icon.props.style)).toMatchObject({
-      borderColor: "#AD7C24", borderRadius: 13, borderWidth: 1.5, height: 26, width: 26,
-    }));
+    expect(rendered.queryByText("CURRENT UPDATE")).toBeNull();
+    expect(rendered.queryByLabelText("Current update status icon")).toBeNull();
     expect(rendered.queryByLabelText("Construction milestone icon")).toBeNull();
     page.projects.forEach(project => {
       const card = rendered.getByTestId(`portfolio-project-${project.id}`);
       const image = rendered.getByTestId(`project-image-${project.id}`);
+      const split = rendered.getByTestId(`project-split-${project.id}`);
+      const summary = rendered.getByTestId(`project-summary-${project.id}`);
+      const timelineWrap = rendered.getByTestId(`project-timeline-wrap-${project.id}`);
       expect(image.children).toHaveLength(1);
+      expect(StyleSheet.flatten(split.props.style)).toMatchObject({ flexDirection: "row", height: 140, maxHeight: 140, width: "100%" });
+      expect(StyleSheet.flatten(image.props.style)).toMatchObject({ height: "100%", width: "40%", overflow: "hidden", borderTopLeftRadius: 13 });
+      expect(StyleSheet.flatten(summary.props.style)).toMatchObject({ flex: 1, minWidth: 0, width: "60%" });
+      expect(split.children.map(child => typeof child === "object" && "props" in child ? child.props.testID : null)).toEqual([
+        `project-image-${project.id}`,
+        `project-summary-${project.id}`,
+      ]);
+      expect(card.children.slice(0, 2).map(child => typeof child === "object" && "props" in child ? child.props.testID : null)).toEqual([
+        `project-split-${project.id}`,
+        `project-timeline-wrap-${project.id}`,
+      ]);
+      const projectImage = within(image).getByLabelText(`${project.name} construction site`);
+      expect(projectImage.props.resizeMode).toBe("cover");
       expect(within(card).queryByText(/^0[1-3]$/)).toBeNull();
       expect(within(card).queryByText(project.completedActivity)).toBeNull();
+      expect(within(card).queryByText(project.update)).toBeNull();
+      expect(within(card).queryByText(`${project.currentMilestone} · ${project.currentYear}`)).toBeNull();
+      expect(within(summary).getByText(`${project.progress}%`)).toBeTruthy();
+      expect(within(summary).getByText(project.openingYear)).toBeTruthy();
+      const track = rendered.getByTestId(`project-progress-track-${project.id}`);
+      const fill = rendered.getByTestId(`project-progress-fill-${project.id}`);
+      expect(StyleSheet.flatten(track.props.style)).toMatchObject({ height: 2, overflow: "hidden", width: "100%" });
+      expect(StyleSheet.flatten(fill.props.style)).toMatchObject({ backgroundColor: "#C28D2A", height: 2, width: `${project.progress}%` });
       const footer = rendered.getByTestId(`project-footer-${project.id}`);
-      expect(within(footer).getByText(`Opening ${project.openingYear}`)).toBeTruthy();
+      expect(within(footer).queryByText(`Opening ${project.openingYear}`)).toBeNull();
       const target = within(footer).getByRole("button", { name: `View full timeline for ${project.name}` });
       expect(within(target).getByText("Timeline →")).toBeTruthy();
       expect(StyleSheet.flatten(target.props.style)).toMatchObject({ height: 44, minWidth: 82, flexShrink: 0 });
-      expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 48 });
+      expect(StyleSheet.flatten(footer.props.style)).toMatchObject({ flexDirection: "row", height: 44 });
       expect(82).toBeLessThan(360 - 32 - 36);
     });
   });
 
-  it("uses compact timeline geometry and centers progress exactly on the current node", () => {
+  it("uses smaller nodes and exact gap-only connector geometry on all three cards", () => {
     const page = subverticalPortfolioForId("multi-specialty-hospitals");
     const rendered = render(<DemoExplorer state={pageState(page.verticalId, page.id)} onAction={jest.fn()} />);
-    expect(HOSPITAL_TIMELINE_HEIGHT).toBe(184);
-    expect(HOSPITAL_TIMELINE_NODE_SIZE).toBe(26);
-    expect((HOSPITAL_TIMELINE_HEIGHT - HOSPITAL_TIMELINE_NODE_SIZE) / 5).toBeCloseTo(31.6);
+    expect(HOSPITAL_TIMELINE_HEIGHT).toBe(176);
+    expect(HOSPITAL_TIMELINE_NODE_SIZE).toBe(22);
+    expect(timelineRowStep(6)).toBeCloseTo(30.8);
+    expect(timelineConnectorHeight(6)).toBeCloseTo(8.8);
     rendered.getAllByTestId("project-timeline").forEach(timeline => {
-      expect(StyleSheet.flatten(timeline.props.style)).toMatchObject({ height: 184, justifyContent: "space-between" });
+      expect(StyleSheet.flatten(timeline.props.style)).toMatchObject({ height: 176, justifyContent: "space-between" });
+      expect(within(timeline).getAllByTestId("timeline-node")).toHaveLength(6);
+      within(timeline).getAllByTestId("timeline-node").forEach(node => expect(StyleSheet.flatten(node.props.style)).toMatchObject({
+        borderRadius: 11, height: 22, width: 22,
+      }));
+      expect(within(timeline).getAllByTestId("timeline-connector")).toHaveLength(5);
+      within(timeline).getAllByTestId("timeline-connector").forEach(connector => expect(StyleSheet.flatten(connector.props.style)).toMatchObject({
+        height: expect.closeTo(8.8), left: 10.5, position: "absolute", top: 22, width: 1,
+      }));
+      within(timeline).getAllByTestId("timeline-stage-text").forEach(text => expect(StyleSheet.flatten(text.props.style)).toMatchObject({ fontSize: 12, lineHeight: 16 }));
     });
-    expect(rendered.getAllByTestId("project-timeline-progress")).toHaveLength(3);
-    expect(currentTimelineTargetHeight(page.projects[0].stages)).toBeCloseTo(2 * 31.6);
+    expect(rendered.queryByTestId("project-timeline-progress")).toBeNull();
+    expect(rendered.getAllByTestId("timeline-connector-progress")).toHaveLength(7);
     expect(currentTimelineFraction(page.projects[0].stages)).toBe(2 / 5);
   });
 
