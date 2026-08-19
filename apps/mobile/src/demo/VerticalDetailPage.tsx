@@ -8,7 +8,6 @@ import { subverticalPortfolioForPathway } from './subvertical-projects';
 
 const HEALTHCARE_ID = 'healthcare-life-sciences';
 const whiteFade = require('../../assets/verticals/white-fade-left.png');
-const matterIcons = ['♧', '⌘', '♢'];
 const serifFamily = Platform.select({ android: 'serif', ios: 'Georgia', web: 'Georgia, Times New Roman, serif' });
 const sansFamily = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Arial, Helvetica, sans-serif' });
 
@@ -20,6 +19,20 @@ export function VerticalDetailPage({ verticalId, onAction }: { verticalId: strin
 
 function openPathway(vertical: VerticalDetail, title: string, onAction: (action: OfflineDemoAction) => void) {
   onAction({ type: 'select-subvertical', subverticalId: subverticalPortfolioForPathway(vertical.id, title).id });
+}
+
+const gold = '#B18435';
+function HealthcareMatterIcon({ index }: { index: number }) {
+  if (index === 0) return <View accessibilityLabel="Continuous care heart icon" style={health.lineIcon} testID="healthcare-matter-icon-care">
+    <View style={[health.heartLobe, { left: 5 }]} /><View style={[health.heartLobe, { right: 5 }]} /><View style={health.heartPoint} />
+  </View>;
+  if (index === 1) return <View accessibilityLabel="Connected care network icon" style={health.lineIcon} testID="healthcare-matter-icon-network">
+    <View style={[health.connector, health.connectorLeft]} /><View style={[health.connector, health.connectorRight]} />
+    <View style={[health.node, health.nodeTop]} /><View style={[health.node, health.nodeLeft]} /><View style={[health.node, health.nodeRight]} />
+  </View>;
+  return <View accessibilityLabel="Care continuity path icon" style={health.lineIcon} testID="healthcare-matter-icon-continuity">
+    <View style={health.continuityRing} /><View style={health.continuityArrow} />
+  </View>;
 }
 
 function HealthcareVerticalPage({ vertical, onAction }: { vertical: VerticalDetail; onAction: (action: OfflineDemoAction) => void }) {
@@ -43,7 +56,7 @@ function HealthcareVerticalPage({ vertical, onAction }: { vertical: VerticalDeta
           <Image accessibilityLabel={`${item.title} pathway`} resizeMode="cover" source={item.image} style={health.cardImage} />
           <View style={health.cardCopy} testID={`healthcare-pathway-copy-${index + 1}`}>
             <Text ellipsizeMode="tail" numberOfLines={3} style={health.cardTitle} testID={`healthcare-pathway-title-${index + 1}`}>{item.title}</Text>
-            <Text ellipsizeMode="tail" numberOfLines={3} style={health.cardDescription} testID={`healthcare-pathway-description-${index + 1}`}>{item.description}</Text>
+            <Text numberOfLines={1} style={health.cardDescription} testID={`healthcare-pathway-description-${index + 1}`}>{item.description}</Text>
             <Text style={health.cardArrow}>→</Text>
           </View>
         </Pressable>)}</View>
@@ -53,7 +66,7 @@ function HealthcareVerticalPage({ vertical, onAction }: { vertical: VerticalDeta
       <Text style={health.eyebrow}>WHY IT MATTERS</Text>
       <Text style={health.mattersTitle}>Care designed as a continuum</Text>
       <View testID="matters-list">{vertical.matters.map((item, index) => <View key={item.title} style={health.matterRow}>
-        <View style={health.iconCircle}><Text style={health.matterIcon}>{matterIcons[index]}</Text></View>
+        <View style={health.iconCircle}><HealthcareMatterIcon index={index} /></View>
         <View style={health.matterCopy}><Text style={health.matterTitle}>{item.title}</Text><Text style={health.matterText}>{item.copy}</Text></View>
       </View>)}</View>
     </View>
@@ -81,23 +94,34 @@ const health = StyleSheet.create({
   explore:{ backgroundColor:'#FFFEFB', paddingBottom:25, paddingHorizontal:20, paddingTop:20 },
   eyebrow:{ color:'#B18435', fontSize:7, fontWeight:'900', letterSpacing:.75, marginBottom:5 },
   sectionTitle:{ color:'#20211D', fontFamily:serifFamily, fontSize:22, lineHeight:25 },
-  sectionSubtitle:{ color:'#66635C', fontSize:7, lineHeight:10, marginTop:2 },
+  sectionSubtitle:{ color:'#66635C', fontSize:12, lineHeight:16, marginTop:3 },
   goldRule:{ backgroundColor:'#C79A43', height:2, marginBottom:12, marginTop:9, width:25 },
   cards:{ gap:7 },
   card:{ backgroundColor:'#FFF', borderColor:'#DED8CC', borderRadius:10, borderWidth:1, flexDirection:'row', height:101, overflow:'hidden' },
   cardImage:{ height:'100%', width:'44%' },
   cardCopy:{ flex:1, justifyContent:'center', paddingLeft:12, paddingRight:25, paddingVertical:4, position:'relative' },
   cardTitle:{ color:'#24241F', fontFamily:serifFamily, fontSize:16, lineHeight:17 },
-  cardDescription:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:9, lineHeight:12, marginTop:3, paddingRight:3 },
+  cardDescription:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:9, lineHeight:12, marginTop:7, paddingRight:3 },
   cardArrow:{ bottom:7, color:'#C39135', fontSize:17, position:'absolute', right:8 },
   matters:{ backgroundColor:'#F1EEE7', paddingBottom:16, paddingHorizontal:20, paddingTop:18 },
   mattersTitle:{ color:'#22231F', fontFamily:serifFamily, fontSize:19, lineHeight:23, marginBottom:8 },
   matterRow:{ alignItems:'center', borderTopColor:'#D4CEC2', borderTopWidth:1, flexDirection:'row', gap:12, minHeight:67, paddingVertical:10 },
   iconCircle:{ alignItems:'center', borderColor:'#AFA99E', borderRadius:20, borderWidth:1, height:38, justifyContent:'center', width:38 },
-  matterIcon:{ color:'#444640', fontSize:17 },
+  lineIcon:{ height:24, position:'relative', width:24 },
+  heartLobe:{ borderColor:gold, borderRadius:6, borderWidth:1.5, height:11, position:'absolute', top:4, width:10 },
+  heartPoint:{ borderBottomColor:gold, borderBottomWidth:1.5, borderRightColor:gold, borderRightWidth:1.5, height:12, left:6, position:'absolute', top:7, transform:[{ rotate:'45deg' }], width:12 },
+  connector:{ backgroundColor:gold, height:1.5, position:'absolute', top:12, width:10 },
+  connectorLeft:{ left:4, transform:[{ rotate:'-55deg' }] },
+  connectorRight:{ right:4, transform:[{ rotate:'55deg' }] },
+  node:{ backgroundColor:'#F1EEE7', borderColor:gold, borderRadius:4, borderWidth:1.5, height:7, position:'absolute', width:7 },
+  nodeTop:{ left:8.5, top:1 },
+  nodeLeft:{ bottom:2, left:1 },
+  nodeRight:{ bottom:2, right:1 },
+  continuityRing:{ borderColor:gold, borderRadius:9, borderWidth:1.5, height:18, left:3, position:'absolute', top:3, width:18 },
+  continuityArrow:{ borderRightColor:gold, borderRightWidth:1.5, borderTopColor:gold, borderTopWidth:1.5, height:6, position:'absolute', right:1, top:4, transform:[{ rotate:'20deg' }], width:6 },
   matterCopy:{ flex:1 },
   matterTitle:{ color:'#282823', fontFamily:serifFamily, fontSize:11.5, lineHeight:15, marginBottom:2 },
-  matterText:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:6.5, lineHeight:9 },
+  matterText:{ color:'#5E5B54', fontFamily:sansFamily, fontSize:13, lineHeight:17 },
 });
 
 const styles=StyleSheet.create({

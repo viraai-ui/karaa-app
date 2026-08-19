@@ -155,7 +155,8 @@ const healthcareProjects: PortfolioProject[] = [
 export const subverticalPortfolios: readonly SubverticalPortfolio[] =
   verticalDetails.flatMap((vertical, verticalIndex) =>
     vertical.pathways.map((pathway, pathwayIndex) => {
-      const id = slugify(pathway.title);
+      // A display-title polish must not break existing deep links.
+      const id = pathway.routeId ?? slugify(pathway.title);
       const healthcare =
         vertical.id === "healthcare-life-sciences" && pathwayIndex === 0;
       const category = pathway.title.toLowerCase().includes("hospital")

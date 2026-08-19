@@ -16,6 +16,8 @@ describe('healthcare-only vertical detail reference composition', () => {
     expect(rendered.queryByText('04 SUB-VERTICALS')).toBeNull();
     expect(rendered.getByText('EXPLORE HEALTHCARE')).toBeTruthy();
     expect(rendered.getByText('Choose a pathway')).toBeTruthy();
+    const pathwaySubtitle = rendered.getByText('Select a sub-vertical to view its projects, milestones and latest progress.');
+    expect(StyleSheet.flatten(pathwaySubtitle.props.style)).toMatchObject({ fontSize: 12, lineHeight: 16 });
     expect(rendered.getAllByTestId(/^healthcare-pathway-\d$/)).toHaveLength(4);
     ['01', '02', '03', '04', '♜', '♨', '▣', '▤'].forEach((removedContent) => {
       expect(rendered.queryByText(removedContent)).toBeNull();
@@ -32,10 +34,11 @@ describe('healthcare-only vertical detail reference composition', () => {
       expect(StyleSheet.flatten(description.props.style)).toMatchObject({ fontSize: 9, lineHeight: 12 });
       expect(StyleSheet.flatten(description.props.style).fontSize).toBeGreaterThanOrEqual(9);
       expect(title.props).toMatchObject({ ellipsizeMode: 'tail', numberOfLines: 3 });
-      expect(description.props).toMatchObject({ ellipsizeMode: 'tail', numberOfLines: 3 });
+      expect(description.props).toMatchObject({ numberOfLines: 1 });
+      expect(description.props.ellipsizeMode).toBeUndefined();
       const cardHeight = StyleSheet.flatten(rendered.getByTestId(`healthcare-pathway-${index + 1}`).props.style).height;
       const copyStyle = StyleSheet.flatten(rendered.getByTestId(`healthcare-pathway-copy-${index + 1}`).props.style);
-      const maximumTextBlockHeight = (17 * 3) + 3 + (12 * 3) + (copyStyle.paddingVertical * 2);
+      const maximumTextBlockHeight = (17 * 3) + 7 + 12 + (copyStyle.paddingVertical * 2);
       expect(cardHeight).toBe(101);
       expect(maximumTextBlockHeight).toBeLessThanOrEqual(cardHeight - 2);
     });
@@ -49,6 +52,13 @@ describe('healthcare-only vertical detail reference composition', () => {
       expect(rendered.getByText(pathway.title)).toBeTruthy();
       expect(rendered.getByText(pathway.description)).toBeTruthy();
     });
+    expect(healthcare.pathways.map(({ title, description }) => ({ title, description }))).toEqual([
+      { title: 'Multi-Specialty Hospitals', description: 'Connected, people-first care.' },
+      { title: 'Diagnostics, Clinics & Preventive Health', description: 'Earlier insight, healthier lives.' },
+      { title: 'Digital Health & Telemedicine', description: 'Care that reaches every need.' },
+      { title: 'Medical Education, Life Sciences & Research', description: 'Learning and research for health.' },
+    ]);
+    expect(rendered.queryByText('Digital Health, Telemedicine & Emergency Response')).toBeNull();
     expect(rendered.getByText('Care designed as a continuum')).toBeTruthy();
     expect(StyleSheet.flatten(rendered.getByText('Care designed as a continuum').props.style).fontFamily).toBe(
       Platform.select({ android: 'serif', ios: 'Georgia', web: 'Georgia, Times New Roman, serif' }),
@@ -56,7 +66,11 @@ describe('healthcare-only vertical detail reference composition', () => {
     healthcare.matters.forEach((matter) => {
       expect(rendered.getByText(matter.title)).toBeTruthy();
       expect(rendered.getByText(matter.copy)).toBeTruthy();
+      expect(StyleSheet.flatten(rendered.getByText(matter.copy).props.style)).toMatchObject({ fontSize: 13, lineHeight: 17 });
     });
+    expect(rendered.getByLabelText('Continuous care heart icon')).toBeTruthy();
+    expect(rendered.getByLabelText('Connected care network icon')).toBeTruthy();
+    expect(rendered.getByLabelText('Care continuity path icon')).toBeTruthy();
   });
 
   it.each(healthcare.pathways)('routes $title to its existing subvertical page', (pathway) => {
@@ -67,6 +81,12 @@ describe('healthcare-only vertical detail reference composition', () => {
       type: 'select-subvertical',
       subverticalId: subverticalPortfolioForPathway(healthcare.id, pathway.title).id,
     });
+  });
+
+  it('keeps the renamed digital-health pathway on its established route', () => {
+    expect(subverticalPortfolioForPathway(healthcare.id, healthcare.pathways[2].title).id).toBe(
+      'digital-health-telemedicine-emergency-response',
+    );
   });
 
   it('leaves another vertical on the unchanged legacy composition', () => {
