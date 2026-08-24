@@ -54,16 +54,16 @@ describe("final non-Healthcare subvertical imagery", () => {
     }
   });
 
-  it("ships valid 1200px square 100–350KB WebPs with unique hashes", () => {
+  it("ships valid 800px square 70–225KB WebPs with unique hashes", () => {
     const hashes = new Set<string>();
     for (const ref of refs) {
       const file = path.resolve(__dirname, "../assets/subverticals/generated", ref);
       expect(existsSync(file)).toBe(true);
       const bytes = statSync(file).size;
-      expect(bytes).toBeGreaterThanOrEqual(100 * 1024);
-      expect(bytes).toBeLessThanOrEqual(350 * 1024);
+      expect(bytes).toBeGreaterThanOrEqual(70 * 1024);
+      expect(bytes).toBeLessThanOrEqual(225 * 1024);
       const buffer = readFileSync(file);
-      expect(webpDimensions(buffer)).toEqual([1200, 1200]);
+      expect(webpDimensions(buffer)).toEqual([800, 800]);
       hashes.add(createHash("sha256").update(buffer).digest("hex"));
     }
     expect(hashes.size).toBe(96);

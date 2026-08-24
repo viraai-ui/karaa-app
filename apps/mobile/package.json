@@ -36,7 +36,8 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web --output-dir dist-web",
     "android": "expo run:android",
-    "test": "jest --runInBand",
+    "test": "npm run test:images && jest --runInBand",
+    "test:images": "node ../../scripts/check-image-performance.mjs",
     "typecheck": "tsc --noEmit"
   },
   "private": true,

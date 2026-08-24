@@ -16,7 +16,8 @@
     "react-dom": "19.2.3"
   },
   "scripts": {
-    "test": "node --test tests/workspace-script-dispatcher.test.mjs && node scripts/run-workspace-script.mjs test",
+    "test": "node --test tests/workspace-script-dispatcher.test.mjs && node scripts/check-image-performance.mjs && node scripts/run-workspace-script.mjs test",
+    "test:images": "node scripts/check-image-performance.mjs",
     "typecheck": "node scripts/run-workspace-script.mjs typecheck",
     "dev:api": "npm run dev --workspace=@karaa/api",
     "dev:mobile": "npm run start --workspace=@karaa/mobile",
