@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../theme/tokens';
 import { MotionReveal } from '../components/Motion';
 import { OfflineCustomerViews } from './OfflineCustomerViews';
-import { DemoAppBar, DemoBottomNavigation, DemoWorkspaceSheet } from './OfflineDemoPrimitives';
+import { DemoAppBar, DemoBottomNavigation, DemoUtilitySheet, DemoWorkspaceSheet } from './OfflineDemoPrimitives';
 import { OfflineEmployeeViews } from './OfflineEmployeeViews';
 import { OfflineManagementViews } from './OfflineManagementViews';
 import { offlineDemoStore, offlineRoleTabs, type OfflineDemoRole } from './offline-demo';
@@ -13,6 +13,7 @@ import { PAGE_END_CLEARANCE } from './bottom-spacing';
 
 export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole; onSwitchRole: (role: OfflineDemoRole) => void }) {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [utilityOpen, setUtilityOpen] = useState<'search' | 'notifications' | null>(null);
   const [state, setState] = useState(offlineDemoStore.getState);
   const insets = useSafeAreaInsets();
 
@@ -38,7 +39,8 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
       <DemoAppBar
         healthcareBack={role === 'customer' && state.surface === 'vertical' ? () => offlineDemoStore.dispatch({ type: 'back-to-root' }) : undefined}
         onSwitchWorkspace={() => setWorkspaceOpen(true)}
-        portfolioMode={role === 'customer' && (state.selectedTab === 'portfolio' || state.selectedTab === 'support') && state.surface === 'root'}
+        onOpenSearch={() => setUtilityOpen('search')}
+        onOpenNotifications={() => setUtilityOpen('notifications')}
         role={role}
       />
       <View style={styles.contentViewport} testID="demo-content-viewport">
@@ -77,6 +79,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
       </View>
       <DemoBottomNavigation onSelect={(tab) => offlineDemoStore.dispatch({ type: 'select-tab', tab })} role={role} selectedTab={state.selectedTab} tabs={offlineRoleTabs[role]} />
       {workspaceOpen ? <DemoWorkspaceSheet onDismiss={() => setWorkspaceOpen(false)} onSelect={(nextRole) => { setWorkspaceOpen(false); onSwitchRole(nextRole); }} /> : null}
+      {utilityOpen ? <DemoUtilitySheet mode={utilityOpen} onDismiss={() => setUtilityOpen(null)} /> : null}
     </View>
   );
 }

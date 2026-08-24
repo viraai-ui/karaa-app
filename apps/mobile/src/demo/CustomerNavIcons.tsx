@@ -13,9 +13,7 @@ const iconNames: Partial<Record<OfflineDemoTabKey, string>> = {
 
 export function CustomerNavIcon({ tabKey, color }: { tabKey: OfflineDemoTabKey; color: string }) {
   const common = {
-    accessible: true,
-    accessibilityLabel: `${iconNames[tabKey]} icon`,
-    accessibilityRole: 'image' as const,
+    accessible: false,
     testID: `customer-nav-icon-${tabKey}`,
   };
 
@@ -32,7 +30,7 @@ export function CustomerNavIcon({ tabKey, color }: { tabKey: OfflineDemoTabKey; 
 }
 
 const styles = StyleSheet.create({
-  iconFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 24, justifyContent: 'center', position: 'relative', width: 24 },
+  iconFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 22, justifyContent: 'center', position: 'relative', transform: [{ scale: 0.92 }], width: 22 },
   dot: { borderRadius: 2, height: 3.5, margin: 2, width: 3.5 },
   document: { borderRadius: 1.5, borderWidth: 1.7, height: 21, position: 'relative', width: 17 },
   foldMask: { backgroundColor: '#050605', borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 7, position: 'absolute', right: -1.7, top: -1.7, width: 7 },

@@ -33,6 +33,41 @@ describe('canonical role bottom navigation', () => {
   beforeEach(() => offlineDemoStore.reset());
   afterEach(() => { cleanup(); offlineDemoStore.reset(); });
 
+  it.each(['customer', 'employee', 'management'] as const)('%s shares the role-free premium shell', (role) => {
+    const screen = render(<Shell role={role} />);
+    expect(screen.getByTestId('karaa-brand-lockup')).toBeTruthy();
+    expect(screen.getAllByLabelText('Karaa Global')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Search' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Notifications, unread' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Search' })).toHaveStyle({ height: 44, width: 44 });
+    expect(screen.getByRole('button', { name: 'Notifications, unread' })).toHaveStyle({ height: 44, width: 44 });
+    expect(screen.getByRole('button', { name: 'Switch workspace' })).toHaveStyle({ height: 44, width: 44 });
+  });
+
+  it.each(['customer', 'employee', 'management'] as const)('%s header utilities produce deterministic, dismissible outcomes', (role) => {
+    const screen = render(<Shell role={role} />);
+    fireEvent.press(screen.getByRole('button', { name: 'Search' }));
+    expect(screen.getByLabelText('Search panel')).toBeTruthy();
+    fireEvent.changeText(screen.getByLabelText('Search projects and tenders'), 'Aarohan');
+    expect(screen.getByText('No saved demo results for “Aarohan”.')).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Close search' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Notifications, unread' }));
+    expect(screen.getByLabelText('Notifications panel')).toBeTruthy();
+    expect(screen.getByLabelText('Unread: Aarohan Medical City field update is ready for review')).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Close notifications' }));
+    expect(screen.queryByLabelText('Notifications panel')).toBeNull();
+  });
+
+  it('keeps back, compact brand, utilities, and workspace access in the customer vertical header', () => {
+    const screen = render(<Shell role="customer" />);
+    fireEvent.press(screen.getByRole('button', { name: 'Open Healthcare & Life Sciences vertical' }));
+    expect(screen.getByRole('button', { name: 'Back to Power of 9' })).toBeTruthy();
+    expect(screen.getByTestId('karaa-brand-crown')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Search' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Notifications, unread' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Switch workspace' })).toBeTruthy();
+  });
+
   it.each(Object.entries(canonical) as [OfflineDemoRole, readonly string[]][])('%s has only its canonical ordered tabs and count', (role, labels) => {
     const screen = render(<Shell role={role} />);
     const tabs = bottomTabs(screen);
@@ -57,10 +92,7 @@ describe('canonical role bottom navigation', () => {
   it('renders the four customer-only reference icons in canonical order with visual semantics', () => {
     const screen = render(<Shell role="customer" />);
     const icons = ['power', 'tenders', 'portfolio', 'support'] as const;
-    expect(icons.map((key) => screen.getByTestId(`customer-nav-icon-${key}`).props.accessibilityLabel)).toEqual([
-      'Power of 9 grid icon', 'Tenders document icon', 'My Portfolio briefcase icon', 'Support headset icon',
-    ]);
-    icons.forEach((key) => expect(screen.getByTestId(`customer-nav-icon-${key}`).props.accessibilityRole).toBe('image'));
+    icons.forEach((key) => expect(screen.getByTestId(`customer-nav-icon-${key}`).props.accessible).toBe(false));
     expect(screen.getAllByTestId(/customer-nav-power-dot-/)).toHaveLength(9);
     expect(screen.getByTestId('customer-nav-power-dot-1')).toHaveStyle({ backgroundColor: colors.brass });
     expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(CUSTOMER_NAV_INACTIVE);
@@ -83,9 +115,7 @@ describe('canonical role bottom navigation', () => {
   it('renders the five senior-management reference silhouettes and nine hollow grid dots', () => {
     const screen = render(<Shell role="management" />);
     const keys = ['power', 'tenders', 'command', 'map', 'chat'] as const;
-    expect(keys.map((key) => screen.getByTestId(`senior-management-nav-icon-${key}`).props.accessibilityLabel)).toEqual([
-      'Power of 9 hollow grid icon', 'Tenders folded document icon', 'Command Centre speedometer icon', 'Geo Location map pin icon', 'Chat speech bubble icon',
-    ]);
+    keys.forEach((key) => expect(screen.getByTestId(`senior-management-nav-icon-${key}`).props.accessible).toBe(false));
     expect(screen.getAllByTestId(/senior-management-nav-power-dot-/)).toHaveLength(9);
     expect(screen.getByTestId('senior-management-nav-power-dot-1')).toHaveStyle({ backgroundColor: 'transparent', borderColor: colors.brass });
     expect(screen.getByTestId('senior-management-nav-document')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });

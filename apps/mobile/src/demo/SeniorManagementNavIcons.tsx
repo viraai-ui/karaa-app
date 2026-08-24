@@ -16,9 +16,7 @@ type Props = { tabKey: OfflineDemoTabKey; color: string };
 
 export function SeniorManagementNavIcon({ tabKey, color }: Props) {
   const common = {
-    accessible: true,
-    accessibilityLabel: `${iconNames[tabKey]} icon`,
-    accessibilityRole: 'image' as const,
+    accessible: false,
     testID: `senior-management-nav-icon-${tabKey}`,
   };
 
@@ -38,8 +36,8 @@ export function SeniorManagementNavIcon({ tabKey, color }: Props) {
 }
 
 const styles = StyleSheet.create({
-  iconFrame: { alignItems: 'center', height: 27, justifyContent: 'center', position: 'relative', width: 30 },
-  gridFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 27, justifyContent: 'center', padding: 1.5, width: 27 },
+  iconFrame: { alignItems: 'center', height: 22, justifyContent: 'center', position: 'relative', transform: [{ scale: 0.76 }], width: 22 },
+  gridFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 22, justifyContent: 'center', padding: 1.5, transform: [{ scale: 0.8 }], width: 22 },
   hollowDot: { backgroundColor: 'transparent', borderRadius: 4, borderWidth: 1.65, height: 6, margin: 1.25, width: 6 },
   document: { borderRadius: 2, borderWidth: 1.7, height: 25, position: 'relative', width: 20 },
   fold: { borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 8, position: 'absolute', right: -1.7, top: -1.7, width: 8 },
