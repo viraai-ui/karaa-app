@@ -4,6 +4,14 @@ import { RootEntry } from '../src/RootEntry';
 jest.mock('expo-router', () => ({ Redirect: () => null }));
 
 describe('RootEntry', () => {
+  it('opens the public web build on the customer dashboard', () => {
+    const WebIndex = require('../app/index.web').default;
+    const { Redirect } = require('expo-router');
+    const rendered = render(<WebIndex />);
+
+    expect(rendered.UNSAFE_getByType(Redirect).props.href).toBe('/demo/customer');
+  });
+
   it('routes demo builds to the presentation selector rather than the public tour', () => {
     process.env.EXPO_PUBLIC_KARAA_DEMO_MODE = 'true';
     jest.resetModules();
