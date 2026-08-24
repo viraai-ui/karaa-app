@@ -4,22 +4,12 @@ import { StyleSheet, View } from 'react-native';
 export function DashboardNavIcon({ color, testID }: { color: string; testID: string }) {
   return (
     <View accessible={false} style={styles.frame} testID={testID}>
-      <View style={styles.column}>
-        <View style={[styles.tile, styles.tileTall, { borderColor: color }]} testID={`${testID}-tile-1`} />
-        <View style={[styles.tile, styles.tileShort, { borderColor: color }]} testID={`${testID}-tile-2`} />
-      </View>
-      <View style={styles.column}>
-        <View style={[styles.tile, styles.tileShort, { borderColor: color }]} testID={`${testID}-tile-3`} />
-        <View style={[styles.tile, styles.tileTall, { borderColor: color }]} testID={`${testID}-tile-4`} />
-      </View>
+      {[1, 2, 3, 4].map(tile => <View key={tile} style={[styles.dot, { borderColor: color }]} testID={`${testID}-tile-${tile}`} />)}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  frame: { flexDirection: 'row', gap: 3, height: 22, justifyContent: 'center', width: 22 },
-  column: { gap: 3, width: 8.5 },
-  tile: { borderRadius: 2.25, borderWidth: 1.6, width: 8.5 },
-  tileTall: { height: 12 },
-  tileShort: { height: 7 },
+  frame: { alignContent: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4, height: 22, justifyContent: 'center', width: 22 },
+  dot: { borderRadius: 4, borderWidth: 1.6, height: 7, width: 7 },
 });

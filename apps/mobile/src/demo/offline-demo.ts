@@ -340,7 +340,7 @@ export interface OfflineDemoState {
   readonly selectedVerticalId: string | null;
   readonly selectedSubverticalId: string | null;
   readonly selectedProjectId: string | null;
-  readonly projectReturnTarget: 'subvertical' | 'portfolio';
+  readonly projectReturnTarget: 'subvertical' | 'portfolio' | 'dashboard';
   readonly selectedProjectDetailTab: 'timeline' | 'overview' | 'documents' | 'media';
   readonly tenders: readonly DemoTender[];
   readonly selectedTenderId: string | null;
@@ -366,6 +366,7 @@ export type OfflineDemoAction =
   | { readonly type: 'select-subvertical'; readonly subverticalId: string }
   | { readonly type: 'select-project'; readonly projectId: string }
   | { readonly type: 'open-portfolio-project'; readonly projectId: string }
+  | { readonly type: 'open-dashboard-project'; readonly projectId: string; readonly tab?: OfflineDemoState['selectedProjectDetailTab'] }
   | { readonly type: 'select-project-detail-tab'; readonly tab: OfflineDemoState['selectedProjectDetailTab'] }
   | { readonly type: 'return-to-subvertical' }
   | { readonly type: 'select-tender'; readonly tenderId: string }
@@ -736,11 +737,18 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
       const page = portfolioForProjectId(action.projectId);
       return { ...state, selectedTab: 'portfolio', surface: 'project', selectedVerticalId: page.verticalId, selectedSubverticalId: page.id, selectedProjectId: action.projectId, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'portfolio' };
     }
+    case 'open-dashboard-project': {
+      if (state.activeRole !== 'customer' || state.selectedTab !== 'power' || state.surface !== 'root') throw new Error('Dashboard projects require the Customer Dashboard root');
+      const project = projectForId(action.projectId);
+      return { ...state, surface: 'project', selectedVerticalId: project.verticalId, selectedSubverticalId: project.subverticalId, selectedProjectId: project.id, selectedProjectDetailTab: action.tab ?? 'timeline', projectReturnTarget: 'dashboard' };
+    }
     case 'return-to-subvertical':
       if (!state.selectedSubverticalId) throw new Error('No demo subvertical selected');
       return state.projectReturnTarget === 'portfolio'
         ? { ...state, selectedTab: 'portfolio', surface: 'root', selectedVerticalId: null, selectedSubverticalId: null, selectedProjectId: null, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'subvertical' }
-        : { ...state, surface: 'subvertical', selectedProjectId: null, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'subvertical' };
+        : state.projectReturnTarget === 'dashboard'
+          ? { ...state, selectedTab: 'power', surface: 'root', selectedVerticalId: null, selectedSubverticalId: null, selectedProjectId: null, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'subvertical' }
+          : { ...state, surface: 'subvertical', selectedProjectId: null, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'subvertical' };
     case 'select-project-detail-tab':
       return { ...state, selectedProjectDetailTab: action.tab };
     case 'select-tender':

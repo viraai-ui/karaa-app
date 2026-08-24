@@ -22,10 +22,10 @@ export function CustomerNavIcon({ tabKey, color }: { tabKey: OfflineDemoTabKey; 
     return <DashboardNavIcon color={color} testID="customer-nav-icon-power" />;
   }
   if (tabKey === 'tenders') {
-    return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]}><View style={[styles.foldMask, { borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.documentLineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.documentLineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.documentLineThree, { backgroundColor: color }]} /></View></View>;
+    return <View {...common} style={styles.iconFrame}><View style={[styles.case, { borderColor: color }]}><View style={[styles.handleNested, { borderColor: color }]} /><View style={[styles.caseSeam, { backgroundColor: color }]} /><View style={[styles.latch, { borderColor: color, backgroundColor: '#FFFFFF' }]} /></View></View>;
   }
   if (tabKey === 'portfolio') {
-    return <View {...common} style={styles.iconFrame}><View style={[styles.handle, { borderColor: color }]} /><View style={[styles.case, { borderColor: color }]}><View style={[styles.caseSeam, { backgroundColor: color }]} /><View style={[styles.latch, { borderColor: color, backgroundColor: '#FFFFFF' }]} /></View></View>;
+    return <View {...common} style={styles.iconFrame}><View style={[styles.pie, { borderColor: color }]} /><View style={[styles.pieSlice, { borderBottomColor: color, borderLeftColor: color }]} /></View>;
   }
   return <View {...common} style={styles.iconFrame}><View style={[styles.headband, { borderColor: color }]} /><View style={[styles.earpiece, styles.earpieceLeft, { borderColor: color }]} /><View style={[styles.earpiece, styles.earpieceRight, { borderColor: color }]} /><View style={[styles.boom, { backgroundColor: color }]} /><View style={[styles.mic, { backgroundColor: color }]} /></View>;
 }
@@ -38,9 +38,12 @@ const styles = StyleSheet.create({
   documentLine: { height: 1.5, left: 3, position: 'absolute' },
   documentLineOne: { top: 8, width: 6 }, documentLineTwo: { top: 12, width: 9 }, documentLineThree: { top: 16, width: 7 },
   handle: { borderBottomWidth: 0, borderTopLeftRadius: 3, borderTopRightRadius: 3, borderWidth: 1.7, height: 5, position: 'absolute', top: 2, width: 9 },
+  handleNested: { borderBottomWidth: 0, borderTopLeftRadius: 3, borderTopRightRadius: 3, borderWidth: 1.7, height: 5, left: 5, position: 'absolute', top: -6, width: 9 },
   case: { borderRadius: 2, borderWidth: 1.7, height: 16, position: 'absolute', top: 6, width: 22 },
   caseSeam: { height: 1.5, left: 0, position: 'absolute', right: 0, top: 6 },
   latch: { borderRadius: 1, borderWidth: 1.4, height: 5, left: 8, position: 'absolute', top: 4, width: 4 },
+  pie: { borderRadius: 11, borderWidth: 1.7, height: 21, width: 21 },
+  pieSlice: { borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 10, position: 'absolute', right: 1, top: 1, width: 10 },
   headband: { borderBottomWidth: 0, borderTopLeftRadius: 10, borderTopRightRadius: 10, borderWidth: 1.8, height: 13, position: 'absolute', top: 2, width: 19 },
   earpiece: { borderRadius: 2, borderWidth: 1.7, height: 8, position: 'absolute', top: 11, width: 4 },
   earpieceLeft: { left: 1.5 }, earpieceRight: { right: 1.5 },

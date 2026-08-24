@@ -101,10 +101,12 @@ function timelineForProject(project: DemoProject, includeReviewedFieldUpdate: bo
 }
 
 export function DemoProjectDetail({
+  backLabel,
   state,
   project,
   onAction,
 }: {
+  backLabel?: string;
   state: OfflineDemoState;
   project: DemoProject;
   onAction: (action: OfflineDemoAction) => void;
@@ -116,7 +118,7 @@ export function DemoProjectDetail({
 
   return (
     <View style={styles.page}>
-      <DemoSurfaceBackButton onPress={() => onAction({ type: 'back-to-root' })} />
+      <DemoSurfaceBackButton label={backLabel} onPress={() => onAction(backLabel ? { type: 'return-to-subvertical' } : { type: 'back-to-root' })} />
       <View style={styles.header}>
         <View style={styles.headerVisual}>
           {isSharedAmaravatiProject ? (
