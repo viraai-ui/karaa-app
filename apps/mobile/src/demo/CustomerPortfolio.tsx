@@ -145,6 +145,8 @@ export function CustomerPortfolio({ onAction }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Filter projects"
+          accessibilityHint="Cycles between all, on-track, and in-progress projects"
+          accessibilityValue={{ text: filter }}
           hitSlop={10}
           onPress={() =>
             setFilter(filters[(filters.indexOf(filter) + 1) % filters.length])
@@ -381,7 +383,7 @@ const s = StyleSheet.create({
     borderColor: "#6A665D",
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 24,
+    minHeight: 44,
     paddingHorizontal: 8,
   },
   darkButtonText: { color: ivory, fontSize: 8, fontWeight: "700" },
@@ -393,7 +395,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     justifyContent: "center",
-    minHeight: 42,
+    minHeight: 44,
   },
   quickIcon: { color: gold, fontSize: 11 },
   quickText: { color: ink, fontSize: 7, fontWeight: "700", marginTop: 2 },
@@ -411,7 +413,7 @@ const s = StyleSheet.create({
     borderColor: line,
     borderWidth: 1,
     justifyContent: "center",
-    minHeight: 28,
+    minHeight: 44,
     paddingHorizontal: 8,
   },
   filterText: { color: ink, fontSize: 8 },

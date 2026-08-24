@@ -45,6 +45,10 @@ describe("signed-in customer portfolio", () => {
     fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
     fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
     expect(ui.queryByText("Surya Integrated Energy Park")).toBeNull();
+    expect(
+      ui.getByRole("button", { name: "Filter projects" }).props
+        .accessibilityValue,
+    ).toEqual({ text: "On track" });
     fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
     fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
     for (const p of customerPortfolioProjects) {
@@ -89,9 +93,11 @@ describe("signed-in customer portfolio", () => {
     for (const label of labels) {
       const target = ui.getByRole("button", { name: label });
       const h = StyleSheet.flatten(target.props.style).minHeight ?? 0;
-      const slop =
-        typeof target.props.hitSlop === "number" ? target.props.hitSlop : 0;
-      expect(h + slop * 2).toBeGreaterThanOrEqual(44);
+      expect(h).toBeGreaterThanOrEqual(44);
+    }
+    for (const label of ["Recent Updates", "My Documents", "Payment Records"]) {
+      const target = ui.getByRole("button", { name: label });
+      expect(StyleSheet.flatten(target.props.style).minHeight).toBeGreaterThanOrEqual(44);
     }
   });
 });
