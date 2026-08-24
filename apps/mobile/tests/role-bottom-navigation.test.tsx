@@ -15,9 +15,9 @@ import {
 } from '../src/demo/offline-demo';
 
 const canonical = {
-  customer: ['Power of 9', 'Tenders', 'My Portfolio', 'Support'],
+  customer: ['Dashboard', 'Tenders', 'My Portfolio', 'Support'],
   employee: ['Attendance', 'My Projects', 'My Tasks', 'Chat'],
-  management: ['Power of 9', 'Tenders', 'Command Centre', 'Geo Location', 'Chat'],
+  management: ['Dashboard', 'Tenders', 'Command Centre', 'Geo Location', 'Chat'],
 } as const;
 
 function Shell({ role, onSwitchRole = jest.fn() }: { role: OfflineDemoRole; onSwitchRole?: (role: OfflineDemoRole) => void }) {
@@ -93,15 +93,15 @@ describe('canonical role bottom navigation', () => {
     const screen = render(<Shell role="customer" />);
     const icons = ['power', 'tenders', 'portfolio', 'support'] as const;
     icons.forEach((key) => expect(screen.getByTestId(`customer-nav-icon-${key}`).props.accessible).toBe(false));
-    expect(screen.getAllByTestId(/customer-nav-power-dot-/)).toHaveLength(9);
-    expect(screen.getByTestId('customer-nav-power-dot-1')).toHaveStyle({ backgroundColor: colors.brass });
+    expect(screen.getAllByTestId(/customer-nav-icon-power-tile-/)).toHaveLength(4);
+    expect(screen.getByTestId('customer-nav-icon-power-tile-1')).toHaveStyle({ borderColor: colors.brass });
     expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(CUSTOMER_NAV_INACTIVE);
   });
 
   it('switches customer icon colors and preserves icon order', () => {
     const screen = render(<Shell role="customer" />);
     fireEvent.press(screen.getByRole('tab', { name: 'Tenders' }));
-    expect(screen.getByTestId('customer-nav-power-dot-1')).toHaveStyle({ backgroundColor: CUSTOMER_NAV_INACTIVE });
+    expect(screen.getByTestId('customer-nav-icon-power-tile-1')).toHaveStyle({ borderColor: CUSTOMER_NAV_INACTIVE });
     expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(colors.brass);
     expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.customer);
   });
@@ -112,12 +112,12 @@ describe('canonical role bottom navigation', () => {
     offlineRoleTabs[role].forEach((tab) => expect(screen.getByTestId(role === 'management' ? `senior-management-nav-icon-${tab.key}` : `role-nav-icon-${tab.key}`)).toBeTruthy());
   });
 
-  it('renders the five senior-management reference silhouettes and nine hollow grid dots', () => {
+  it('renders the five senior-management reference silhouettes and polished dashboard tiles', () => {
     const screen = render(<Shell role="management" />);
     const keys = ['power', 'tenders', 'command', 'map', 'chat'] as const;
     keys.forEach((key) => expect(screen.getByTestId(`senior-management-nav-icon-${key}`).props.accessible).toBe(false));
-    expect(screen.getAllByTestId(/senior-management-nav-power-dot-/)).toHaveLength(9);
-    expect(screen.getByTestId('senior-management-nav-power-dot-1')).toHaveStyle({ backgroundColor: 'transparent', borderColor: colors.brass });
+    expect(screen.getAllByTestId(/senior-management-nav-icon-power-tile-/)).toHaveLength(4);
+    expect(screen.getByTestId('senior-management-nav-icon-power-tile-1')).toHaveStyle({ borderColor: colors.brass });
     expect(screen.getByTestId('senior-management-nav-document')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
     expect(screen.getAllByTestId(/senior-management-nav-gauge-tick-/)).toHaveLength(5);
   });
@@ -125,7 +125,7 @@ describe('canonical role bottom navigation', () => {
   it('switches senior-management icon and label color without changing canonical order', () => {
     const screen = render(<Shell role="management" />);
     fireEvent.press(screen.getByRole('tab', { name: 'Geo Location' }));
-    expect(screen.getByTestId('senior-management-nav-power-dot-1')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
+    expect(screen.getByTestId('senior-management-nav-icon-power-tile-1')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
     expect(screen.getByTestId('senior-management-nav-pin-outline')).toHaveStyle({ borderColor: colors.brass });
     expect(screen.getAllByText('Geo Location').at(-1)).toHaveStyle({ color: colors.brass });
     expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.management);
@@ -158,7 +158,7 @@ describe('canonical role bottom navigation', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Switch workspace' }));
     fireEvent.press(screen.getByRole('button', { name: 'Open Senior Management workspace' }));
     expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.management);
-    expect(screen.getByRole('tab', { name: 'Power of 9' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('tab', { name: 'Dashboard' }).props.accessibilityState.selected).toBe(true);
     expect(screen.queryByRole('tab', { name: 'My Tasks' })).toBeNull();
   });
 

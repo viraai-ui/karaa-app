@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { OfflineDemoIcon } from './offline-demo';
+import { DashboardNavIcon } from './DashboardNavIcon';
 
 type ShellIconName = OfflineDemoIcon | 'search' | 'bell';
 
@@ -8,7 +9,7 @@ type ShellIconName = OfflineDemoIcon | 'search' | 'bell';
 export function ShellLineIcon({ name, color = '#F1EEE7', testID }: { name: ShellIconName; color?: string; testID?: string }) {
   if (name === 'search') return <View accessibilityElementsHidden style={styles.frame} testID={testID}><View style={[styles.searchRing, { borderColor: color }]} /><View style={[styles.searchHandle, { backgroundColor: color }]} /></View>;
   if (name === 'bell') return <View accessibilityElementsHidden style={styles.frame} testID={testID}><View style={[styles.bell, { borderColor: color }]} /><View style={[styles.bellBase, { backgroundColor: color }]} /><View style={[styles.clapper, { backgroundColor: color }]} /></View>;
-  if (name === 'grid') return <View style={styles.grid} testID={testID}>{Array.from({ length: 9 }, (_, i) => <View key={i} style={[styles.gridDot, { borderColor: color }]} />)}</View>;
+  if (name === 'dashboard') return <DashboardNavIcon color={color} testID={testID ?? 'dashboard-nav-icon'} />;
   if (name === 'file') return <View style={styles.frame} testID={testID}><View style={[styles.file, { borderColor: color }]}><View style={[styles.fileLine, { backgroundColor: color }]} /><View style={[styles.fileLine, styles.fileLine2, { backgroundColor: color }]} /></View></View>;
   if (name === 'briefcase' || name === 'tool') return <View style={styles.frame} testID={testID}><View style={[styles.caseHandle, { borderColor: color }]} /><View style={[styles.case, { borderColor: color }]}><View style={[styles.caseLine, { backgroundColor: color }]} /></View></View>;
   if (name === 'chat') return <View style={styles.frame} testID={testID}><View style={[styles.chat, { borderColor: color }]} /><View style={[styles.chatTail, { borderColor: color }]} /></View>;
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
   frame: { height: 20, position: 'relative', width: 20 },
   searchRing: { borderRadius: 7, borderWidth: 1.6, height: 13, left: 1, position: 'absolute', top: 1, width: 13 }, searchHandle: { borderRadius: 1, bottom: 2, height: 1.6, position: 'absolute', right: 1, transform: [{ rotate: '45deg' }], width: 7 },
   bell: { borderBottomWidth: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderWidth: 1.6, height: 13, left: 3, position: 'absolute', top: 2, width: 14 }, bellBase: { borderRadius: 1, height: 1.6, left: 1.5, position: 'absolute', top: 14, width: 17 }, clapper: { borderRadius: 2, height: 3, left: 8.5, position: 'absolute', top: 17, width: 3 },
-  grid: { alignContent: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 20, justifyContent: 'center', width: 20 }, gridDot: { borderRadius: 2, borderWidth: 1.3, height: 4, margin: 1.2, width: 4 },
+
   file: { borderRadius: 2, borderWidth: 1.5, height: 19, left: 3, position: 'absolute', width: 14 }, fileLine: { height: 1.3, left: 3, position: 'absolute', top: 7, width: 7 }, fileLine2: { top: 12, width: 6 },
   caseHandle: { borderBottomWidth: 0, borderTopLeftRadius: 3, borderTopRightRadius: 3, borderWidth: 1.5, height: 5, left: 6, position: 'absolute', top: 1, width: 8 }, case: { borderRadius: 2, borderWidth: 1.5, height: 14, left: 1, position: 'absolute', top: 5, width: 18 }, caseLine: { height: 1.2, left: 0, position: 'absolute', top: 5, width: 15 },
   chat: { borderRadius: 6, borderWidth: 1.5, height: 15, left: 1, position: 'absolute', top: 1, width: 18 }, chatTail: { borderLeftWidth: 0, borderTopWidth: 0, borderWidth: 1.5, bottom: 1, height: 6, left: 4, position: 'absolute', transform: [{ rotate: '35deg' }], width: 6 },

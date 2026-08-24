@@ -1,11 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { OfflineDemoTabKey } from './offline-demo';
+import { DashboardNavIcon } from './DashboardNavIcon';
 
 export const CUSTOMER_NAV_INACTIVE = '#F1EEE7';
 
 const iconNames: Partial<Record<OfflineDemoTabKey, string>> = {
-  power: 'Power of 9 grid',
+  power: 'Dashboard',
   tenders: 'Tenders document',
   portfolio: 'My Portfolio briefcase',
   support: 'Support headset',
@@ -18,7 +19,7 @@ export function CustomerNavIcon({ tabKey, color }: { tabKey: OfflineDemoTabKey; 
   };
 
   if (tabKey === 'power') {
-    return <View {...common} style={styles.iconFrame}>{Array.from({ length: 9 }, (_, index) => <View key={index} style={[styles.dot, { backgroundColor: color }]} testID={`customer-nav-power-dot-${index + 1}`} />)}</View>;
+    return <DashboardNavIcon color={color} testID="customer-nav-icon-power" />;
   }
   if (tabKey === 'tenders') {
     return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]}><View style={[styles.foldMask, { borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.documentLineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.documentLineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.documentLineThree, { backgroundColor: color }]} /></View></View>;
@@ -31,7 +32,7 @@ export function CustomerNavIcon({ tabKey, color }: { tabKey: OfflineDemoTabKey; 
 
 const styles = StyleSheet.create({
   iconFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 22, justifyContent: 'center', position: 'relative', transform: [{ scale: 0.92 }], width: 22 },
-  dot: { borderRadius: 2, height: 3.5, margin: 2, width: 3.5 },
+
   document: { borderRadius: 1.5, borderWidth: 1.7, height: 21, position: 'relative', width: 17 },
   foldMask: { backgroundColor: '#050605', borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 7, position: 'absolute', right: -1.7, top: -1.7, width: 7 },
   documentLine: { height: 1.5, left: 3, position: 'absolute' },

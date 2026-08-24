@@ -1,11 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { OfflineDemoTabKey } from './offline-demo';
+import { DashboardNavIcon } from './DashboardNavIcon';
 
 export const SENIOR_MANAGEMENT_NAV_INACTIVE = '#F1EEE7';
 
 const iconNames: Partial<Record<OfflineDemoTabKey, string>> = {
-  power: 'Power of 9 hollow grid',
+  power: 'Dashboard',
   tenders: 'Tenders folded document',
   command: 'Command Centre speedometer',
   map: 'Geo Location map pin',
@@ -21,7 +22,7 @@ export function SeniorManagementNavIcon({ tabKey, color }: Props) {
   };
 
   if (tabKey === 'power') {
-    return <View {...common} style={styles.gridFrame}>{Array.from({ length: 9 }, (_, index) => <View key={index} style={[styles.hollowDot, { borderColor: color }]} testID={`senior-management-nav-power-dot-${index + 1}`} />)}</View>;
+    return <DashboardNavIcon color={color} testID="senior-management-nav-icon-power" />;
   }
   if (tabKey === 'tenders') {
     return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]} testID="senior-management-nav-document"><View style={[styles.fold, { backgroundColor: '#050605', borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.lineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineThree, { backgroundColor: color }]} /></View></View>;
@@ -37,8 +38,7 @@ export function SeniorManagementNavIcon({ tabKey, color }: Props) {
 
 const styles = StyleSheet.create({
   iconFrame: { alignItems: 'center', height: 22, justifyContent: 'center', position: 'relative', transform: [{ scale: 0.76 }], width: 22 },
-  gridFrame: { alignContent: 'center', alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', height: 22, justifyContent: 'center', padding: 1.5, transform: [{ scale: 0.8 }], width: 22 },
-  hollowDot: { backgroundColor: 'transparent', borderRadius: 4, borderWidth: 1.65, height: 6, margin: 1.25, width: 6 },
+
   document: { borderRadius: 2, borderWidth: 1.7, height: 25, position: 'relative', width: 20 },
   fold: { borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 8, position: 'absolute', right: -1.7, top: -1.7, width: 8 },
   documentLine: { borderRadius: 1, height: 1.7, left: 4, position: 'absolute' },

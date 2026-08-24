@@ -4,7 +4,7 @@ import { portfolioForProjectId, subverticalPortfolioForId } from './subvertical-
 export type OfflineDemoRole = 'customer' | 'employee' | 'management';
 
 export type OfflineDemoTabKey = 'power' | 'tenders' | 'portfolio' | 'support' | 'attendance' | 'projects' | 'tasks' | 'chat' | 'command' | 'map';
-export type OfflineDemoIcon = 'grid' | 'file' | 'briefcase' | 'chat' | 'tool' | 'gauge' | 'pin';
+export type OfflineDemoIcon = 'dashboard' | 'file' | 'briefcase' | 'chat' | 'tool' | 'gauge' | 'pin';
 
 export interface OfflineDemoTab {
   readonly key: OfflineDemoTabKey;
@@ -28,7 +28,7 @@ export const demoAccounts: readonly OfflineDemoAccount[] = [
 
 export const offlineRoleTabs: Readonly<Record<OfflineDemoRole, readonly OfflineDemoTab[]>> = {
   customer: [
-    { key: 'power', label: 'Power of 9', icon: 'grid' },
+    { key: 'power', label: 'Dashboard', icon: 'dashboard' },
     { key: 'tenders', label: 'Tenders', icon: 'file' },
     { key: 'portfolio', label: 'My Portfolio', icon: 'briefcase' },
     { key: 'support', label: 'Support', icon: 'chat' },
@@ -40,7 +40,7 @@ export const offlineRoleTabs: Readonly<Record<OfflineDemoRole, readonly OfflineD
     { key: 'chat', label: 'Chat', icon: 'chat' },
   ],
   management: [
-    { key: 'power', label: 'Power of 9', icon: 'grid' },
+    { key: 'power', label: 'Dashboard', icon: 'dashboard' },
     { key: 'tenders', label: 'Tenders', icon: 'file' },
     { key: 'command', label: 'Command Centre', icon: 'gauge' },
     { key: 'map', label: 'Geo Location', icon: 'pin' },
