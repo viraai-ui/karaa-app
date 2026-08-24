@@ -7,6 +7,8 @@ artifacts/
 dist/
 .expo/
 coverage/
+apps/mobile/dist-web/
+apps/mobile/screenshots/
 *.log
 *.sqlite
 uploads/

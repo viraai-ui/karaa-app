@@ -12,6 +12,7 @@ import { VerticalDetailPage } from './VerticalDetailPage';
 import { SubverticalProjectPage } from './SubverticalProjectPage';
 import { subverticalPortfolios, portfolioProjectForId, portfolioForProjectId } from './subvertical-projects';
 import { PortfolioProjectDetail } from './PortfolioProjectDetail';
+import { dashboardAssets } from './dashboard-assets';
 
 const projectFilters = ['All', 'On track', 'In progress', 'Attention'] as const;
 type ProjectFilter = typeof projectFilters[number];
@@ -46,44 +47,32 @@ export function DemoExplorer({ state, onAction }: {
 
 function RootExplorer({ onAction }: { onAction: (action: OfflineDemoAction) => void }) {
   const [query, setQuery] = useState('');
-  const [panel, setPanel] = useState<string | null>(null);
   const visibleVerticals = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizeSearch = (value: string) => value.toLocaleLowerCase().replace(/&/g, ' and ').replace(/\band\b/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+    const normalizedQuery = normalizeSearch(query);
     if (!normalizedQuery) return demoVerticals;
-    return demoVerticals.filter((vertical) => `${vertical.title} ${vertical.description} ${projectForId(vertical.featuredProjectId).name}`.toLowerCase().includes(normalizedQuery));
+    return demoVerticals.filter((vertical) => {
+      const subverticals = demoSubverticals.filter((item) => item.verticalId === vertical.id);
+      const projects = demoProjects.filter((item) => item.verticalId === vertical.id);
+      const searchable = [
+        vertical.title,
+        vertical.description,
+        projectForId(vertical.featuredProjectId).name,
+        ...subverticals.flatMap((item) => [item.title, item.description]),
+        ...projects.flatMap((item) => [item.name, item.location, item.milestone, item.nextMilestone]),
+      ].join(' ');
+      return normalizeSearch(searchable).includes(normalizedQuery);
+    });
   }, [query]);
-  const pictures = [
-    require('../../assets/demo/amaravati-hero.webp'),
-    require('../../assets/demo/amaravati-structure.webp'),
-    demoVisualAssets.hero.source,
-    require('../../assets/demo/amaravati-pour.webp'),
-    require('../../assets/demo/amaravati-finish.webp'),
-    demoVisualAssets.progress.source,
-    require('../../assets/demo/amaravati-inverter-evidence.webp'),
-    demoVisualAssets.inspection.source,
-    require('../../assets/demo/amaravati-structure.webp'),
-  ];
 
-  const project = () => onAction({ type: 'select-project', projectId: 'amaravati-smart-mobility-corridor' });
   return <View style={styles.dashboard} testID="karaa-home-dashboard">
     <DashboardReveal index={0}><View style={styles.welcome}><Text style={styles.contextDate}>WEDNESDAY · 19 AUGUST</Text><Text style={styles.goodMorning}>Good morning</Text><Text style={styles.welcomeTitle}>Welcome back, Aaryan.</Text><Text style={styles.customerNumber}>CUSTOMER 102984</Text></View></DashboardReveal>
     <DashboardReveal index={1}><View style={styles.headingBlock}><Text style={styles.eyebrow}>EXPLORE KARAA</Text><Text style={styles.powerTitle}>The Power of 9</Text><Text style={styles.powerSubtitle}>Nine connected worlds. One way of progress.</Text></View></DashboardReveal>
-    <DashboardReveal index={2}><View style={styles.dashboardSearch}><LineIcon name="search" /><TextInput accessibilityLabel="Search Power of 9" onChangeText={setQuery} placeholder="Search projects, places or sectors" placeholderTextColor="#77736B" returnKeyType="search" style={styles.searchInput} value={query} /></View></DashboardReveal>
-    <DashboardReveal index={3}><View style={styles.rootGrid}>{visibleVerticals.map((vertical) => <Pressable accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
-      <Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={pictures[Number(vertical.number) - 1]} style={styles.verticalPhoto} /><View style={styles.photoShade} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{vertical.title}</Text><LineIcon light name="arrow" /></View>
+    <DashboardReveal index={2}><View style={styles.dashboardSearch}><LineIcon name="search" /><TextInput accessibilityLabel="Search Power of 9" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search projects, places or sectors" placeholderTextColor="#77736B" returnKeyType="search" style={styles.searchInput} value={query} />{query ? <Pressable accessibilityLabel="Clear Power of 9 search" accessibilityRole="button" hitSlop={4} onPress={() => setQuery('')} style={styles.searchClear}><Text accessibilityElementsHidden style={styles.searchClearGlyph}>×</Text></Pressable> : null}</View></DashboardReveal>
+    <DashboardReveal index={3}><View style={styles.rootGrid}>{visibleVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
+      <Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><View style={styles.photoShade} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{vertical.title}</Text><LineIcon light name="arrow" /></View>
     </Pressable>)}</View></DashboardReveal>
-    {visibleVerticals.length === 0 ? <Text style={styles.empty}>No verticals match this search.</Text> : null}
-    <DashboardReveal index={4}><SectionHeading title="Projects to watch" action="View all" onPress={() => setPanel('Projects to watch')} />
-    <View style={styles.watchList}><WatchCard image={demoVisualAssets.progress.source} name="Amaravati Smart Mobility Corridor" category="Infrastructure & Urban Development" progress={68} onPress={project} /><WatchCard image={demoVisualAssets.hero.source} name="Karaa Solar Energy Park" category="Energy & Utilities" progress={42} onPress={() => onAction({ type: 'select-project', projectId: 'amaravati-solar-commons' })} /></View></DashboardReveal>
-    <DashboardReveal index={5}><SectionHeading title="My portfolio" action="Open" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} />
-    <Pressable accessibilityLabel="Open my portfolio" accessibilityRole="button" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} style={({pressed}) => [styles.portfolioCard, pressed && styles.pressed]}><View style={styles.portfolioMetric}><Text style={styles.metricLabel}>INVESTMENTS</Text><Text style={styles.goldValue}>2</Text></View><View style={styles.portfolioMetric}><Text style={styles.metricLabel}>PORTFOLIO VALUE</Text><Text style={styles.goldValue}>₹2.4 Cr</Text></View><View style={styles.portfolioMetric}><Text style={styles.metricLabel}>NEXT DUE</Text><Text style={styles.goldValue}>18 Sep</Text></View><LineIcon name="arrow" /></Pressable>
-    <Pressable accessibilityLabel="Open payment schedule for Riverfront Residences Tower B" accessibilityRole="button" onPress={() => setPanel('Payment schedule')} style={({pressed}) => [styles.paymentRow, pressed && styles.pressed]}><LineIcon name="calendar" /><View style={styles.flex}><Text numberOfLines={1} style={styles.paymentTitle}>Riverfront Residences · Tower B</Text><Text style={styles.paymentDetail}>Payment schedule · Next due 18 Sep</Text></View><LineIcon name="arrow" /></Pressable></DashboardReveal>
-    <DashboardReveal index={6}><Text style={styles.sectionTitle}>Latest progress</Text>
-    <Pressable accessibilityLabel="Open latest progress update" accessibilityRole="button" onPress={project} style={({pressed}) => [styles.latestCard, pressed && styles.pressed]}><Image accessibilityLabel="Field progress at Riverfront Residences" resizeMode="cover" source={demoVisualAssets.progress.source} style={styles.latestImage} /><View style={styles.latestCopy}><Text style={styles.latestEyebrow}>WEEK 17 · 12 AUG</Text><Text numberOfLines={2} style={styles.latestTitle}>Structural framework reaches the next milestone</Text><Text numberOfLines={1} style={styles.latestDetail}>Riverfront Residences · Tower B</Text><View style={styles.latestMeta}><Text style={styles.latestDate}>Field team · Verified</Text><LineIcon name="arrow" /></View></View></Pressable></DashboardReveal>
-    <DashboardReveal index={7}><Pressable accessibilityLabel="Open important notice" accessibilityRole="button" onPress={() => setPanel('Important notice')} style={({pressed}) => [styles.notice, pressed && styles.pressed]}><LineIcon name="bell" /><View style={styles.flex}><Text style={styles.noticeTitle}>Important notice</Text><Text numberOfLines={2} style={styles.noticeText}>A new project update and document are available.</Text></View><LineIcon name="arrow" /></Pressable></DashboardReveal>
-    <DashboardReveal index={8}><Text style={styles.sectionTitle}>Quick access</Text>
-    <View style={styles.quickRow}><QuickAction icon="progress" label="Track progress" onPress={project} /><QuickAction icon="portfolio" label="My investments" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} /><QuickAction icon="image" label="Media gallery" onPress={project} /><QuickAction icon="bell" label="Notices" onPress={() => setPanel('Notices')} /></View></DashboardReveal>
-    {panel ? <View accessibilityLabel={`${panel} dialog`} accessibilityRole="summary" style={styles.localPanel}><View style={styles.flex}><Text style={styles.panelEyebrow}>CUSTOMER UPDATE</Text><Text style={styles.panelTitle}>{panel}</Text><Text style={styles.panelText}>The latest verified information is available in this local preview.</Text></View><Pressable accessibilityLabel={`Close ${panel}`} accessibilityRole="button" hitSlop={8} onPress={() => setPanel(null)} style={({pressed}) => [styles.closeButton, pressed && styles.pressed]}><LineIcon name="close" /></Pressable></View> : null}
+    {visibleVerticals.length === 0 ? <Text accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.empty}>No verticals match this search.</Text> : null}
   </View>;
 }
 
@@ -153,19 +142,19 @@ function AggregateFact({ label, value, wide = false }: { label: string; value: s
 
 const styles = StyleSheet.create({
   page: { gap: spacing.md },
-  dashboard: { gap: 16, paddingBottom: 8 },
-  welcome: { borderBottomColor: '#DED8CC', borderBottomWidth: 1, gap: 4, paddingBottom: 16 },
-  contextDate: { color: '#77736B', fontSize: 11, fontWeight: '700', letterSpacing: .8 },
+  dashboard: { gap: 16, paddingBottom: 2 },
+  welcome: { borderBottomColor: '#DDD7CB', borderBottomWidth: 1, gap: 3, paddingBottom: 16 },
+  contextDate: { color: '#706D67', fontSize: 11, fontWeight: '700', letterSpacing: .85 },
   goodMorning: { color: '#625F58', fontSize: 13, lineHeight: 18 },
-  welcomeTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 27, lineHeight: 32 },
+  welcomeTitle: { color: '#292825', fontFamily: 'serif', fontSize: 28, lineHeight: 33 },
   customerNumber: { color: '#907334', fontSize: 11, fontWeight: '800', letterSpacing: .8, marginTop: 2 },
   headingBlock: { gap: 4 },
   eyebrow: { color: '#907334', fontSize: 11, fontWeight: '900', letterSpacing: 1.15 },
   title: { color: colors.ink, fontSize: 29, fontWeight: '800', lineHeight: 34 },
   subtitle: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  powerTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 28, lineHeight: 32 }, powerSubtitle: { color: '#625F58', fontSize: 13, lineHeight: 18 },
-  dashboardSearch: { alignItems: 'center', backgroundColor: '#FAF8F2', borderBottomColor: '#BEB7AA', borderBottomWidth: 1, flexDirection: 'row', height: 44, paddingHorizontal: 4 }, searchInput: { color: '#292A27', flex: 1, fontSize: 13, height: 44, paddingHorizontal: 8 },
-  rootGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, verticalCard: { aspectRatio: .85, borderRadius: 4, overflow: 'hidden', position: 'relative', width: '31%' }, verticalPhoto: { height: '100%', width: '100%' }, photoShade: { backgroundColor: 'rgba(25,25,22,.36)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 }, verticalNumber: { color: '#E0BE70', fontSize: 11, fontWeight: '900', left: 9, letterSpacing: .8, position: 'absolute', top: 8 }, verticalFooter: { alignItems: 'flex-end', bottom: 8, flexDirection: 'row', gap: 3, left: 9, position: 'absolute', right: 6 }, verticalTitle: { color: '#FFFCF5', flex: 1, fontSize: 11, fontWeight: '800', lineHeight: 14 },
+  powerTitle: { color: '#292825', fontFamily: 'serif', fontSize: 29, lineHeight: 33 }, powerSubtitle: { color: '#625F58', fontSize: 13, lineHeight: 18 },
+  dashboardSearch: { alignItems: 'center', backgroundColor: '#FAF8F2', borderBottomColor: '#BEB7AA', borderBottomWidth: 1, flexDirection: 'row', minHeight: 45, paddingLeft: 4 }, searchInput: { color: '#292A27', flex: 1, fontSize: 13, height: 45, paddingHorizontal: 8 }, searchClear: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 }, searchClearGlyph: { color: '#77736B', fontSize: 22, lineHeight: 24 },
+  rootGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, verticalCard: { aspectRatio: .85, borderRadius: 5, overflow: 'hidden', position: 'relative', width: '31%' }, verticalPhoto: { height: '100%', width: '100%' }, photoShade: { backgroundColor: 'rgba(27,24,19,.28)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 }, verticalNumber: { color: '#D8B562', fontSize: 11, fontWeight: '900', left: 9, letterSpacing: .8, position: 'absolute', top: 8 }, verticalFooter: { alignItems: 'flex-end', bottom: 8, flexDirection: 'row', gap: 3, left: 9, position: 'absolute', right: 6 }, verticalTitle: { color: '#FFFCF5', flex: 1, fontSize: 11, fontWeight: '800', lineHeight: 14, textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   sectionHeading: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, sectionTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 20, lineHeight: 24 }, sectionActionHit: { alignItems: 'center', flexDirection: 'row', minHeight: 44 }, sectionAction: { color: '#80672F', fontSize: 12, fontWeight: '800' },
   watchList: { borderTopColor: '#D7D1C5', borderTopWidth: 1 }, watchCard: { alignItems: 'center', borderBottomColor: '#D7D1C5', borderBottomWidth: 1, flexDirection: 'row', gap: 12, minHeight: 104, paddingVertical: 12 }, watchImage: { borderRadius: 3, height: 76, width: 92 }, watchBody: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 8 }, watchCopy: { flex: 1, gap: 3 }, watchProgress: { gap: 4, width: 82 }, watchName: { color: '#292A27', fontSize: 13, fontWeight: '800', lineHeight: 17 }, watchCategory: { color: '#6B675F', fontSize: 11 }, progressLine: { flexDirection: 'row', justifyContent: 'space-between' }, progressValue: { color: '#292A27', fontSize: 13, fontWeight: '900' }, onTrack: { color: '#80672F', fontSize: 9, fontWeight: '800' }, rail: { backgroundColor: '#DCD6CA', height: 2 }, railFill: { backgroundColor: '#9B7B37', height: 2 }, watchMeta: { color: '#6B675F', fontSize: 10 },
   portfolioCard: { alignItems: 'center', borderBottomColor: '#CFC8BA', borderBottomWidth: 1, borderTopColor: '#CFC8BA', borderTopWidth: 1, flexDirection: 'row', minHeight: 72, paddingVertical: 12 }, portfolioMetric: { flex: 1, gap: 4 }, metricLabel: { color: '#6B675F', fontSize: 10, fontWeight: '800', letterSpacing: .4 }, goldValue: { color: '#725C2A', fontFamily: 'serif', fontSize: 17 }, paymentRow: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 56, paddingVertical: 8 }, flex: { flex: 1 }, paymentTitle: { color: '#292A27', fontSize: 13, fontWeight: '800' }, paymentDetail: { color: '#6B675F', fontSize: 11, marginTop: 2 },
