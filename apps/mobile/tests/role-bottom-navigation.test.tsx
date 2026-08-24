@@ -137,4 +137,18 @@ describe('canonical role bottom navigation', () => {
     expect(() => offlineDemoReducer(createOfflineDemoState('employee'), { type: 'select-tab', tab: 'support' })).toThrow(/not available/);
     expect(() => offlineDemoReducer(createOfflineDemoState('management'), { type: 'select-tab', tab: 'tasks' })).toThrow(/not available/);
   });
+
+  it('opens Aarohan atomically from the real portfolio shell and returns to My Portfolio', () => {
+    const screen = render(<Shell role="customer" />);
+    fireEvent.press(screen.getByRole('tab', { name: 'My Portfolio' }));
+    expect(screen.getByTestId('my-portfolio-page')).toBeTruthy();
+    expect(() => fireEvent.press(screen.getByRole('button', { name: 'View project Aarohan Medical City' }))).not.toThrow();
+    expect(offlineDemoStore.getState()).toMatchObject({
+      selectedTab: 'portfolio', surface: 'project', selectedVerticalId: 'healthcare-life-sciences',
+      selectedSubverticalId: 'multi-specialty-hospitals', selectedProjectId: 'aarohan-medical-city-pune', projectReturnTarget: 'portfolio',
+    });
+    fireEvent.press(screen.getByRole('button', { name: 'Back to My Portfolio' }));
+    expect(screen.getByTestId('my-portfolio-page')).toBeTruthy();
+    expect(offlineDemoStore.getState()).toMatchObject({ selectedTab: 'portfolio', surface: 'root', selectedProjectId: null });
+  });
 });

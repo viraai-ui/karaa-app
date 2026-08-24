@@ -25,11 +25,13 @@ export const projectDetailResponsiveMetrics = {
 export const s = StyleSheet.create({ page: {} });
 
 export function PortfolioProjectDetail({
+  backLabel,
   project,
   portfolio,
   selectedTab,
   onAction,
 }: {
+  backLabel?: string;
   project: PortfolioProject;
   portfolio: SubverticalPortfolio;
   selectedTab: OfflineDemoState["selectedProjectDetailTab"];
@@ -37,6 +39,7 @@ export function PortfolioProjectDetail({
 }): React.ReactElement {
   return (
     <UniversalProjectTimeline
+      backLabel={backLabel}
       project={project}
       portfolio={portfolio}
       selectedTab={selectedTab}

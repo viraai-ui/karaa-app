@@ -19,21 +19,21 @@ const iconGlyphs: Record<OfflineDemoIcon, string> = {
   pin: '⌖',
 };
 
-export function DemoAppBar({ role, onSwitchWorkspace, healthcareBack }: { role: OfflineDemoRole; onSwitchWorkspace: () => void; healthcareBack?: () => void }) {
+export function DemoAppBar({ role, onSwitchWorkspace, healthcareBack, portfolioMode = false }: { role: OfflineDemoRole; onSwitchWorkspace: () => void; healthcareBack?: () => void; portfolioMode?: boolean }) {
   const account = demoAccounts.find((item) => item.role === role)!;
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.appBar, healthcareBack && styles.healthcareAppBar, { paddingTop: insets.top }]} testID="demo-app-bar">
       <View style={styles.brandGroup}>
         {healthcareBack ? <Pressable accessibilityLabel="Back to Power of 9" accessibilityRole="button" onPress={healthcareBack} style={styles.headerBack}><Text style={styles.headerBackArrow}>←</Text></Pressable> : null}
-        <KaraaBrand height={30} variant="crown" />
+        {portfolioMode ? <View accessibilityLabel="Karaa mark" accessibilityRole="image" style={styles.portfolioMark}><Text style={styles.portfolioMarkText}>K</Text></View> : <KaraaBrand height={30} variant="crown" />}
         <View>
           <KaraaBrand height={13} variant="wordmark" />
-          {!healthcareBack ? <Text style={styles.role}>{account.roleLabel}</Text> : null}
+          {!healthcareBack && !portfolioMode ? <Text style={styles.role}>{account.roleLabel}</Text> : null}
         </View>
       </View>
       <View style={styles.topActions}>
-        {healthcareBack ? <Pressable accessibilityLabel="Search" accessibilityRole="button" onPress={() => undefined} style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></Pressable> : <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></View>}
+        {!portfolioMode ? (healthcareBack ? <Pressable accessibilityLabel="Search" accessibilityRole="button" onPress={() => undefined} style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></Pressable> : <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>⌕</Text></View>) : null}
         {healthcareBack ? <Pressable accessibilityLabel="Notifications" accessibilityRole="button" onPress={() => undefined} style={styles.iconButton}><Text style={styles.topIcon}>♧</Text><View style={styles.notificationDot} /></Pressable> : <View accessibilityElementsHidden style={styles.iconButton}><Text style={styles.topIcon}>♧</Text><View style={styles.notificationDot} /></View>}
         {!healthcareBack ? <Pressable accessibilityLabel="Switch workspace" accessibilityRole="button" onPress={onSwitchWorkspace} style={styles.avatar}><Text style={styles.avatarText}>{account.initials}</Text></Pressable> : null}
       </View>
@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
   healthcareAppBar: { minHeight: 44, paddingHorizontal: 8 },
   headerBack: { alignItems: 'center', height: 44, justifyContent: 'center', marginLeft: -12, width: 44 }, headerBackArrow: { color: colors.brass, fontSize: 19 },
   brandGroup: { alignItems: 'center', flexDirection: 'row', flexShrink:1, gap: 6, minWidth:0 }, mark: { borderColor: colors.brass, borderWidth: 1, color: colors.brass, fontSize: 22, fontWeight: '900', height: 32, lineHeight: 29, textAlign: 'center', width: 32 }, brand: { color: colors.paper, fontSize: 15, fontWeight: '800', letterSpacing: 2.1 }, role: { color: colors.brass, fontSize: 8, fontWeight: '800', letterSpacing: 1.05, marginTop: 1 },
+  portfolioMark: { alignItems: 'center', height: 30, justifyContent: 'center', width: 30 }, portfolioMarkText: { color: colors.brass, fontFamily: 'serif', fontSize: 28, fontStyle: 'italic', fontWeight: '900', lineHeight: 30 },
   topActions: { alignItems: 'center', flexDirection: 'row', flexShrink:0 }, iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', position: 'relative', width: 40 }, topIcon: { color: colors.paper, fontSize: 24, fontWeight: '300' }, notificationDot: { backgroundColor: '#E89A0A', borderRadius: 5, height: 8, position: 'absolute', right: 4, top: 5, width: 8 }, avatar: { alignItems: 'center', backgroundColor: '#474845', borderRadius: radii.pill, height: 44, justifyContent: 'center', width: 44 }, avatarText: { color: colors.paper, fontSize: 11, fontWeight: '900' },
   sheetBackdrop: { backgroundColor: 'rgba(5, 6, 5, 0.52)', bottom: 0, justifyContent: 'flex-end', left: 0, position: 'absolute', right: 0, top: 0, zIndex: 20 }, sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radii.lg, borderTopRightRadius: radii.lg, gap: spacing.sm, padding: spacing.lg, paddingBottom: spacing.xl }, sheetHeader: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm }, sheetLabel: { color: colors.brass, fontSize: 10, fontWeight: '900', letterSpacing: 1.1 }, sheetTitle: { color: colors.ink, fontSize: 27, fontWeight: '800', lineHeight: 33 }, closeButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 }, close: { color: colors.ink, fontSize: 30, lineHeight: 30 }, workspaceRow: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 66, paddingVertical: spacing.sm }, workspaceAvatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: radii.pill, height: 38, justifyContent: 'center', width: 38 }, workspaceAvatarText: { color: colors.brass, fontSize: 11, fontWeight: '900' }, workspaceCopy: { flex: 1 }, workspaceName: { color: colors.ink, fontSize: 16, fontWeight: '800' }, workspaceRole: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: .7, marginTop: 2 }, chevron: { color: colors.brass, fontSize: 28, fontWeight: '300' },
   bottomNavigation: { backgroundColor: '#050605', flexDirection: 'row', minHeight: NAVIGATION_BASE_HEIGHT, paddingHorizontal: 2, paddingTop: 7 }, tabWrapper: { flex: 1, minWidth: 0 }, tab: { alignItems: 'center', flex: 1, gap: 3, justifyContent: 'center', minHeight: 58, minWidth: 44 }, tabSelected: { backgroundColor: 'rgba(181, 138, 58, 0.10)', borderRadius: radii.sm }, tabIcon: { color: '#D6D3CD', fontSize: 21, fontWeight: '500', lineHeight: 23 }, tabLabel: { color: '#D6D3CD', fontSize: 8, fontWeight: '700', textAlign: 'center' }, referenceTabLabel: { color: CUSTOMER_NAV_INACTIVE, marginTop: 1 }, tabActive: { color: colors.brass },

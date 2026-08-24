@@ -392,11 +392,13 @@ function Icon({
 }
 
 export function UniversalProjectTimeline({
+  backLabel,
   project,
   portfolio,
   selectedTab,
   onAction,
 }: {
+  backLabel?: string;
   project: PortfolioProject;
   portfolio: SubverticalPortfolio;
   selectedTab: OfflineDemoState["selectedProjectDetailTab"];
@@ -427,13 +429,13 @@ export function UniversalProjectTimeline({
       <Pressable
         testID="aarohan-back-control"
         accessibilityRole="button"
-        accessibilityLabel={`Back to ${portfolio.title}`}
-        accessibilityHint={`Returns to the ${portfolio.title} projects`}
+        accessibilityLabel={`Back to ${backLabel ?? portfolio.title}`}
+        accessibilityHint={`Returns to ${backLabel ?? `the ${portfolio.title} projects`}`}
         onPress={() => onAction({ type: "return-to-subvertical" })}
         style={a.back}
       >
         <Text style={a.backArrow}>‹</Text>
-        <Text numberOfLines={1} style={a.backLabel}>{portfolio.title.toUpperCase()}</Text>
+        <Text numberOfLines={1} style={a.backLabel}>{(backLabel ?? portfolio.title).toUpperCase()}</Text>
       </Pressable>
       <View style={a.postBackGap} testID="aarohan-post-back-gap" />
       <View style={a.summary} testID="aarohan-project-summary">

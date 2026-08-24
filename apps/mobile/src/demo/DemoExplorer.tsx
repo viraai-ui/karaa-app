@@ -36,7 +36,7 @@ export function DemoExplorer({ state, onAction }: {
 
   if (state.surface === 'project' && state.selectedProjectId) {
     if (subverticalPortfolios.some(page => page.projects.some(project => project.id === state.selectedProjectId))) {
-      return <PortfolioProjectDetail onAction={onAction} project={portfolioProjectForId(state.selectedProjectId)} portfolio={portfolioForProjectId(state.selectedProjectId)} selectedTab={state.selectedProjectDetailTab} />;
+      return <PortfolioProjectDetail backLabel={state.projectReturnTarget === 'portfolio' ? 'My Portfolio' : undefined} onAction={onAction} project={portfolioProjectForId(state.selectedProjectId)} portfolio={portfolioForProjectId(state.selectedProjectId)} selectedTab={state.selectedProjectDetailTab} />;
     }
     return <DemoProjectDetail onAction={onAction} project={projectForId(state.selectedProjectId)} state={state} />;
   }

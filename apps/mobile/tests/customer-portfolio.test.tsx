@@ -11,7 +11,7 @@ describe("signed-in customer portfolio", () => {
     expect(customerPortfolioProjects).toHaveLength(3);
     expect(
       ui.getByText(
-        "Your projects, progress and private records — all in one place.",
+        /Your projects, progress and private records/,
       ),
     ).toBeTruthy();
     expect(ui.getByText("03")).toBeTruthy();
@@ -19,12 +19,12 @@ describe("signed-in customer portfolio", () => {
     expect(ui.getByText("02")).toBeTruthy();
     for (const p of customerPortfolioProjects) {
       expect(ui.getByText(p.name)).toBeTruthy();
-      expect(ui.getByText(`${p.progress}%`)).toBeTruthy();
+      expect(ui.getAllByText(`${p.progress}%`)).toHaveLength(2);
       expect(ui.getByText(p.next)).toBeTruthy();
     }
     expect(
       ui.getByText(
-        "Documents and personal records are visible only to your verified account.",
+        /Documents and payment records are/,
       ),
     ).toBeTruthy();
   });
@@ -80,9 +80,10 @@ describe("signed-in customer portfolio", () => {
       ui.getByRole("button", { name: "View project Aarohan Medical City" }),
     );
     expect(onAction).toHaveBeenCalledWith({
-      type: "select-project",
+      type: "open-portfolio-project",
       projectId: "aarohan-medical-city-pune",
     });
+    expect(ui.getByRole("progressbar", { name: "Aarohan Medical City completion" }).props.accessibilityValue).toEqual({ min: 0, max: 100, now: 42, text: "42% complete" });
     const labels = [
       "Refresh portfolio",
       "Filter projects",
