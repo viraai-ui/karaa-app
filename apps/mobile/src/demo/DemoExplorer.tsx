@@ -63,7 +63,6 @@ function RootExplorer({ onAction, showContinuation }: { onAction: (action: Offli
     <DashboardReveal index={1}><View style={styles.rootGrid}>{demoVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
       <View style={styles.photoFrame}><Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.arrowButton}><View style={styles.cardArrowShaft} /><View style={styles.cardArrowHead} /></View></View><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{dashboardDisplayTitles[vertical.id] ?? vertical.title}</Text></View>
     </Pressable>)}</View></DashboardReveal>
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.scrollPrompt}><View style={styles.doubleChevron}><View style={[styles.chevronLine, styles.chevronLeft]} /><View style={[styles.chevronLine, styles.chevronRight]} /><View style={[styles.chevronLine, styles.chevronLeftLower]} /><View style={[styles.chevronLine, styles.chevronRightLower]} /></View><Text style={styles.scrollLabel}>SCROLL FOR MORE</Text></View>
     {showContinuation ? <DashboardContinuation onAction={onAction} /> : null}
   </View>;
 }
@@ -77,7 +76,6 @@ function GoldArrow() { return <Text style={styles.goldArrow}>→</Text>; }
 function DashboardContinuation({ onAction }: { onAction: (action: OfflineDemoAction) => void }) {
   const openProject = (projectId: string, tab: OfflineDemoState['selectedProjectDetailTab'] = 'timeline') => onAction({ type: 'open-dashboard-project', projectId, tab });
   return <View style={styles.continuation} testID="customer-dashboard-continuation">
-    <View style={styles.transition}><View style={styles.transitionRule} /><Text style={styles.transitionText}>CONTINUING FROM POWER OF 9</Text></View>
     <SectionHeading action="View all" onPress={() => onAction({ type: 'select-vertical', verticalId: 'infrastructure-urban-development' })} title="Projects to watch" />
     <View style={styles.watchGrid}>{watchProjects.map((project) => <Pressable accessibilityLabel={`Open ${project.name} project`} accessibilityRole="button" key={project.id} onPress={() => openProject(project.id)} style={({pressed}) => [styles.watchTile, pressed && styles.pressed]}>
       <Image accessibilityLabel={`${project.name} project view`} source={project.image} style={styles.watchTileImage} />
