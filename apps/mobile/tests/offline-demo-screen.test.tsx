@@ -171,15 +171,16 @@ describe('Karaa Global role demo surfaces', () => {
     expect(rendered.queryByText(/offline|local session|presentation session/i)).toBeNull();
   });
 
-  it('renders Customer support ticket history and linked-conversation controls', () => {
+  it('renders the canonical Customer support root and visible ticket history', () => {
     const state = { ...createOfflineDemoState('customer'), selectedTab: 'support' as const };
     const rendered = render(<OfflineCustomerViews state={state} onAction={jest.fn()} />);
 
     expect(rendered.getByText('Support')).toBeTruthy();
-    expect(rendered.getByText('TICKET HISTORY')).toBeTruthy();
+    expect(rendered.getByText('Ticket history')).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Raise Ticket' })).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Submit Ticket' })).toBeTruthy();
     expect(rendered.getByText('Commissioning checklist context')).toBeTruthy();
-    expect(rendered.getByRole('button', { name: 'Create support ticket' })).toBeTruthy();
-    expect(rendered.getByRole('button', { name: 'Open SUP-001 support ticket' })).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'View Commissioning checklist context' })).toBeTruthy();
     expect(rendered.queryByText('Karaa project team')).toBeNull();
   });
 

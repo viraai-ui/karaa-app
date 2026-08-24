@@ -68,7 +68,7 @@ export function MotionReveal({ children, delay = 0, style, testID }: { children:
 }
 
 /** Tactile feedback without changing the semantic hit target or delaying onPress. */
-export function MotionPressable({ children, style, disabled, onPressIn, onPressOut, onFocus, onBlur, wrapperStyle, ...props }: PressableProps & { wrapperStyle?: StyleProp<ViewStyle> }) {
+export function MotionPressable({ children, style, disabled, onPressIn, onPressOut, onFocus, onBlur, wrapperStyle, suppressFocusRing = false, ...props }: PressableProps & { wrapperStyle?: StyleProp<ViewStyle>; suppressFocusRing?: boolean }) {
   const reduced = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
   const [focused, setFocused] = useState(false);
@@ -89,7 +89,7 @@ export function MotionPressable({ children, style, disabled, onPressIn, onPressO
         style={({ pressed }) => [
           typeof style === 'function' ? style({ pressed }) : style,
           pressed && !disabled ? styles.pressed : undefined,
-          focused && !disabled ? styles.focused : undefined,
+          focused && !disabled && !suppressFocusRing ? styles.focused : undefined,
           disabled ? styles.disabled : undefined,
         ]}
       >{children}</Pressable>

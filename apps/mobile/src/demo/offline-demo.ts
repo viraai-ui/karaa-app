@@ -538,8 +538,8 @@ function createSupportTicket(
     supportTickets: [...state.supportTickets, ticket],
     chatThreads: [...state.chatThreads, thread],
     selectedTab: 'support',
-    surface: 'chat-thread',
-    selectedChatThreadId: threadId,
+    surface: 'root',
+    selectedChatThreadId: null,
   };
 }
 

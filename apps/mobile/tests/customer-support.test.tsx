@@ -28,7 +28,7 @@ describe("customer support screenshot experience", () => {
       "HELP & ASSISTANCE",
       "Support",
       "We’re here to help with your projects, documents and account.",
-      "YOUR SUPPORT OVERVIEW",
+      "Your support",
       "01",
       "Open Ticket",
       "02",
@@ -38,9 +38,9 @@ describe("customer support screenshot experience", () => {
       "WhatsApp",
       "Raise Ticket",
       "Karaa Support",
-      "Hello Arjun, how can I help you today?",
-      "Unable to open payment receipt",
-      "Updated 17 min ago",
+      "Hello Arjun, how can we help you today?",
+      "Commissioning checklist context",
+      "Updated 14 Aug · 11:05 AM",
       "Project update notification delayed",
       "Change registered phone number",
       "Need urgent assistance?",
@@ -51,9 +51,7 @@ describe("customer support screenshot experience", () => {
   it("validates then creates a truthful local ticket action", () => {
     const r = renderPage();
     fireEvent.press(r.getByLabelText("Submit Ticket"));
-    expect(
-      r.getByText("Select a category and enter a subject and description."),
-    ).toBeTruthy();
+    expect(r.getByText(/Select a category and enter a subject/)).toBeTruthy();
     fireEvent.press(r.getByLabelText("Issue category"));
     fireEvent.press(r.getByLabelText("Choose Documents"));
     fireEvent.changeText(r.getByLabelText("Subject"), "Missing plan");
@@ -76,10 +74,10 @@ describe("customer support screenshot experience", () => {
     fireEvent.press(r.getByLabelText("Send message"));
     expect(r.getAllByText("Aarohan Medical City").length).toBeGreaterThan(1);
     fireEvent.press(r.getByLabelText("Filter Open tickets"));
-    expect(r.getByText("Unable to open payment receipt")).toBeTruthy();
+    expect(r.getByText("Commissioning checklist context")).toBeTruthy();
     expect(r.queryByText("Change registered phone number")).toBeNull();
-    fireEvent.press(r.getByLabelText("View Unable to open payment receipt"));
-    expect(r.getByText(/IN REVIEW · Updated 17 min ago/)).toBeTruthy();
+    fireEvent.press(r.getByLabelText("View Commissioning checklist context"));
+    expect(r.getByText(/IN REVIEW · Updated 14 Aug/)).toBeTruthy();
     fireEvent.press(r.getByLabelText("Close dialog"));
     fireEvent.press(r.getByLabelText("View service hours"));
     expect(r.getByText(/Monday–Saturday/)).toBeTruthy();
@@ -95,7 +93,7 @@ describe("customer support screenshot experience", () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       expect.stringContaining("tel:"),
     );
-    fireEvent.press(r.getByLabelText("Add photos or documents"));
+    fireEvent.press(r.getByLabelText("Add photo to ticket"));
     await waitFor(() => expect(r.getByText("receipt.jpg")).toBeTruthy());
   });
   it("gives core controls 44px hit areas", () => {

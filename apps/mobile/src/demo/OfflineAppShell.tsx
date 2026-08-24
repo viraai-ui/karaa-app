@@ -38,7 +38,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
       <DemoAppBar
         healthcareBack={role === 'customer' && state.surface === 'vertical' ? () => offlineDemoStore.dispatch({ type: 'back-to-root' }) : undefined}
         onSwitchWorkspace={() => setWorkspaceOpen(true)}
-        portfolioMode={role === 'customer' && state.selectedTab === 'portfolio' && state.surface === 'root'}
+        portfolioMode={role === 'customer' && (state.selectedTab === 'portfolio' || state.selectedTab === 'support') && state.surface === 'root'}
         role={role}
       />
       <View style={styles.contentViewport} testID="demo-content-viewport">
