@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoProjectDetail } from './DemoProjectDetail';
@@ -16,6 +16,18 @@ import { dashboardAssets } from './dashboard-assets';
 
 const projectFilters = ['All', 'On track', 'In progress', 'Attention'] as const;
 type ProjectFilter = typeof projectFilters[number];
+
+const dashboardDisplayTitles: Record<string, string> = {
+  'infrastructure-urban-development': 'Infrastructure & Urban Development',
+  'ports-airports-logistics': 'Ports, Airports & Logistics',
+  'energy-utilities': 'Energy & Utilities',
+  'healthcare-life-sciences': 'Healthcare & Life Sciences',
+  'hospitality-tourism-leisure': 'Hospitality, Tourism & Leisure',
+  'real-estate-asset-development': 'Real Estate & Asset Development',
+  'manufacturing-industrial-solutions': 'Manufacturing & Industrial Solutions',
+  'spiritual-renaissance-for-bharat': 'Spiritual Renaissance for Bharat',
+  'education-technology-innovation': 'Education, Technology & Innovation',
+};
 
 function visualForProject(project: DemoProject) {
   return project.visual === 'hero' ? demoVisualAssets.hero : project.visual === 'inspection' ? demoVisualAssets.inspection : demoVisualAssets.progress;
@@ -46,33 +58,12 @@ export function DemoExplorer({ state, onAction }: {
 }
 
 function RootExplorer({ onAction }: { onAction: (action: OfflineDemoAction) => void }) {
-  const [query, setQuery] = useState('');
-  const visibleVerticals = useMemo(() => {
-    const normalizeSearch = (value: string) => value.toLocaleLowerCase().replace(/&/g, ' and ').replace(/\band\b/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
-    const normalizedQuery = normalizeSearch(query);
-    if (!normalizedQuery) return demoVerticals;
-    return demoVerticals.filter((vertical) => {
-      const subverticals = demoSubverticals.filter((item) => item.verticalId === vertical.id);
-      const projects = demoProjects.filter((item) => item.verticalId === vertical.id);
-      const searchable = [
-        vertical.title,
-        vertical.description,
-        projectForId(vertical.featuredProjectId).name,
-        ...subverticals.flatMap((item) => [item.title, item.description]),
-        ...projects.flatMap((item) => [item.name, item.location, item.milestone, item.nextMilestone]),
-      ].join(' ');
-      return normalizeSearch(searchable).includes(normalizedQuery);
-    });
-  }, [query]);
-
   return <View style={styles.dashboard} testID="karaa-home-dashboard">
-    <DashboardReveal index={0}><View style={styles.welcome}><Text style={styles.contextDate}>WEDNESDAY · 19 AUGUST</Text><Text style={styles.goodMorning}>Good morning</Text><Text style={styles.welcomeTitle}>Welcome back, Aaryan.</Text><Text style={styles.customerNumber}>CUSTOMER 102984</Text></View></DashboardReveal>
-    <DashboardReveal index={1}><View style={styles.headingBlock}><Text style={styles.eyebrow}>EXPLORE KARAA</Text><Text style={styles.powerTitle}>The Power of 9</Text><Text style={styles.powerSubtitle}>Nine connected worlds. One way of progress.</Text></View></DashboardReveal>
-    <DashboardReveal index={2}><View style={styles.dashboardSearch}><LineIcon name="search" /><TextInput accessibilityLabel="Search Power of 9" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search projects, places or sectors" placeholderTextColor="#77736B" returnKeyType="search" style={styles.searchInput} value={query} />{query ? <Pressable accessibilityLabel="Clear Power of 9 search" accessibilityRole="button" hitSlop={4} onPress={() => setQuery('')} style={styles.searchClear}><Text accessibilityElementsHidden style={styles.searchClearGlyph}>×</Text></Pressable> : null}</View></DashboardReveal>
-    <DashboardReveal index={3}><View style={styles.rootGrid}>{visibleVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
-      <Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><View style={styles.photoShade} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{vertical.title}</Text><LineIcon light name="arrow" /></View>
+    <DashboardReveal index={0}><View style={styles.headingBlock}><Text style={styles.eyebrow}>EXPLORE KARAA</Text><Text style={styles.powerTitle}>The Power of 9</Text><Text style={styles.powerSubtitle}>One ecosystem. Nine worlds. Infinite possibilities.</Text><View style={styles.goldRule} /></View></DashboardReveal>
+    <DashboardReveal index={1}><View style={styles.rootGrid}>{demoVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
+      <View style={styles.photoFrame}><Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.arrowButton}><View style={styles.cardArrowShaft} /><View style={styles.cardArrowHead} /></View></View><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{dashboardDisplayTitles[vertical.id] ?? vertical.title}</Text></View>
     </Pressable>)}</View></DashboardReveal>
-    {visibleVerticals.length === 0 ? <Text accessibilityLiveRegion="polite" accessibilityRole="alert" style={styles.empty}>No verticals match this search.</Text> : null}
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.scrollPrompt}><View style={styles.doubleChevron}><View style={[styles.chevronLine, styles.chevronLeft]} /><View style={[styles.chevronLine, styles.chevronRight]} /><View style={[styles.chevronLine, styles.chevronLeftLower]} /><View style={[styles.chevronLine, styles.chevronRightLower]} /></View><Text style={styles.scrollLabel}>SCROLL FOR MORE</Text></View>
   </View>;
 }
 
@@ -142,19 +133,19 @@ function AggregateFact({ label, value, wide = false }: { label: string; value: s
 
 const styles = StyleSheet.create({
   page: { gap: spacing.md },
-  dashboard: { gap: 16, paddingBottom: 2 },
+  dashboard: { gap: 14, paddingBottom: 4 },
   welcome: { borderBottomColor: '#DDD7CB', borderBottomWidth: 1, gap: 3, paddingBottom: 16 },
   contextDate: { color: '#706D67', fontSize: 11, fontWeight: '700', letterSpacing: .85 },
   goodMorning: { color: '#625F58', fontSize: 13, lineHeight: 18 },
   welcomeTitle: { color: '#292825', fontFamily: 'serif', fontSize: 28, lineHeight: 33 },
   customerNumber: { color: '#907334', fontSize: 11, fontWeight: '800', letterSpacing: .8, marginTop: 2 },
-  headingBlock: { gap: 4 },
-  eyebrow: { color: '#907334', fontSize: 11, fontWeight: '900', letterSpacing: 1.15 },
+  headingBlock: { gap: 4, paddingTop: 3 },
+  eyebrow: { color: '#B18A2C', fontSize: 10, fontWeight: '700', letterSpacing: 1.9 },
   title: { color: colors.ink, fontSize: 29, fontWeight: '800', lineHeight: 34 },
   subtitle: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  powerTitle: { color: '#292825', fontFamily: 'serif', fontSize: 29, lineHeight: 33 }, powerSubtitle: { color: '#625F58', fontSize: 13, lineHeight: 18 },
+  powerTitle: { color: '#080808', fontFamily: 'serif', fontSize: 37, fontWeight: '700', letterSpacing: -.8, lineHeight: 43 }, powerSubtitle: { color: '#4B4B4B', fontSize: 13, lineHeight: 18 }, goldRule: { backgroundColor: '#B68B24', height: 2, marginTop: 7, width: 25 },
   dashboardSearch: { alignItems: 'center', backgroundColor: '#FAF8F2', borderBottomColor: '#BEB7AA', borderBottomWidth: 1, flexDirection: 'row', minHeight: 45, paddingLeft: 4 }, searchInput: { color: '#292A27', flex: 1, fontSize: 13, height: 45, paddingHorizontal: 8 }, searchClear: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 }, searchClearGlyph: { color: '#77736B', fontSize: 22, lineHeight: 24 },
-  rootGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, verticalCard: { aspectRatio: .85, borderRadius: 5, overflow: 'hidden', position: 'relative', width: '31%' }, verticalPhoto: { height: '100%', width: '100%' }, photoShade: { backgroundColor: 'rgba(27,24,19,.28)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 }, verticalNumber: { color: '#D8B562', fontSize: 11, fontWeight: '900', left: 9, letterSpacing: .8, position: 'absolute', top: 8 }, verticalFooter: { alignItems: 'flex-end', bottom: 8, flexDirection: 'row', gap: 3, left: 9, position: 'absolute', right: 6 }, verticalTitle: { color: '#FFFCF5', flex: 1, fontSize: 11, fontWeight: '800', lineHeight: 14, textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  rootGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 }, verticalCard: { backgroundColor: '#FFFFFF', borderColor: '#E9E9E9', borderRadius: 11, borderWidth: 1, overflow: 'hidden', width: '31%', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: .09, shadowRadius: 4, elevation: 2 }, photoFrame: { aspectRatio: .84, overflow: 'hidden', position: 'relative', width: '100%' }, verticalPhoto: { height: '100%', width: '100%' }, verticalNumber: { color: '#AE8629', fontSize: 9, fontWeight: '500', left: 7, letterSpacing: .3, position: 'absolute', top: 7 }, arrowButton: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, bottom: 7, height: 29, justifyContent: 'center', position: 'absolute', right: 7, shadowColor: '#000', shadowOffset: {width:0,height:1}, shadowOpacity:.16, shadowRadius:3, width: 29 }, cardArrowShaft: { backgroundColor: '#B28929', height: 1.5, width: 12 }, cardArrowHead: { borderRightColor: '#B28929', borderRightWidth: 1.5, borderTopColor: '#B28929', borderTopWidth: 1.5, height: 6, position: 'absolute', right: 8, transform: [{ rotate: '45deg' }], width: 6 }, verticalFooter: { backgroundColor: '#FFFFFF', justifyContent: 'center', minHeight: 49, paddingHorizontal: 7, paddingVertical: 6 }, verticalTitle: { color: '#111111', fontSize: 9.2, fontWeight: '500', lineHeight: 11.5 }, scrollPrompt: { alignItems: 'center', gap: 1, marginTop: -3 }, doubleChevron: { height: 19, position: 'relative', width: 22 }, chevronLine: { backgroundColor: '#B68B24', height: 1.5, position: 'absolute', width: 9 }, chevronLeft: { left: 3, top: 4, transform: [{ rotate: '35deg' }] }, chevronRight: { right: 3, top: 4, transform: [{ rotate: '-35deg' }] }, chevronLeftLower: { left: 3, top: 10, transform: [{ rotate: '35deg' }] }, chevronRightLower: { right: 3, top: 10, transform: [{ rotate: '-35deg' }] }, scrollLabel: { color: '#4A4A4A', fontSize: 9, letterSpacing: 2 },
   sectionHeading: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, sectionTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 20, lineHeight: 24 }, sectionActionHit: { alignItems: 'center', flexDirection: 'row', minHeight: 44 }, sectionAction: { color: '#80672F', fontSize: 12, fontWeight: '800' },
   watchList: { borderTopColor: '#D7D1C5', borderTopWidth: 1 }, watchCard: { alignItems: 'center', borderBottomColor: '#D7D1C5', borderBottomWidth: 1, flexDirection: 'row', gap: 12, minHeight: 104, paddingVertical: 12 }, watchImage: { borderRadius: 3, height: 76, width: 92 }, watchBody: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 8 }, watchCopy: { flex: 1, gap: 3 }, watchProgress: { gap: 4, width: 82 }, watchName: { color: '#292A27', fontSize: 13, fontWeight: '800', lineHeight: 17 }, watchCategory: { color: '#6B675F', fontSize: 11 }, progressLine: { flexDirection: 'row', justifyContent: 'space-between' }, progressValue: { color: '#292A27', fontSize: 13, fontWeight: '900' }, onTrack: { color: '#80672F', fontSize: 9, fontWeight: '800' }, rail: { backgroundColor: '#DCD6CA', height: 2 }, railFill: { backgroundColor: '#9B7B37', height: 2 }, watchMeta: { color: '#6B675F', fontSize: 10 },
   portfolioCard: { alignItems: 'center', borderBottomColor: '#CFC8BA', borderBottomWidth: 1, borderTopColor: '#CFC8BA', borderTopWidth: 1, flexDirection: 'row', minHeight: 72, paddingVertical: 12 }, portfolioMetric: { flex: 1, gap: 4 }, metricLabel: { color: '#6B675F', fontSize: 10, fontWeight: '800', letterSpacing: .4 }, goldValue: { color: '#725C2A', fontFamily: 'serif', fontSize: 17 }, paymentRow: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 56, paddingVertical: 8 }, flex: { flex: 1 }, paymentTitle: { color: '#292A27', fontSize: 13, fontWeight: '800' }, paymentDetail: { color: '#6B675F', fontSize: 11, marginTop: 2 },
@@ -167,11 +158,11 @@ const styles = StyleSheet.create({
   rowTitle: { color: colors.ink, fontSize: 16, fontWeight: '900' },
   rowDescription: { color: colors.muted, fontSize: 12, lineHeight: 17 },
   rowChevron: { color: colors.brass, fontSize: 28, fontWeight: '300' },
-  aggregateStrip: { backgroundColor: colors.ink, flexDirection: 'row', flexWrap: 'wrap' },
+  aggregateStrip: { backgroundColor: '#FFFFFF', borderColor: colors.line, borderRadius: radii.md, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap' },
   aggregateFact: { borderBottomColor: '#565753', borderBottomWidth: 1, borderRightColor: '#565753', borderRightWidth: 1, gap: 3, minHeight: 62, padding: spacing.sm, width: '50%' },
   aggregateFactWide: { borderRightWidth: 0, width: '100%' },
   aggregateLabel: { color: colors.brass, fontSize: 9, fontWeight: '900', letterSpacing: .8 },
-  aggregateValue: { color: colors.paper, fontSize: 13, fontWeight: '800', lineHeight: 17 },
+  aggregateValue: { color: colors.ink, fontSize: 13, fontWeight: '800', lineHeight: 17 },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   projectCard: { backgroundColor: colors.paper, borderBottomColor: colors.line, borderBottomWidth: 1, gap: spacing.sm, paddingBottom: spacing.md, paddingTop: spacing.md },
   projectHeader: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' },

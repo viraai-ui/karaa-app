@@ -672,6 +672,13 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
         selectedChatThreadId: null,
         selectedMapProjectId: null,
         selectedEmployeeId: null,
+        selectedVerticalId: null,
+        selectedSubverticalId: null,
+        selectedProjectId: null,
+        selectedProjectDetailTab: 'timeline',
+        projectReturnTarget: 'subvertical',
+        selectedTenderId: null,
+        selectedTenderDetailTab: 'updates',
         fieldReviewOpen: false,
       };
     case 'select-tab':
@@ -689,6 +696,9 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
         selectedChatThreadId: null,
         selectedMapProjectId: null,
         selectedEmployeeId: null,
+        selectedProjectDetailTab: 'timeline',
+        projectReturnTarget: 'subvertical',
+        selectedTenderDetailTab: 'updates',
         fieldReviewOpen: action.tab === 'tasks' ? state.fieldReviewOpen : false,
       };
     case 'select-vertical':

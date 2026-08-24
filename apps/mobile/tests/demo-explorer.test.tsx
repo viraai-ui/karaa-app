@@ -35,11 +35,10 @@ describe('Power-of-9 explorer', () => {
     expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(9);
   });
 
-  it('uses a responsive cinematic three-column opening grid', () => {
+  it('uses a responsive three-column image-and-footer opening grid', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
 
     rendered.getAllByRole('button', { name: /Open .* vertical/i }).forEach((card) => {
-      expect(StyleSheet.flatten(card.props.style).aspectRatio).toBe(.85);
       expect(StyleSheet.flatten(card.props.style).width).toBe('31%');
     });
     rendered.getAllByLabelText(/Demo visual:/).forEach((visual) => {
@@ -82,7 +81,7 @@ describe('Power-of-9 explorer', () => {
   it('renders only the approved dashboard composition in the reference order', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
     const dashboard = rendered.getByTestId('karaa-home-dashboard');
-    ['WEDNESDAY · 19 AUGUST', 'Good morning', 'Welcome back, Aaryan.', 'CUSTOMER 102984', 'EXPLORE KARAA', 'The Power of 9', 'Nine connected worlds. One way of progress.'].forEach((text) => {
+    ['EXPLORE KARAA', 'The Power of 9', 'One ecosystem. Nine worlds. Infinite possibilities.'].forEach((text) => {
       expect(within(dashboard).getByText(text)).toBeTruthy();
     });
     ['Projects to watch', 'My portfolio', 'Latest progress', 'Important notice', 'Quick access'].forEach((legacyText) => {
@@ -100,10 +99,10 @@ describe('Power-of-9 explorer', () => {
     });
   });
 
-  it('keeps the dashboard search touch target and editorial type readable', () => {
+  it('keeps the reference editorial title readable and omits dashboard search', () => {
     const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-    expect(StyleSheet.flatten(rendered.getByLabelText('Search Power of 9').props.style).height).toBeGreaterThanOrEqual(44);
-    expect(StyleSheet.flatten(rendered.getByText('Welcome back, Aaryan.').props.style).fontSize).toBeGreaterThanOrEqual(28);
+    expect(rendered.queryByLabelText('Search Power of 9')).toBeNull();
+    expect(StyleSheet.flatten(rendered.getByText('The Power of 9').props.style).fontSize).toBeGreaterThanOrEqual(36);
   });
 
   it('renders four pathways and three Why It Matters rows for every vertical', () => {
@@ -134,58 +133,6 @@ describe('Power-of-9 explorer', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'select-project', projectId: 'amaravati-solar-commons' });
   });
 
-  it('filters root catalog cards through its cosmetic search field', () => {
-    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-
-    fireEvent.changeText(rendered.getByLabelText('Search Power of 9'), 'Energy');
-
-    expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(1);
-    expect(rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' })).toBeTruthy();
-  });
-
-  it('discovers a vertical when a featured project title matches the root search', () => {
-    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-
-    fireEvent.changeText(rendered.getByLabelText('Search Power of 9'), 'Amaravati Solar Commons');
-
-    expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(1);
-    expect(rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' })).toBeTruthy();
-  });
-
-  it('keeps a vertical visual stable when root search changes its render position', () => {
-    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-    const energyCard = rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' });
-    const initialVisualLabel = within(energyCard).getByLabelText(/Demo visual:/).props.accessibilityLabel;
-
-    fireEvent.changeText(rendered.getByLabelText('Search Power of 9'), 'Energy');
-
-    const filteredEnergyCard = rendered.getByRole('button', { name: 'Open Energy & Utilities vertical' });
-    expect(within(filteredEnergyCard).getByLabelText(initialVisualLabel)).toBeTruthy();
-  });
-
-  it.each([
-    ['  hYdErAbAd  ', 'Healthcare & Life Sciences'],
-    ['diagnostics wing', 'Healthcare & Life Sciences'],
-    ['solar generation', 'Energy & Utilities'],
-    ['Energy and Utilities', 'Energy & Utilities'],
-    ['Energy & Utilities', 'Energy & Utilities'],
-  ])('truthfully searches project, place, pathway, and sector text: %s', (query, expectedTitle) => {
-    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-    fireEvent.changeText(rendered.getByLabelText('Search Power of 9'), query);
-    expect(rendered.getByRole('button', { name: `Open ${expectedTitle} vertical` })).toBeTruthy();
-  });
-
-  it('announces an empty search and clears back to all nine cards with a 44px target', () => {
-    const rendered = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState()} />);
-    fireEvent.changeText(rendered.getByLabelText('Search Power of 9'), 'not a real karaa record');
-    const empty = rendered.getByRole('alert');
-    expect(empty.props.accessibilityLiveRegion).toBe('polite');
-    const clear = rendered.getByRole('button', { name: 'Clear Power of 9 search' });
-    expect(StyleSheet.flatten(clear.props.style).height).toBeGreaterThanOrEqual(44);
-    fireEvent.press(clear);
-    expect(rendered.queryByRole('alert')).toBeNull();
-    expect(rendered.getAllByRole('button', { name: /Open .* vertical/i })).toHaveLength(9);
-  });
 
   it('resets the nested dashboard route when the Dashboard bottom tab is selected', () => {
     const customerNested = { ...selectedEnergyState(), activeRole: 'customer' as const };
@@ -199,7 +146,7 @@ describe('Power-of-9 explorer', () => {
     expect((width - 32) * .31).toBeGreaterThanOrEqual(44);
     cards.forEach(card => expect(StyleSheet.flatten(card.props.style).width).toBe('31%'));
     const children = rendered.getByTestId('karaa-home-dashboard').props.children;
-    expect(children.slice(0, 4).map((child: { props: { index: number } }) => child.props.index)).toEqual([0, 1, 2, 3]);
+    expect(children.slice(0, 2).map((child: { props: { index: number } }) => child.props.index)).toEqual([0, 1]);
   });
 
   it('changes the visible project list when an explicit project-status filter is pressed', () => {

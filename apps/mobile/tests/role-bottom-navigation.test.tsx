@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineAppShell } from '../src/demo/OfflineAppShell';
@@ -104,6 +105,25 @@ describe('canonical role bottom navigation', () => {
     expect(screen.getByTestId('customer-nav-icon-power-tile-1')).toHaveStyle({ borderColor: CUSTOMER_NAV_INACTIVE });
     expect(screen.getByTestId('customer-nav-icon-tenders').props.children.props.style[1].borderColor).toBe(colors.brass);
     expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.customer);
+  });
+
+  it.each(['customer', 'employee', 'management'] as const)('keeps the %s canvas and footer role-scoped', (role) => {
+    const screen = render(<Shell role={role} />);
+    if (role === 'customer') {
+      expect(screen.getByTestId('demo-content-viewport')).toHaveStyle({ backgroundColor: '#FFFFFF' });
+      expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: 8 });
+      expect(StyleSheet.flatten(screen.getByTestId('demo-bottom-navigation').props.style).overflow).toBeUndefined();
+    } else {
+      expect(screen.getByTestId('demo-content-viewport')).not.toHaveStyle({ backgroundColor: '#FFFFFF' });
+      expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#050605' });
+    }
+  });
+
+  it('resets every stale customer nested route field from each canonical tab', () => {
+    const stale = { ...createOfflineDemoState('customer'), surface: 'project' as const, selectedVerticalId: 'healthcare-life-sciences', selectedSubverticalId: 'multi-specialty-hospitals', selectedProjectId: 'aarohan-medical-city-pune', selectedProjectDetailTab: 'documents' as const, projectReturnTarget: 'portfolio' as const, selectedTenderId: 'metro-extension-package', selectedTenderDetailTab: 'docs' as const, selectedChatThreadId: 'customer-support-1' };
+    (['power', 'tenders', 'portfolio', 'support'] as const).forEach((tab) => {
+      expect(offlineDemoReducer(stale, { type: 'select-tab', tab })).toMatchObject({ selectedTab: tab, surface: 'root', selectedVerticalId: null, selectedSubverticalId: null, selectedProjectId: null, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'subvertical', selectedTenderId: null, selectedTenderDetailTab: 'updates', selectedChatThreadId: null });
+    });
   });
 
   it.each(['employee', 'management'] as const)('does not leak customer icon components into %s navigation', (role) => {

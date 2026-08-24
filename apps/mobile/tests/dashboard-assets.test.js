@@ -19,7 +19,7 @@ describe('dashboard asset manifest', () => {
     expect(Object.keys(dashboardAssetFiles)).toEqual(demoVerticals.map(vertical => vertical.id));
     const checksums = demoVerticals.map((vertical) => {
       const buffer = readFileSync(resolve(__dirname, '../assets/dashboard', dashboardAssetFiles[vertical.id]));
-      expect(lossyWebpDimensions(buffer)).toEqual([512, 768]);
+      expect(lossyWebpDimensions(buffer)).toEqual([600, 900]);
       return createHash('sha256').update(buffer).digest('hex');
     });
     expect(new Set(checksums).size).toBe(9);
