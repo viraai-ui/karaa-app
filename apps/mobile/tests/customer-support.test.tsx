@@ -16,7 +16,9 @@ function openTicketForm(rendered: ReturnType<typeof render>) {
 }
 
 function completeTicket(rendered: ReturnType<typeof render>) {
+  fireEvent.press(rendered.getByLabelText('Select project'));
   fireEvent.press(rendered.getByLabelText('Amaravati Solar Commons'));
+  fireEvent.press(rendered.getByLabelText('Select category'));
   fireEvent.press(rendered.getByLabelText('Documents'));
   fireEvent.changeText(rendered.getByLabelText('Ticket subject'), 'Missing completion plan');
   fireEvent.changeText(rendered.getByLabelText('Ticket description'), 'Please share the latest completion plan.');

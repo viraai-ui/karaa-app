@@ -159,7 +159,7 @@ describe('Karaa Customer Support state and shared chat', () => {
     fireEvent.press(rendered.getByRole('button', { name: 'Raise a Ticket' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Submit ticket' }));
 
-    expect(rendered.getByText('Choose a project context.')).toBeTruthy();
+    expect(rendered.getByText('Choose a project.')).toBeTruthy();
     expect(rendered.getByText('Choose a category.')).toBeTruthy();
     expect(rendered.getByText('Enter a subject.')).toBeTruthy();
     expect(rendered.getByText('Enter a description.')).toBeTruthy();
@@ -176,7 +176,7 @@ describe('Karaa Customer Support state and shared chat', () => {
     expect(rendered.getByText('Commissioning checklist context')).toBeTruthy();
     expect(rendered.getByText('IN REVIEW')).toBeTruthy();
     fireEvent.press(create);
-    expect(rendered.getByLabelText('Aarohan Medical City')).toBeTruthy();
+    expect(rendered.getByLabelText('Select project')).toBeTruthy();
     expect(rendered.getByLabelText('Ticket subject')).toBeTruthy();
     expect(rendered.getByLabelText('Ticket description')).toBeTruthy();
 
@@ -195,7 +195,9 @@ describe('Karaa Customer Support state and shared chat', () => {
   it('creates an urgent ticket and keeps it available in canonical history and detail', () => {
     const rendered = render(<SupportHarness />);
     fireEvent.press(rendered.getByRole('button', { name: 'Raise a Ticket' }));
+    fireEvent.press(rendered.getByLabelText('Select project'));
     fireEvent.press(rendered.getByLabelText('Aarohan Medical City'));
+    fireEvent.press(rendered.getByLabelText('Select category'));
     fireEvent.press(rendered.getByLabelText('Documents'));
     fireEvent.changeText(rendered.getByLabelText('Ticket subject'), ' Revised checklist reference ');
     fireEvent.changeText(rendered.getByLabelText('Ticket description'), ' Please clarify the revised checklist sequence. ');
