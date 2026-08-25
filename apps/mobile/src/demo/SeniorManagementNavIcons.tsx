@@ -8,8 +8,8 @@ export const SENIOR_MANAGEMENT_NAV_INACTIVE = '#303030';
 const iconNames: Partial<Record<OfflineDemoTabKey, string>> = {
   power: 'Dashboard',
   tenders: 'Tenders folded document',
-  command: 'Command Centre speedometer',
-  map: 'Geo Location map pin',
+  command: 'Overview summary',
+  map: 'Track location',
   chat: 'Chat speech bubble',
 };
 
@@ -28,12 +28,12 @@ export function SeniorManagementNavIcon({ tabKey, color }: Props) {
     return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]} testID="senior-management-nav-document"><View style={[styles.fold, { backgroundColor: '#FFFFFF', borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.lineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineThree, { backgroundColor: color }]} /></View></View>;
   }
   if (tabKey === 'command') {
-    return <View {...common} style={styles.gaugeFrame}><View style={[styles.gaugeArc, { borderColor: color }]} testID="senior-management-nav-gauge-arc" /><View style={styles.gaugeMask} />{[-62, -31, 0, 31, 62].map((angle, index) => <View key={angle} style={[styles.tickAnchor, { transform: [{ rotate: `${angle}deg` }] }]}><View style={[styles.gaugeTick, { backgroundColor: color }]} testID={`senior-management-nav-gauge-tick-${index + 1}`} /></View>)}<View style={[styles.needle, { backgroundColor: color }]} /><View style={[styles.needleHub, { borderColor: color, backgroundColor: '#FFFFFF' }]} /></View>;
+    return <View {...common} style={styles.iconFrame}><View style={[styles.overviewFrame, { borderColor: color }]} testID="senior-management-nav-overview"><View style={[styles.overviewBar, styles.overviewBarOne, { backgroundColor: color }]} /><View style={[styles.overviewBar, styles.overviewBarTwo, { backgroundColor: color }]} /><View style={[styles.overviewBar, styles.overviewBarThree, { backgroundColor: color }]} /></View></View>;
   }
   if (tabKey === 'map') {
-    return <View {...common} style={styles.iconFrame}><View style={[styles.pinHead, { borderColor: color }]} testID="senior-management-nav-pin-outline"><View style={[styles.pinCentre, { borderColor: color }]} /></View><View style={[styles.pinTail, { borderBottomColor: color, borderRightColor: color }]} /></View>;
+    return <View {...common} style={styles.iconFrame}><View style={[styles.trackRing, { borderColor: color }]} testID="senior-management-nav-track"><View style={[styles.trackDot, { backgroundColor: color }]} /></View><View style={[styles.trackNorth, { backgroundColor: color }]} /><View style={[styles.trackSouth, { backgroundColor: color }]} /><View style={[styles.trackWest, { backgroundColor: color }]} /><View style={[styles.trackEast, { backgroundColor: color }]} /></View>;
   }
-  return <View {...common} style={styles.iconFrame}><View style={[styles.bubble, { borderColor: color }]} testID="senior-management-nav-chat-outline" /><View style={[styles.bubbleTail, { backgroundColor: '#FFFFFF', borderBottomColor: color, borderRightColor: color }]} /></View>;
+  return <View {...common} style={styles.iconFrame}><View style={[styles.bubble, { borderColor: color }]} testID="senior-management-nav-chat-outline"><View style={[styles.chatDot, { backgroundColor: color }]} /><View style={[styles.chatDot, { backgroundColor: color }]} /></View><View style={[styles.bubbleTail, { backgroundColor: '#FFFFFF', borderBottomColor: color, borderRightColor: color }]} /></View>;
 }
 
 const styles = StyleSheet.create({
@@ -43,16 +43,8 @@ const styles = StyleSheet.create({
   fold: { borderBottomWidth: 1.7, borderLeftWidth: 1.7, height: 8, position: 'absolute', right: -1.7, top: -1.7, width: 8 },
   documentLine: { borderRadius: 1, height: 1.7, left: 4, position: 'absolute' },
   lineOne: { top: 10, width: 7 }, lineTwo: { top: 15, width: 11 }, lineThree: { top: 20, width: 8 },
-  gaugeFrame: { height: 27, overflow: 'hidden', position: 'relative', width: 30 },
-  gaugeArc: { borderRadius: 15, borderWidth: 1.7, height: 30, left: 0, position: 'absolute', top: 1, width: 30 },
-  gaugeMask: { backgroundColor: '#FFFFFF', bottom: -1, height: 11, left: 0, position: 'absolute', width: 30 },
-  tickAnchor: { height: 13, left: 14, position: 'absolute', top: 3, transformOrigin: '1px 12px', width: 2 },
-  gaugeTick: { borderRadius: 1, height: 4, width: 1.7 },
-  needle: { borderRadius: 1, bottom: 7, height: 1.7, left: 14, position: 'absolute', transform: [{ rotate: '-35deg' }], transformOrigin: '1px 1px', width: 10 },
-  needleHub: { borderRadius: 3, borderWidth: 1.5, bottom: 5, height: 6, left: 12, position: 'absolute', width: 6 },
-  pinHead: { alignItems: 'center', borderRadius: 9, borderWidth: 1.7, height: 18, justifyContent: 'center', position: 'absolute', top: 1, width: 18, zIndex: 2 },
-  pinCentre: { borderRadius: 3, borderWidth: 1.6, height: 6, width: 6 },
-  pinTail: { borderBottomWidth: 1.7, borderRightWidth: 1.7, height: 12, position: 'absolute', top: 11, transform: [{ rotate: '45deg' }], width: 12 },
-  bubble: { borderRadius: 8, borderWidth: 1.7, height: 20, left: 2, position: 'absolute', top: 2, width: 26, zIndex: 2 },
-  bubbleTail: { borderBottomWidth: 1.7, borderRightWidth: 1.7, bottom: 2, height: 8, left: 7, position: 'absolute', transform: [{ rotate: '38deg' }], width: 8 },
+  overviewFrame: { borderRadius: 4, borderWidth: 1.7, height: 20, justifyContent: 'flex-end', paddingBottom: 3, paddingHorizontal: 3, width: 21 }, overviewBar: { borderRadius: 1, height: 2, marginTop: 2 }, overviewBarOne: { width: 8 }, overviewBarTwo: { width: 14 }, overviewBarThree: { width: 11 },
+  trackRing: { alignItems: 'center', borderRadius: 7, borderWidth: 1.7, height: 14, justifyContent: 'center', width: 14 }, trackDot: { borderRadius: 2, height: 4, width: 4 }, trackNorth: { height: 4, left: 10.2, position: 'absolute', top: 0, width: 1.6 }, trackSouth: { bottom: 0, height: 4, left: 10.2, position: 'absolute', width: 1.6 }, trackWest: { height: 1.6, left: 0, position: 'absolute', top: 10.2, width: 4 }, trackEast: { height: 1.6, position: 'absolute', right: 0, top: 10.2, width: 4 },
+  bubble: { alignItems: 'center', borderRadius: 6, borderWidth: 1.7, flexDirection: 'row', gap: 3, height: 17, justifyContent: 'center', left: 1, position: 'absolute', top: 1, width: 20, zIndex: 2 }, chatDot: { borderRadius: 1.5, height: 3, width: 3 },
+  bubbleTail: { borderBottomWidth: 1.7, borderRightWidth: 1.7, bottom: 1, height: 6, left: 5, position: 'absolute', transform: [{ rotate: '38deg' }], width: 6 },
 });

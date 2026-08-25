@@ -27,7 +27,7 @@ describe('Management Command Centre and Geo Location', () => {
   });
 
   it('keeps the map tab contract and exact screenshot overview copy', () => {
-    expect(offlineRoleTabs.management.find((tab) => tab.key === 'map')).toEqual(expect.objectContaining({ label: 'Geo Location' }));
+    expect(offlineRoleTabs.management.find((tab) => tab.key === 'map')).toEqual(expect.objectContaining({ label: 'Track' }));
     const screen = render(<Harness />);
     ['FIELD OPERATIONS', 'Select a project to view live workforce locations and site activity.', 'Updated 10:42 AM', '08', '3,912', '628', '12', '4,860'].forEach((text) => expect(screen.getAllByText(text).length).toBeGreaterThan(0));
   });

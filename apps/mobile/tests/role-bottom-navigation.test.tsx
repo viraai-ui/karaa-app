@@ -18,7 +18,7 @@ import {
 const canonical = {
   customer: ['Dashboard', 'Tenders', 'My Portfolio', 'Support'],
   employee: ['Attendance', 'My Projects', 'My Tasks', 'Chat'],
-  management: ['Dashboard', 'Tenders', 'Command Centre', 'Geo Location', 'Chat'],
+  management: ['Dashboard', 'Tenders', 'Overview', 'Track', 'Chat'],
 } as const;
 
 function Shell({ role, onSwitchRole = jest.fn() }: { role: OfflineDemoRole; onSwitchRole?: (role: OfflineDemoRole) => void }) {
@@ -134,15 +134,15 @@ describe('canonical role bottom navigation', () => {
     expect(screen.getAllByTestId(/senior-management-nav-icon-power-tile-/)).toHaveLength(4);
     expect(screen.getByTestId('senior-management-nav-icon-power-tile-1')).toHaveStyle({ borderColor: colors.brass });
     expect(screen.getByTestId('senior-management-nav-document')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
-    expect(screen.getAllByTestId(/senior-management-nav-gauge-tick-/)).toHaveLength(5);
+    expect(screen.getByTestId('senior-management-nav-overview')).toBeTruthy();
   });
 
   it('switches senior-management icon and label color without changing canonical order', () => {
     const screen = render(<Shell role="management" />);
-    fireEvent.press(screen.getByRole('tab', { name: 'Geo Location' }));
+    fireEvent.press(screen.getByRole('tab', { name: 'Track' }));
     expect(screen.getByTestId('senior-management-nav-icon-power-tile-1')).toHaveStyle({ borderColor: SENIOR_MANAGEMENT_NAV_INACTIVE });
-    expect(screen.getByTestId('senior-management-nav-pin-outline')).toHaveStyle({ borderColor: colors.brass });
-    expect(screen.getAllByText('Geo Location').at(-1)).toHaveStyle({ color: colors.brass });
+    expect(screen.getByTestId('senior-management-nav-track')).toHaveStyle({ borderColor: colors.brass });
+    expect(screen.getAllByText('Track').at(-1)).toHaveStyle({ color: colors.brass });
     expect(bottomTabs(screen).map((tab) => tab.props.accessibilityLabel)).toEqual(canonical.management);
   });
 

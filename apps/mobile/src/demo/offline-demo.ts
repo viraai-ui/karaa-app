@@ -42,8 +42,8 @@ export const offlineRoleTabs: Readonly<Record<OfflineDemoRole, readonly OfflineD
   management: [
     { key: 'power', label: 'Dashboard', icon: 'dashboard' },
     { key: 'tenders', label: 'Tenders', icon: 'file' },
-    { key: 'command', label: 'Command Centre', icon: 'gauge' },
-    { key: 'map', label: 'Geo Location', icon: 'pin' },
+    { key: 'command', label: 'Overview', icon: 'gauge' },
+    { key: 'map', label: 'Track', icon: 'pin' },
     { key: 'chat', label: 'Chat', icon: 'chat' },
   ],
 };

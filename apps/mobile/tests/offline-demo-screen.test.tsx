@@ -153,7 +153,7 @@ describe('Karaa Global role demo surfaces', () => {
 
     fireEvent.press(rendered.getByRole('button', { name: 'Switch workspace' }));
     fireEvent.press(rendered.getByRole('button', { name: 'Open Senior Management workspace' }));
-    fireEvent.press(rendered.getByRole('tab', { name: 'Command Centre' }));
+    fireEvent.press(rendered.getByRole('tab', { name: 'Overview' }));
     expect(rendered.getByText('Inverter row alignment has been added to the project activity.')).toBeTruthy();
     cleanup();
     offlineDemoStore.reset();
