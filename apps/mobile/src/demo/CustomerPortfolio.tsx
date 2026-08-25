@@ -56,6 +56,15 @@ export const customerPortfolioProjects = [
   },
 ] as const;
 
+export type CustomerPortfolioProject = (typeof customerPortfolioProjects)[number];
+
+/** Canonical navigation for records displayed by My Portfolio surfaces. */
+export function customerPortfolioProjectAction(project: CustomerPortfolioProject): OfflineDemoAction {
+  return project.id === "aarohan-medical-city-pune"
+    ? { type: "open-portfolio-project", projectId: project.id }
+    : { type: "select-tab", tab: "portfolio" };
+}
+
 type Props = { onAction: (action: OfflineDemoAction) => void };
 type Panel = { title: string; body: string } | null;
 const filters = ["All projects", "On track", "In progress"] as const;
@@ -365,18 +374,20 @@ function ProjectCard({
   onAction,
   narrow,
 }: {
-  p: (typeof customerPortfolioProjects)[number];
+  p: CustomerPortfolioProject;
   open: (a: string, b: string) => void;
   onAction: Props["onAction"];
   narrow: boolean;
 }) {
-  const detail = () =>
-    p.id === "aarohan-medical-city-pune"
-      ? onAction({ type: "open-portfolio-project", projectId: p.id })
+  const detail = () => {
+    const action = customerPortfolioProjectAction(p);
+    return action.type === "open-portfolio-project"
+      ? onAction(action)
       : open(
           p.name,
           `${p.update}. This subscribed-project preview is local; a live project record is not connected.`,
         );
+  };
   return (
     <View
       style={[s.card, narrow && s.cardNarrow]}

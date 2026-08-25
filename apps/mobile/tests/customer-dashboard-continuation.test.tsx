@@ -3,8 +3,23 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { DemoExplorer, selectLatestProgressProject, selectWatchProjects } from '../src/demo/DemoExplorer';
 import { portfolioForProjectId } from '../src/demo/subvertical-projects';
 import { createOfflineDemoState, offlineDemoReducer } from '../src/demo/offline-demo';
+import { customerPortfolioProjectAction, customerPortfolioProjects } from '../src/demo/CustomerPortfolio';
 
 describe('customer dashboard continuation', () => {
+  it('renders every canonical portfolio project and preserves its destination', () => {
+    const onAction = jest.fn();
+    const screen = render(<DemoExplorer onAction={onAction} random={() => 0} state={createOfflineDemoState('customer')} />);
+
+    customerPortfolioProjects.forEach(project => {
+      expect(screen.getByText(project.name)).toBeTruthy();
+      expect(screen.getByText(project.location)).toBeTruthy();
+      expect(screen.getByRole('progressbar', { name: `${project.name} progress: ${project.progress}%` }).props.accessibilityValue).toEqual({ min: 0, max: 100, now: project.progress });
+      fireEvent.press(screen.getByRole('button', { name: `Open ${project.name}, ${project.progress} percent complete, ${project.status.toLowerCase()}` }));
+    });
+
+    expect(onAction.mock.calls.map(([action]) => action)).toEqual(customerPortfolioProjects.map(customerPortfolioProjectAction));
+  });
+
   it('is customer Dashboard-root only', () => {
     const customer = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState('customer')} />);
     expect(customer.getByTestId('customer-dashboard-continuation')).toBeTruthy();
