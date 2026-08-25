@@ -40,6 +40,8 @@ describe('Karaa shared chat demo', () => {
       'amaravati-project',
       'solar-bop-tender',
       'sup-001-support',
+      'equipment-delivery',
+      'design-coordination',
     ]);
     const selected = reduce(initial, { type: 'select-chat-thread', threadId: 'dev-direct' });
     const read = reduce(selected, { type: 'mark-chat-thread-read', threadId: 'dev-direct' });
@@ -87,8 +89,8 @@ describe('Karaa shared chat demo', () => {
     expect(controls).toHaveLength(5);
     expect(controls.map((control) => control.props.accessibilityLabel)).toEqual([
       'Filter All',
-      'Filter Tenders',
       'Filter Projects',
+      'Filter Tenders',
       'Filter Open',
       'Filter Resolved',
     ]);
@@ -102,8 +104,8 @@ describe('Karaa shared chat demo', () => {
     const rendered = render(<ChatHarness />);
 
     expect(rendered.getByText('Chat')).toBeTruthy();
-    expect(rendered.getByText('Conversations for project, tender, and field coordination.')).toBeTruthy();
-    (['All', 'Tenders', 'Projects', 'Open', 'Resolved'] as const).forEach((filter) => {
+    expect(rendered.getByLabelText('Search chats')).toBeTruthy();
+    (['All', 'Projects', 'Tenders', 'Open', 'Resolved'] as const).forEach((filter) => {
       const control = rendered.getByRole('tab', { name: `Filter ${filter}` });
       expect(StyleSheet.flatten(control.props.style).minHeight).toBeGreaterThanOrEqual(44);
     });
@@ -154,6 +156,14 @@ describe('Karaa shared chat demo', () => {
     expect(rendered.queryByLabelText('Message Mira Management')).toBeNull();
   });
 
+  it('searches the role-adjusted Management labels shown in the inbox', () => {
+    const rendered = render(<ManagementChatHarness />);
+    fireEvent.changeText(rendered.getByLabelText('Search chats'), 'Dev Employee');
+    expect(rendered.getByRole('button', { name: 'Open Dev Employee conversation' })).toBeTruthy();
+    fireEvent.changeText(rendered.getByLabelText('Search chats'), 'Mira Management');
+    expect(rendered.queryByRole('button', { name: 'Open Dev Employee conversation' })).toBeNull();
+  });
+
   it('shows an accessible New query action only in the Management Chat inbox', () => {
     const managementState = { ...createOfflineDemoState('management'), selectedTab: 'chat' as const };
     const management = render(<DemoChatExperience onAction={jest.fn()} state={managementState} />);
@@ -176,7 +186,7 @@ describe('Karaa shared chat demo', () => {
 
     const directRow = rendered.getByRole('button', { name: 'Open Dev Employee conversation' });
     const newQuery = rendered.getByRole('button', { name: 'New query' });
-    expect(StyleSheet.flatten(directRow.props.style).minHeight).toBeLessThanOrEqual(100);
+    expect(StyleSheet.flatten(directRow.props.style).minHeight).toBeLessThanOrEqual(112);
     expect(StyleSheet.flatten(directRow.props.style).minHeight).toBeGreaterThanOrEqual(44);
     expect(StyleSheet.flatten(newQuery.props.style).minHeight).toBeGreaterThanOrEqual(44);
   });

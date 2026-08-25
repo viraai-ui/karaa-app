@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, type ImageSourcePropType, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoStatusPill } from './OfflineDemoPrimitives';
@@ -20,8 +20,8 @@ type ChatFilter = 'all' | 'tenders' | 'projects' | 'open' | 'resolved';
 
 const filters: readonly { readonly key: ChatFilter; readonly label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'tenders', label: 'Tenders' },
   { key: 'projects', label: 'Projects' },
+  { key: 'tenders', label: 'Tenders' },
   { key: 'open', label: 'Open' },
   { key: 'resolved', label: 'Resolved' },
 ] as const;
@@ -29,6 +29,15 @@ const filters: readonly { readonly key: ChatFilter; readonly label: string }[] =
 const managementQueryRecords: Readonly<Record<DemoManagementQueryChannel, { readonly id: string; readonly label: string }>> = {
   project: { id: 'amaravati-solar-commons', label: 'Amaravati Solar Commons' },
   tender: { id: 'solar-bop', label: 'Solar balance-of-plant package' },
+};
+
+const chatAvatarByThread: Readonly<Record<string, ImageSourcePropType>> = {
+  'dev-direct': require('../../assets/chat/dev-employee.webp'),
+  'amaravati-project': require('../../assets/chat/amaravati-team.webp'),
+  'solar-bop-tender': require('../../assets/chat/tender-coordinator.webp'),
+  'sup-001-support': require('../../assets/chat/support-lead.webp'),
+  'equipment-delivery': require('../../assets/chat/logistics-lead.webp'),
+  'design-coordination': require('../../assets/chat/design-lead.webp'),
 };
 
 function threadPresentationForRole(thread: DemoChatThread, role: OfflineDemoState['activeRole']): DemoChatThread {
@@ -40,6 +49,7 @@ function threadPresentationForRole(thread: DemoChatThread, role: OfflineDemoStat
 
 export function DemoChatExperience({ onAction, state }: Props) {
   const [filter, setFilter] = useState<ChatFilter>('all');
+  const [search, setSearch] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [announcement, setAnnouncement] = useState('');
   const [supportNoteOpen, setSupportNoteOpen] = useState(false);
@@ -55,11 +65,11 @@ export function DemoChatExperience({ onAction, state }: Props) {
   const selectedThread = selectedThreadRecord ? threadPresentationForRole(selectedThreadRecord, state.activeRole) : null;
   const rows = useMemo(() => state.chatThreads.filter((thread) => {
     if (!thread.participantRoles.includes(state.activeRole)) return false;
-    if (filter === 'all') return true;
-    if (filter === 'tenders') return thread.kind === 'tender';
-    if (filter === 'projects') return thread.kind === 'project';
-    return thread.status === filter;
-  }), [filter, state.activeRole, state.chatThreads]);
+    const presentedThread = threadPresentationForRole(thread, state.activeRole);
+    const matchesFilter = filter === 'all' || (filter === 'tenders' ? thread.kind === 'tender' : filter === 'projects' ? thread.kind === 'project' : thread.status === filter);
+    const needle = search.trim().toLocaleLowerCase();
+    return matchesFilter && (!needle || `${presentedThread.title} ${presentedThread.identityLabel} ${presentedThread.contextLabel} ${presentedThread.projectOrTender} ${presentedThread.vertical} ${presentedThread.messages.at(-1)?.body ?? ''}`.toLocaleLowerCase().includes(needle));
+  }), [filter, search, state.activeRole, state.chatThreads]);
 
   const resetManagementQuery = () => {
     setQueryOpen(false);
@@ -111,7 +121,7 @@ export function DemoChatExperience({ onAction, state }: Props) {
     };
 
     return (
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.threadPage, state.activeRole === 'customer' && styles.supportThreadPage]} testID="chat-thread-page">
+      <View style={[styles.threadPage, state.activeRole === 'customer' && styles.supportThreadPage]} testID="chat-thread-page">
         <Pressable accessibilityLabel={state.activeRole === 'customer' ? 'Back to Support history' : 'Back to Chat inbox'} accessibilityRole="button" onPress={() => onAction({ type: 'return-to-chat-inbox' })} style={styles.backAction}>
           <Text style={styles.backText}>‹ {state.activeRole === 'customer' ? 'Support' : 'Chat'}</Text>
         </Pressable>
@@ -141,7 +151,7 @@ export function DemoChatExperience({ onAction, state }: Props) {
           {supportNoteOpen ? <Text accessibilityLiveRegion="polite" style={styles.supportNote}>Supporting note</Text> : null}
           <Text accessibilityLiveRegion="polite" style={styles.announcement}>{announcement}</Text>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 
@@ -149,7 +159,11 @@ export function DemoChatExperience({ onAction, state }: Props) {
     <View style={styles.page}>
       <Text style={styles.eyebrow}>PROJECT COMMUNICATIONS</Text>
       <Text style={styles.title}>Chat</Text>
-      <Text style={styles.purpose}>Conversations for project, tender, and field coordination.</Text>
+      <View style={styles.searchShell}>
+        <Text style={styles.searchIcon}>⌕</Text>
+        <TextInput accessibilityLabel="Search chats" onChangeText={setSearch} placeholder="Search chats" placeholderTextColor="#888680" style={styles.searchInput} value={search} />
+        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.tuneIcon}>☷</Text>
+      </View>
       <View accessibilityRole="tablist" style={styles.filterList} testID="chat-filter-rail">
         {filters.map((item) => <Pressable accessibilityLabel={`Filter ${item.label}`} accessibilityRole="tab" accessibilityState={{ selected: filter === item.key }} key={item.key} onPress={() => setFilter(item.key)} style={[styles.filter, filter === item.key && styles.filterSelected]}><Text style={[styles.filterText, filter === item.key && styles.filterTextSelected]}>{item.label}</Text></Pressable>)}
       </View>
@@ -229,7 +243,7 @@ export function DemoChatExperience({ onAction, state }: Props) {
             </KeyboardAvoidingView>
           </Modal>
         ) : (
-          <Pressable accessibilityLabel="New query" accessibilityRole="button" onPress={openManagementQuery} style={styles.newQuery}><Text style={styles.newQueryText}>＋ New query</Text></Pressable>
+          <Pressable accessibilityLabel="New query" accessibilityRole="button" onPress={openManagementQuery} style={styles.newQuery}><Text style={styles.newQueryText}>＋</Text></Pressable>
         )
       ) : null}
     </View>
@@ -240,22 +254,36 @@ function ChatRow({ onOpen, state, thread }: { readonly onOpen: () => void; reado
   const presentation = threadPresentationForRole(thread, state.activeRole);
   const preview = thread.messages.at(-1)!;
   const unread = thread.unreadByRole[state.activeRole];
-  return <Pressable accessibilityLabel={`Open ${presentation.title} conversation`} accessibilityRole="button" onPress={onOpen} style={styles.row}><View style={styles.avatar}><Text style={styles.avatarText}>{presentation.initials}</Text><View style={styles.presence} /></View><View style={styles.rowCopy}><View style={styles.rowTitleLine}><Text numberOfLines={1} style={styles.rowTitle}>{presentation.title}</Text><Text style={styles.timestamp}>{preview.timestamp}</Text></View><Text numberOfLines={1} style={styles.rowIdentity}>{presentation.identityLabel} · {thread.contextLabel}</Text><Text numberOfLines={1} style={styles.rowContext}>{thread.projectOrTender} · {thread.vertical}</Text><Text numberOfLines={1} style={styles.preview}>{preview.body}</Text><View style={styles.rowFooter}><DemoStatusPill label={thread.status === 'resolved' ? 'RESOLVED' : 'OPEN'} tone={thread.status === 'resolved' ? 'positive' : 'neutral'} />{unread ? <Text style={styles.unread}>{unread} new</Text> : null}</View></View><Text style={styles.chevron}>›</Text></Pressable>;
+  const meta = thread.kind === 'direct' ? `${presentation.identityLabel} · ${thread.contextLabel}` : thread.kind === 'project' ? `Project channel · ${thread.vertical}` : thread.kind === 'tender' ? 'Tender coordination' : `${presentation.identityLabel} · Customer & mgmt.`;
+  const displayTitle = thread.kind === 'support' ? presentation.title.replace(/ context$/u, '') : presentation.title;
+  return <Pressable accessibilityLabel={`Open ${presentation.title} conversation`} accessibilityRole="button" onPress={onOpen} style={styles.row}>
+    <View style={[styles.avatar, { backgroundColor: avatarColor(thread.id) }]}>{chatAvatarByThread[thread.id] ? <Image accessibilityIgnoresInvertColors source={chatAvatarByThread[thread.id]} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{presentation.initials}</Text>}{thread.kind === 'direct' ? <View style={styles.presence} /> : null}</View>
+    <View style={styles.rowCopy}><Text numberOfLines={1} style={styles.rowTitle}>{displayTitle}</Text><Text numberOfLines={1} style={styles.rowIdentity}>{meta}</Text><Text numberOfLines={1} style={styles.preview}>{preview.body}</Text></View>
+    <View style={styles.rowAside}><Text style={styles.timestamp}>{preview.timestamp}</Text>{unread ? <View style={styles.unread}><Text style={styles.unreadText}>{unread}</Text></View> : thread.status === 'resolved' ? <Text style={styles.resolved}>RESOLVED</Text> : thread.kind === 'support' ? <Text style={styles.open}>OPEN</Text> : <View style={styles.readDot} />}</View>
+  </Pressable>;
+}
+
+function avatarColor(id: string) {
+  const palette = ['#355C52', '#78614D', '#3D5362', '#826052', '#5F6357', '#403D39'];
+  return palette[[...id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % palette.length];
 }
 
 const styles = StyleSheet.create({
-  page: { gap: spacing.sm },
-  eyebrow: { color: colors.brass, fontSize: 10, fontWeight: '900', letterSpacing: 1.05 },
-  title: { color: colors.ink, fontSize: 30, fontWeight: '800', lineHeight: 36 },
-  purpose: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  filterList: { flexDirection: 'row', gap: 4 },
-  filter: { alignItems: 'center', backgroundColor: colors.paper, borderColor: colors.line, borderRadius: radii.sm, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 2 },
+  page: { backgroundColor: '#FFFEFB', marginHorizontal: -16, paddingHorizontal: 20, paddingTop: 15 },
+  eyebrow: { color: colors.brass, fontSize: 11, fontWeight: '800', letterSpacing: 1.15, marginTop: 2 },
+  title: { color: colors.ink, fontFamily: 'serif', fontSize: 40, fontWeight: '700', lineHeight: 49, marginBottom: 14 },
+  searchShell: { alignItems: 'center', borderColor: '#D8D5CE', borderRadius: radii.pill, borderWidth: 1, flexDirection: 'row', height: 52, marginBottom: 14, paddingHorizontal: 14 },
+  searchIcon: { color: '#8B8984', fontSize: 28, lineHeight: 30, marginRight: 8, transform: [{ rotate: '-15deg' }] },
+  searchInput: { color: colors.ink, flex: 1, fontSize: 14, height: 50, paddingVertical: 0 },
+  tuneIcon: { color: '#8B8984', fontSize: 20, transform: [{ rotate: '90deg' }] },
+  filterList: { flexDirection: 'row', gap: 8, marginBottom: 19 },
+  filter: { alignItems: 'center', backgroundColor: '#FFFEFB', borderColor: '#DEDCD6', borderRadius: radii.pill, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 2 },
   filterSelected: { backgroundColor: colors.brass, borderColor: colors.brass },
-  filterText: { color: colors.ink, fontSize: 10, fontWeight: '900' },
+  filterText: { color: colors.ink, fontSize: 11, fontWeight: '700' },
   filterTextSelected: { color: colors.paper },
   inbox: { borderTopColor: colors.line, borderTopWidth: 1 },
-  newQuery: { alignItems: 'center', backgroundColor: colors.brass, borderRadius: radii.sm, justifyContent: 'center', minHeight: 48, paddingHorizontal: spacing.md },
-  newQueryText: { color: colors.paper, fontSize: 14, fontWeight: '900' },
+  newQuery: { alignItems: 'center', backgroundColor: '#C39725', borderColor: '#FFFFFF', borderRadius: 36, borderWidth: 5, bottom: 8, elevation: 6, height: 72, justifyContent: 'center', minHeight: 72, position: 'absolute', right: 2, shadowColor: '#000', shadowOffset: { height: 3, width: 0 }, shadowOpacity: .16, shadowRadius: 7, width: 72 },
+  newQueryText: { color: colors.paper, fontSize: 37, fontWeight: '300', lineHeight: 40 },
   queryModal: { backgroundColor: colors.canvas, flex: 1 },
   queryScroll: { flex: 1 },
   queryScrollContent: { padding: spacing.md, paddingBottom: spacing.lg },
@@ -282,20 +310,22 @@ const styles = StyleSheet.create({
   queryCancelText: { color: colors.ink, fontSize: 12, fontWeight: '900' },
   queryCreate: { alignItems: 'center', backgroundColor: colors.brass, borderRadius: radii.sm, flex: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: spacing.sm },
   queryCreateText: { color: colors.paper, fontSize: 12, fontWeight: '900' },
-  row: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 100, paddingVertical: spacing.xs },
-  avatar: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.ink, borderRadius: radii.pill, height: 42, justifyContent: 'center', position: 'relative', width: 42 },
-  avatarText: { color: colors.paper, fontSize: 11, fontWeight: '900' },
+  row: { alignItems: 'center', borderBottomColor: '#E8E5DF', borderBottomWidth: 1, flexDirection: 'row', gap: 14, minHeight: 112, paddingVertical: 13 },
+  avatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: 35, height: 60, justifyContent: 'center', position: 'relative', width: 60 },
+  avatarImage: { borderRadius: 30, height: 60, width: 60 },
+  avatarText: { color: colors.paper, fontFamily: 'serif', fontSize: 16, fontWeight: '700' },
   presence: { backgroundColor: colors.moss, borderColor: colors.paper, borderRadius: radii.pill, borderWidth: 2, bottom: -1, height: 12, position: 'absolute', right: -1, width: 12 },
-  rowCopy: { flex: 1, gap: 2 },
-  rowTitleLine: { alignItems: 'baseline', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' },
-  rowTitle: { color: colors.ink, flex: 1, fontSize: 15, fontWeight: '900' },
-  timestamp: { color: colors.muted, fontSize: 10, fontWeight: '700' },
-  rowIdentity: { color: colors.brass, fontSize: 10, fontWeight: '900', letterSpacing: .2 },
-  rowContext: { color: colors.muted, fontSize: 10, fontWeight: '700' },
-  preview: { color: colors.muted, fontSize: 12, lineHeight: 16 },
-  rowFooter: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 3 },
-  unread: { color: colors.brass, fontSize: 10, fontWeight: '900' },
-  chevron: { color: colors.brass, fontSize: 27, fontWeight: '300' },
+  rowCopy: { flex: 1, gap: 5, minWidth: 0 },
+  rowTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 15, fontWeight: '700', lineHeight: 18 },
+  timestamp: { color: colors.muted, fontFamily: 'serif', fontSize: 11, lineHeight: 15 },
+  rowIdentity: { color: colors.brass, fontSize: 10.5, fontWeight: '700', lineHeight: 14 },
+  preview: { color: colors.muted, fontSize: 11.5, lineHeight: 16 },
+  rowAside: { alignItems: 'flex-end', alignSelf: 'stretch', justifyContent: 'space-between', paddingVertical: 4, width: 60 },
+  unread: { alignItems: 'center', backgroundColor: colors.brass, borderRadius: 10, height: 19, justifyContent: 'center', width: 19 },
+  unreadText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  resolved: { backgroundColor: '#E4EFE8', borderRadius: 9, color: '#49735A', fontSize: 9, fontWeight: '700', overflow: 'hidden', paddingHorizontal: 6, paddingVertical: 4 },
+  open: { backgroundColor: '#F4F1EA', borderRadius: 9, color: colors.ink, fontSize: 9, fontWeight: '700', overflow: 'hidden', paddingHorizontal: 7, paddingVertical: 4 },
+  readDot: { backgroundColor: '#A8A7A4', borderRadius: 5, height: 9, width: 9 },
   threadPage: { flex: 1, gap: spacing.sm },
   supportThreadPage: { backgroundColor: '#FFFFFF', marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 12 },
   supportContextHeader: { backgroundColor: '#FFFFFF', borderColor: '#D9D3C8', borderRadius: radii.md, borderWidth: 1, paddingHorizontal: spacing.sm },

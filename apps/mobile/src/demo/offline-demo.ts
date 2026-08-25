@@ -303,6 +303,22 @@ const initialChatThreads: readonly DemoChatThread[] = [
       { id: 'sup-001-support-2', authorRole: 'management', authorName: 'Mira Management', body: 'The revised checklist reference is recorded with the Amaravati project context.', timestamp: '11:05 AM' },
     ],
   },
+  {
+    id: 'equipment-delivery', kind: 'project', status: 'open', title: 'Equipment delivery update', initials: 'ED', identityLabel: 'Logistics & Procurement',
+    contextLabel: 'Delivery coordination', projectOrTender: 'Amaravati Solar Commons', vertical: 'Logistics & Procurement', participantRoles: ['employee', 'management'],
+    unreadByRole: { customer: 0, employee: 0, management: 0 },
+    messages: [
+      { id: 'equipment-delivery-1', authorRole: 'management', authorName: 'Mira Management', body: 'Delivery confirmed for 20 May.', timestamp: 'Yesterday' },
+    ],
+  },
+  {
+    id: 'design-coordination', kind: 'project', status: 'open', title: 'Design coordination team', initials: 'DC', identityLabel: 'Project channel',
+    contextLabel: 'Design coordination', projectOrTender: 'Amaravati Solar Commons', vertical: 'Infrastructure', participantRoles: ['employee', 'management'],
+    unreadByRole: { customer: 0, employee: 0, management: 0 },
+    messages: [
+      { id: 'design-coordination-1', authorRole: 'employee', authorName: 'Design Coordination Team', body: 'Floor plans v2 shared for feedback.', timestamp: 'May 12' },
+    ],
+  },
 ] as const;
 
 const initialSupportTickets: readonly DemoSupportTicket[] = [
