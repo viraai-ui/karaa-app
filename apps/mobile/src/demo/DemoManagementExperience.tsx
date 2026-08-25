@@ -66,7 +66,7 @@ function CommandCentre({ state, onAction }: Omit<Props, 'view'>) {
 
       <Text style={styles.ccSectionTitle}>Company snapshot</Text>
       <View style={styles.ccSnapshot} testID="management-summary-band">
-        {[['▥','27','Active Projects'],['◔','61%','Avg. Progress'],['₹','₹1,248 Cr','Active Portfolio'],['▤','14','Open Tenders']].map(([icon,value,label]) => <Pressable key={label} accessibilityRole="button" accessibilityLabel={`Open ${label}`} onPress={() => toggle(label)} style={styles.ccMetric} testID="management-summary-value"><Text style={styles.ccMetricIcon}>{icon}</Text><View style={styles.ccMetricCopy}><Text style={styles.ccMetricValue}>{value}</Text><Text style={styles.ccMetricLabel}>{label}</Text></View></Pressable>)}
+        {[['▥','27','Active Projects'],['◔','61%','Avg. Progress'],['₹','₹1,248 Cr','Active Portfolio'],['▤','14','Open Tenders']].map(([icon,value,label]) => <Pressable key={label} accessibilityRole="button" accessibilityLabel={`Open ${label}`} onPress={() => toggle(label)} style={styles.ccMetric} testID="management-summary-value"><Text style={styles.ccMetricIcon}>{icon}</Text><View style={styles.ccMetricCopy}><Text adjustsFontSizeToFit minimumFontScale={0.65} numberOfLines={1} style={styles.ccMetricValue}>{value}</Text><Text style={styles.ccMetricLabel}>{label}</Text></View></Pressable>)}
         <View style={styles.ccSnapshotFooter}><Text style={styles.ccSnapshotNote}>↑ 8.2% portfolio value this month</Text><Pressable accessibilityRole="button" accessibilityLabel="View portfolio report" onPress={() => toggle('report')} style={styles.ccReportButton}><Text style={styles.ccSnapshotLink}>View report →</Text></Pressable></View>
       </View>
 
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   ccSnapshot: { backgroundColor: '#151716', borderRadius: radii.md, flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.sm, overflow: 'hidden' },
   ccMetric: { alignItems: 'center', borderBottomColor: '#393A37', borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 94, padding: spacing.md, width: '50%' }, ccMetricCopy: { flex: 1, minWidth: 0 },
   ccMetricIcon: { borderColor: '#71500A', borderRadius: 14, borderWidth: 1, color: '#C28A13', fontSize: 15, height: 30, lineHeight: 28, textAlign: 'center', width: 30 },
-  ccMetricValue: { color: '#F5F0E6', fontFamily: 'serif', fontSize: 22, fontWeight: '800', lineHeight: 27 },
+  ccMetricValue: { color: '#F5F0E6', fontFamily: 'serif', fontSize: 27, fontWeight: '800', lineHeight: 31 },
   ccMetricLabel: { color: '#D5D0C7', fontSize: 11, lineHeight: 15 },
   ccSnapshotFooter: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', minHeight: 52, paddingHorizontal: spacing.md, width: '100%' }, ccSnapshotNote: { color: '#78B987', flex: 1, fontSize: 11, lineHeight: 15, minWidth: 180 }, ccReportButton: { alignItems: 'flex-end', justifyContent: 'center', minHeight: 44, paddingLeft: spacing.sm }, ccSnapshotLink: { color: '#D8A02A', fontSize: 11, fontWeight: '800' },
   ccHealth: { backgroundColor: colors.secondarySurface, borderColor: colors.line, borderRadius: radii.md, borderWidth: 1, marginTop: spacing.sm, overflow: 'hidden', paddingHorizontal: spacing.md },
