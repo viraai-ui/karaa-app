@@ -57,7 +57,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
             ]}
             testID="demo-chat-keyboard-surface"
           >
-            <MotionReveal key={`${role}-${state.selectedTab}-${state.surface}`}>{roleContent}</MotionReveal>
+            <MotionReveal key={`${role}-${state.selectedTab}-${state.surface}`} style={styles.chatMotionSurface}>{roleContent}</MotionReveal>
           </KeyboardAvoidingView>
         ) : (
           <ScrollView
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
 
   contentViewport: { backgroundColor: colors.canvas, flex: 1, overflow: 'hidden' },
   chatKeyboardSurface: { flex: 1, paddingTop: spacing.md },
+  chatMotionSurface: { flex: 1 },
   scrollView: { flex: 1 },
   content: { gap: spacing.md, padding: spacing.md },
 });
