@@ -157,10 +157,8 @@ export function DemoChatExperience({ onAction, state }: Props) {
 
   return (
     <View style={styles.page}>
-      <Text style={styles.eyebrow}>PROJECT COMMUNICATIONS</Text>
-      <Text style={styles.title}>Chat</Text>
-      <View style={styles.searchShell}>
-        <Text style={styles.searchIcon}>⌕</Text>
+      <View style={styles.searchShell} testID="chat-search-shell">
+        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.searchIcon}>⌕</Text>
         <TextInput accessibilityLabel="Search chats" onChangeText={setSearch} placeholder="Search chats" placeholderTextColor="#888680" style={styles.searchInput} value={search} />
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.tuneIcon}>☷</Text>
       </View>
@@ -257,7 +255,7 @@ function ChatRow({ onOpen, state, thread }: { readonly onOpen: () => void; reado
   const meta = thread.kind === 'direct' ? `${presentation.identityLabel} · ${thread.contextLabel}` : thread.kind === 'project' ? `Project channel · ${thread.vertical}` : thread.kind === 'tender' ? 'Tender coordination' : `${presentation.identityLabel} · Customer & mgmt.`;
   const displayTitle = thread.kind === 'support' ? presentation.title.replace(/ context$/u, '') : presentation.title;
   return <Pressable accessibilityLabel={`Open ${presentation.title} conversation`} accessibilityRole="button" onPress={onOpen} style={styles.row}>
-    <View style={[styles.avatar, { backgroundColor: avatarColor(thread.id) }]}>{chatAvatarByThread[thread.id] ? <Image accessibilityIgnoresInvertColors source={chatAvatarByThread[thread.id]} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{presentation.initials}</Text>}{thread.kind === 'direct' ? <View style={styles.presence} /> : null}</View>
+    <View style={styles.avatarSlot} testID={`chat-avatar-slot-${thread.id}`}><View style={[styles.avatar, { backgroundColor: avatarColor(thread.id) }]}>{chatAvatarByThread[thread.id] ? <Image accessibilityIgnoresInvertColors source={chatAvatarByThread[thread.id]} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{presentation.initials}</Text>}{thread.kind === 'direct' ? <View style={styles.presence} /> : null}</View></View>
     <View style={styles.rowCopy}><Text numberOfLines={1} style={styles.rowTitle}>{displayTitle}</Text><Text numberOfLines={1} style={styles.rowIdentity}>{meta}</Text><Text numberOfLines={1} style={styles.preview}>{preview.body}</Text></View>
     <View style={styles.rowAside}><Text style={styles.timestamp}>{preview.timestamp}</Text>{unread ? <View style={styles.unread}><Text style={styles.unreadText}>{unread}</Text></View> : thread.status === 'resolved' ? <Text style={styles.resolved}>RESOLVED</Text> : thread.kind === 'support' ? <Text style={styles.open}>OPEN</Text> : <View style={styles.readDot} />}</View>
   </Pressable>;
@@ -269,13 +267,11 @@ function avatarColor(id: string) {
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: '#FFFEFB', marginHorizontal: -16, paddingHorizontal: 20, paddingTop: 15 },
-  eyebrow: { color: colors.brass, fontSize: 11, fontWeight: '800', letterSpacing: 1.15, marginTop: 2 },
-  title: { color: colors.ink, fontFamily: 'serif', fontSize: 40, fontWeight: '700', lineHeight: 49, marginBottom: 14 },
-  searchShell: { alignItems: 'center', borderColor: '#D8D5CE', borderRadius: radii.pill, borderWidth: 1, flexDirection: 'row', height: 52, marginBottom: 14, paddingHorizontal: 14 },
-  searchIcon: { color: '#8B8984', fontSize: 28, lineHeight: 30, marginRight: 8, transform: [{ rotate: '-15deg' }] },
-  searchInput: { color: colors.ink, flex: 1, fontSize: 14, height: 50, paddingVertical: 0 },
-  tuneIcon: { color: '#8B8984', fontSize: 20, transform: [{ rotate: '90deg' }] },
+  page: { backgroundColor: '#FFFEFB', marginHorizontal: -16, paddingHorizontal: 20, paddingTop: 8 },
+  searchShell: { alignItems: 'center', borderColor: '#D8D5CE', borderRadius: radii.pill, borderWidth: 1, flexDirection: 'row', height: 44, marginBottom: 10, paddingHorizontal: 12 },
+  searchIcon: { color: '#8B8984', fontSize: 23, lineHeight: 25, marginRight: 7, transform: [{ rotate: '-15deg' }] },
+  searchInput: { color: colors.ink, flex: 1, fontSize: 13, height: 44, paddingVertical: 0 },
+  tuneIcon: { color: '#8B8984', fontSize: 18, transform: [{ rotate: '90deg' }] },
   filterList: { flexDirection: 'row', gap: 8, marginBottom: 19 },
   filter: { alignItems: 'center', backgroundColor: '#FFFEFB', borderColor: '#DEDCD6', borderRadius: radii.pill, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 2 },
   filterSelected: { backgroundColor: colors.brass, borderColor: colors.brass },
@@ -311,7 +307,8 @@ const styles = StyleSheet.create({
   queryCreate: { alignItems: 'center', backgroundColor: colors.brass, borderRadius: radii.sm, flex: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: spacing.sm },
   queryCreateText: { color: colors.paper, fontSize: 12, fontWeight: '900' },
   row: { alignItems: 'center', borderBottomColor: '#E8E5DF', borderBottomWidth: 1, flexDirection: 'row', gap: 14, minHeight: 112, paddingVertical: 13 },
-  avatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: 35, height: 60, justifyContent: 'center', position: 'relative', width: 60 },
+  avatarSlot: { alignItems: 'center', alignSelf: 'center', flexShrink: 0, height: 60, justifyContent: 'center', width: 60 },
+  avatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: 30, flexShrink: 0, height: 60, justifyContent: 'center', position: 'relative', width: 60 },
   avatarImage: { borderRadius: 30, height: 60, width: 60 },
   avatarText: { color: colors.paper, fontFamily: 'serif', fontSize: 16, fontWeight: '700' },
   presence: { backgroundColor: colors.moss, borderColor: colors.paper, borderRadius: radii.pill, borderWidth: 2, bottom: -1, height: 12, position: 'absolute', right: -1, width: 12 },

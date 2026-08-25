@@ -103,7 +103,7 @@ describe('Karaa shared chat demo', () => {
   it('renders a dense accessible inbox and sends a non-blank controlled composer message into the selected conversation', () => {
     const rendered = render(<ChatHarness />);
 
-    expect(rendered.getByText('Chat')).toBeTruthy();
+    expect(rendered.queryByText('PROJECT COMMUNICATIONS')).toBeNull();
     expect(rendered.getByLabelText('Search chats')).toBeTruthy();
     (['All', 'Projects', 'Tenders', 'Open', 'Resolved'] as const).forEach((filter) => {
       const control = rendered.getByRole('tab', { name: `Filter ${filter}` });
@@ -120,6 +120,31 @@ describe('Karaa shared chat demo', () => {
     expect(rendered.getByText('Cabinet checks are ready.')).toBeTruthy();
     expect(rendered.getByLabelText('Message Mira Management').props.value).toBe('');
     expect(rendered.getByText('Added to this conversation')).toBeTruthy();
+  });
+
+  it('keeps the compact search control accessible and conversation avatars fixed and centered', () => {
+    const state = { ...createOfflineDemoState('employee'), selectedTab: 'chat' as const };
+    const rendered = render(<DemoChatExperience onAction={jest.fn()} state={state} />);
+    const searchShell = rendered.getByTestId('chat-search-shell');
+    const searchInput = rendered.getByLabelText('Search chats');
+
+    expect(rendered.queryByText('PROJECT COMMUNICATIONS')).toBeNull();
+    expect(rendered.queryByText('Chat')).toBeNull();
+    expect(StyleSheet.flatten(searchShell.props.style).height).toBe(44);
+    expect(StyleSheet.flatten(searchInput.props.style).height).toBeGreaterThanOrEqual(44);
+
+    state.chatThreads.filter((thread) => thread.participantRoles.includes(state.activeRole)).forEach((thread) => {
+      const avatarSlot = rendered.getByTestId(`chat-avatar-slot-${thread.id}`);
+      const style = StyleSheet.flatten(avatarSlot.props.style);
+      expect(style).toEqual(expect.objectContaining({
+        alignItems: 'center',
+        alignSelf: 'center',
+        flexShrink: 0,
+        height: 60,
+        justifyContent: 'center',
+        width: 60,
+      }));
+    });
   });
 
   it('keeps short thread histories anchored above the composer instead of leaving a dead lower viewport', () => {
