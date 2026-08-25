@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import type { OfflineDemoTabKey } from './offline-demo';
 import { DashboardNavIcon } from './DashboardNavIcon';
 
-export const SENIOR_MANAGEMENT_NAV_INACTIVE = '#F1EEE7';
+export const SENIOR_MANAGEMENT_NAV_INACTIVE = '#303030';
 
 const iconNames: Partial<Record<OfflineDemoTabKey, string>> = {
   power: 'Dashboard',
@@ -25,15 +25,15 @@ export function SeniorManagementNavIcon({ tabKey, color }: Props) {
     return <DashboardNavIcon color={color} testID="senior-management-nav-icon-power" />;
   }
   if (tabKey === 'tenders') {
-    return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]} testID="senior-management-nav-document"><View style={[styles.fold, { backgroundColor: '#050605', borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.lineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineThree, { backgroundColor: color }]} /></View></View>;
+    return <View {...common} style={styles.iconFrame}><View style={[styles.document, { borderColor: color }]} testID="senior-management-nav-document"><View style={[styles.fold, { backgroundColor: '#FFFFFF', borderBottomColor: color, borderLeftColor: color }]} /><View style={[styles.documentLine, styles.lineOne, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineTwo, { backgroundColor: color }]} /><View style={[styles.documentLine, styles.lineThree, { backgroundColor: color }]} /></View></View>;
   }
   if (tabKey === 'command') {
-    return <View {...common} style={styles.gaugeFrame}><View style={[styles.gaugeArc, { borderColor: color }]} testID="senior-management-nav-gauge-arc" /><View style={styles.gaugeMask} />{[-62, -31, 0, 31, 62].map((angle, index) => <View key={angle} style={[styles.tickAnchor, { transform: [{ rotate: `${angle}deg` }] }]}><View style={[styles.gaugeTick, { backgroundColor: color }]} testID={`senior-management-nav-gauge-tick-${index + 1}`} /></View>)}<View style={[styles.needle, { backgroundColor: color }]} /><View style={[styles.needleHub, { borderColor: color, backgroundColor: '#050605' }]} /></View>;
+    return <View {...common} style={styles.gaugeFrame}><View style={[styles.gaugeArc, { borderColor: color }]} testID="senior-management-nav-gauge-arc" /><View style={styles.gaugeMask} />{[-62, -31, 0, 31, 62].map((angle, index) => <View key={angle} style={[styles.tickAnchor, { transform: [{ rotate: `${angle}deg` }] }]}><View style={[styles.gaugeTick, { backgroundColor: color }]} testID={`senior-management-nav-gauge-tick-${index + 1}`} /></View>)}<View style={[styles.needle, { backgroundColor: color }]} /><View style={[styles.needleHub, { borderColor: color, backgroundColor: '#FFFFFF' }]} /></View>;
   }
   if (tabKey === 'map') {
     return <View {...common} style={styles.iconFrame}><View style={[styles.pinHead, { borderColor: color }]} testID="senior-management-nav-pin-outline"><View style={[styles.pinCentre, { borderColor: color }]} /></View><View style={[styles.pinTail, { borderBottomColor: color, borderRightColor: color }]} /></View>;
   }
-  return <View {...common} style={styles.iconFrame}><View style={[styles.bubble, { borderColor: color }]} testID="senior-management-nav-chat-outline" /><View style={[styles.bubbleTail, { backgroundColor: '#050605', borderBottomColor: color, borderRightColor: color }]} /></View>;
+  return <View {...common} style={styles.iconFrame}><View style={[styles.bubble, { borderColor: color }]} testID="senior-management-nav-chat-outline" /><View style={[styles.bubbleTail, { backgroundColor: '#FFFFFF', borderBottomColor: color, borderRightColor: color }]} /></View>;
 }
 
 const styles = StyleSheet.create({
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   lineOne: { top: 10, width: 7 }, lineTwo: { top: 15, width: 11 }, lineThree: { top: 20, width: 8 },
   gaugeFrame: { height: 27, overflow: 'hidden', position: 'relative', width: 30 },
   gaugeArc: { borderRadius: 15, borderWidth: 1.7, height: 30, left: 0, position: 'absolute', top: 1, width: 30 },
-  gaugeMask: { backgroundColor: '#050605', bottom: -1, height: 11, left: 0, position: 'absolute', width: 30 },
+  gaugeMask: { backgroundColor: '#FFFFFF', bottom: -1, height: 11, left: 0, position: 'absolute', width: 30 },
   tickAnchor: { height: 13, left: 14, position: 'absolute', top: 3, transformOrigin: '1px 12px', width: 2 },
   gaugeTick: { borderRadius: 1, height: 4, width: 1.7 },
   needle: { borderRadius: 1, bottom: 7, height: 1.7, left: 14, position: 'absolute', transform: [{ rotate: '-35deg' }], transformOrigin: '1px 1px', width: 10 },

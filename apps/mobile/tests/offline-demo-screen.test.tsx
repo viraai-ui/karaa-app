@@ -123,7 +123,7 @@ describe('Karaa Global role demo surfaces', () => {
     fireEvent.press(rendered.getByRole('tab', { name: 'My Tasks' }));
     expect(rendered.getByText('Current work package')).toBeTruthy();
     expect(rendered.getByText('Inverter row commissioning')).toBeTruthy();
-    expect(StyleSheet.flatten(rendered.getByTestId('employee-work-progress-label').props.style).color).toBe('#FFFDF8');
+    expect(StyleSheet.flatten(rendered.getByTestId('employee-work-progress-label').props.style).color).toBe('#FFFFFF');
     expect(StyleSheet.flatten(rendered.getByText('Project delivery').props.style).color).toBe('#D6D3CD');
 
     fireEvent.press(rendered.getByRole('button', { name: 'Record progress update' }));

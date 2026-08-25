@@ -35,7 +35,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
   const chatThreadOpen = state.surface === 'chat-thread';
 
   return (
-    <View style={[styles.screen, role === 'customer' && styles.customerScreen]}>
+    <View style={styles.screen}>
       <DemoAppBar
         healthcareBack={role === 'customer' && state.surface === 'vertical' ? () => offlineDemoStore.dispatch({ type: 'back-to-root' }) : undefined}
         onSwitchWorkspace={() => setWorkspaceOpen(true)}
@@ -43,7 +43,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
         onOpenNotifications={() => setUtilityOpen('notifications')}
         role={role}
       />
-      <View style={[styles.contentViewport, role === 'customer' && styles.customerScreen]} testID="demo-content-viewport">
+      <View style={styles.contentViewport} testID="demo-content-viewport">
         {chatThreadOpen ? (
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -86,8 +86,8 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
 
 const styles = StyleSheet.create({
   screen: { backgroundColor: colors.canvas, flex: 1 },
-  customerScreen: { backgroundColor: '#FFFFFF' },
-  contentViewport: { flex: 1, overflow: 'hidden' },
+
+  contentViewport: { backgroundColor: colors.canvas, flex: 1, overflow: 'hidden' },
   chatKeyboardSurface: { flex: 1, paddingTop: spacing.md },
   scrollView: { flex: 1 },
   content: { gap: spacing.md, padding: spacing.md },

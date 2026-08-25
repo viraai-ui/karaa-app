@@ -63,7 +63,7 @@ describe('public Karaa tour', () => {
     const heroFrameStyle = StyleSheet.flatten(rendered.getByTestId('tour-hero-frame').props.style);
     const heroImageStyle = StyleSheet.flatten(rendered.getByTestId('tour-hero-image').props.style);
 
-    expect(themeTokens.radii).toEqual({ sm: 8, md: 12, lg: 18, pill: 999 });
+    expect(themeTokens.radii).toEqual({ sm: 10, md: 12, lg: 16, pill: 999 });
     expect(themeTokens.layout.contentMaxWidth).toBeGreaterThan(460);
     expect(columnStyle).toMatchObject({ alignSelf: 'center', maxWidth: themeTokens.layout.contentMaxWidth, width: '100%' });
     expect(heroFrameStyle).toMatchObject({ aspectRatio: 16 / 9, width: '100%' });

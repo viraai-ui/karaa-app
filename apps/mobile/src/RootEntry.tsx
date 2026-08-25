@@ -18,7 +18,7 @@ export function RootEntry({ session }: { session: Session }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, backgroundColor: '#F8F5EE' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, backgroundColor: '#FCFBF8' },
   title: { color: '#1E2521', fontSize: 24, fontWeight: '700' },
   copy: { color: '#46534B', fontSize: 16, textAlign: 'center' },
 });

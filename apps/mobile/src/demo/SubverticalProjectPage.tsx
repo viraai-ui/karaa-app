@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     textAlign: "center",
   },
-  hPage: { backgroundColor: "#F8F5EE", marginHorizontal: -16, marginTop: -16, paddingBottom: 24 },
+  hPage: { backgroundColor: "#FCFBF8", marginHorizontal: -16, marginTop: -16, paddingBottom: 24 },
   hHero: { height: 196, overflow: "hidden", position: "relative" },
   hHeroImage: { bottom: 0, height: "100%", left: 0, position: "absolute", right: 0, top: 0, width: "100%" },
   hHeroWash: { bottom: 0, height: "100%", left: 0, position: "absolute", top: 0, width: "82%", zIndex: 1 },

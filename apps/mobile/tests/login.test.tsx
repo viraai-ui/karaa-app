@@ -44,8 +44,8 @@ describe('LoginScreen', () => {
 
     expect(emailField.props.value).toBe('');
     expect(passwordField.props.value).toBe('');
-    expect(emailField.props.placeholderTextColor).toBe('#46534B');
-    expect(passwordField.props.placeholderTextColor).toBe('#46534B');
+    expect(emailField.props.placeholderTextColor).toBe('#625F58');
+    expect(passwordField.props.placeholderTextColor).toBe('#625F58');
   });
 
   it('provides visible labels semantically associated with empty credential fields', () => {

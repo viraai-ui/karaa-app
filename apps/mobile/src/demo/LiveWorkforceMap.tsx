@@ -69,7 +69,7 @@ export function LiveWorkforceMap({ project, onBack }: { project: LiveMapProject;
 }
 
 const styles = StyleSheet.create({
-  page: { backgroundColor: '#F7F4EC', marginHorizontal: -16, marginTop: -16 }, flex: { flex: 1 },
+  page: { backgroundColor: '#FFFFFF', marginHorizontal: -16, marginTop: -16 }, flex: { flex: 1 },
   header: { alignItems: 'center', backgroundColor: '#161817', flexDirection: 'row', minHeight: 60, paddingHorizontal: 4 }, back: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 }, backText: { color: '#FFF', fontSize: 29 },
   eyebrow: { color: '#C89125', fontSize: 7, fontWeight: '900', letterSpacing: .8 }, title: { color: '#FFF', fontFamily: 'serif', fontSize: 14, fontWeight: '800' }, headerPlace: { color: '#B9B5AC', fontSize: 7 }, liveBlock: { alignItems: 'flex-end', paddingHorizontal: 3 }, live: { color: '#4CB569', fontSize: 8, fontWeight: '900' }, headerMeta: { color: '#AAA69E', fontSize: 6 },
   iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 }, iconGlyph: { fontSize: 17 }, notice: { backgroundColor: '#FFF0CF', borderLeftColor: '#B57B0A', borderLeftWidth: 3, justifyContent: 'center', minHeight: 44, paddingHorizontal: 7 }, noticeText: { color: '#5A4518', fontSize: 8 },

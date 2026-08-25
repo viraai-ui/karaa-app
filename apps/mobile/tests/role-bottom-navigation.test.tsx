@@ -109,14 +109,9 @@ describe('canonical role bottom navigation', () => {
 
   it.each(['customer', 'employee', 'management'] as const)('keeps the %s canvas and footer role-scoped', (role) => {
     const screen = render(<Shell role={role} />);
-    if (role === 'customer') {
-      expect(screen.getByTestId('demo-content-viewport')).toHaveStyle({ backgroundColor: '#FFFFFF' });
-      expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: 8 });
-      expect(StyleSheet.flatten(screen.getByTestId('demo-bottom-navigation').props.style).overflow).toBeUndefined();
-    } else {
-      expect(screen.getByTestId('demo-content-viewport')).not.toHaveStyle({ backgroundColor: '#FFFFFF' });
-      expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#050605' });
-    }
+    expect(screen.getByTestId('demo-content-viewport')).toHaveStyle({ backgroundColor: '#FCFBF8' });
+    expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: 8 });
+    expect(StyleSheet.flatten(screen.getByTestId('demo-bottom-navigation').props.style).overflow).toBeUndefined();
   });
 
   it('resets every stale customer nested route field from each canonical tab', () => {

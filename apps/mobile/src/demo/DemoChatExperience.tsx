@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   unread: { color: colors.brass, fontSize: 10, fontWeight: '900' },
   chevron: { color: colors.brass, fontSize: 27, fontWeight: '300' },
   threadPage: { flex: 1, gap: spacing.sm },
-  supportThreadPage: { backgroundColor: '#F8F5EE', marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 12 },
+  supportThreadPage: { backgroundColor: '#FFFFFF', marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 12 },
   supportContextHeader: { backgroundColor: '#FFFEFA', borderColor: '#D9D3C8', borderRadius: radii.md, borderWidth: 1, paddingHorizontal: spacing.sm },
   onlineLine: { alignItems: 'center', flexDirection: 'row', gap: 5 },
   onlineDot: { backgroundColor: '#3B9850', borderRadius: 4, height: 8, width: 8 },
