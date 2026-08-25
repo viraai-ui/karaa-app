@@ -63,14 +63,16 @@ export type CustomerPortfolioProject =
 export function customerPortfolioProjectAction(
   project: CustomerPortfolioProject,
 ): OfflineDemoAction {
-  return project.id === "aarohan-medical-city-pune"
-    ? { type: "open-portfolio-project", projectId: project.id }
-    : { type: "select-tab", tab: "portfolio" };
+  const projectId = project.id === "amaravati-riverfront-district"
+    ? "smart-cities-and-complete-human-ecosystems-1"
+    : project.id === "surya-integrated-energy-park"
+      ? "renewable-energy-and-green-hydrogen-1"
+      : project.id;
+  return { type: "open-portfolio-project", projectId };
 }
 
 type Props = { onAction: (action: OfflineDemoAction) => void };
 type Panel = { title: string; body: string } | null;
-const filters = ["All projects", "On track", "In progress"] as const;
 const gold = "#b57a19",
   ink = "#171717",
   ivory = "#fbf8f1",
@@ -173,13 +175,8 @@ function LineIcon({
 export function CustomerPortfolio({ onAction }: Props) {
   const { width } = useWindowDimensions();
   const narrow = width < 350;
-  const [filter, setFilter] =
-    useState<(typeof filters)[number]>("All projects");
   const [panel, setPanel] = useState<Panel>(null);
   const [synced, setSynced] = useState("today, 10:42 AM");
-  const shown = customerPortfolioProjects.filter(
-    (p) => filter === "All projects" || p.status === filter.toUpperCase(),
-  );
   const open = (title: string, body: string) => setPanel({ title, body });
   const quick: [IconName, string, string][] = [
     [
@@ -275,27 +272,13 @@ export function CustomerPortfolio({ onAction }: Props) {
               Projects connected to your verified account.
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Filter projects"
-            accessibilityHint="Cycles between all, on-track, and in-progress projects"
-            accessibilityValue={{ text: filter }}
-            hitSlop={10}
-            onPress={() =>
-              setFilter(filters[(filters.indexOf(filter) + 1) % filters.length])
-            }
-            style={s.filter}
-          >
-            <LineIcon name="filter" size={17} />
-          </Pressable>
         </View>
         <View style={s.cards}>
-          {shown.map((p) => (
+          {customerPortfolioProjects.map((p) => (
             <ProjectCard
               key={p.id}
               p={p}
               narrow={narrow}
-              open={open}
               onAction={onAction}
             />
           ))}
@@ -404,24 +387,14 @@ function OverviewIcon({ name }: { name: "building" | "file" | "bell" }) {
 
 function ProjectCard({
   p,
-  open,
   onAction,
   narrow,
 }: {
   p: CustomerPortfolioProject;
-  open: (a: string, b: string) => void;
   onAction: Props["onAction"];
   narrow: boolean;
 }) {
-  const detail = () => {
-    const action = customerPortfolioProjectAction(p);
-    return action.type === "open-portfolio-project"
-      ? onAction(action)
-      : open(
-          p.name,
-          `${p.update}. This subscribed-project preview is local; a live project record is not connected.`,
-        );
-  };
+  const detail = () => onAction(customerPortfolioProjectAction(p));
   return (
     <View
       style={[s.card, narrow && s.cardNarrow]}
@@ -448,35 +421,17 @@ function ProjectCard({
               {p.location}
             </Text>
           </View>
-          <Text numberOfLines={1} style={s.update}>{p.update}</Text>
           <View style={s.progressTop}>
             <Text style={s.progress}>{p.progress}%</Text><Text style={s.complete}>complete</Text><Text style={s.percent}>{p.progress}%</Text>
           </View>
           <View accessible accessibilityLabel={`${p.name} completion`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: p.progress, text: `${p.progress}% complete` }} style={s.progressRow}>
             <View style={s.rail}><View style={[s.fill, { width: `${p.progress}%` }]} /></View>
           </View>
-          <View style={s.milestone}>
-            <View style={s.milestoneIcon}><LineIcon name="calendar" size={13} color={gold} /></View>
-            <View style={s.flex}><Text style={s.factLabel}>NEXT MILESTONE</Text><Text numberOfLines={1} style={s.factValue}>{p.next}</Text></View>
-            {p.fresh ? <Pressable accessibilityRole="button" accessibilityLabel={`Open new update for ${p.name}`} hitSlop={10} onPress={() => open("New project update", `${p.update} — unread local prototype update.`)} style={s.updateButton}><LineIcon name="bell" size={13} color={gold} /></Pressable> : null}
-          </View>
+
         </View>
       </View>
       <View style={s.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Documents for ${p.name}`}
-          onPress={() =>
-            open(
-              `${p.name} documents`,
-              `${p.docs} project documents are represented in this local prototype.`,
-            )
-          }
-          style={s.textAction}
-        >
-          <LineIcon name="file" color={ink} size={15} />
-          <Text style={s.secondaryActionText}>Documents</Text>
-        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`View project ${p.name}`}
@@ -484,7 +439,6 @@ function ProjectCard({
           style={s.primaryAction}
         >
           <Text style={s.primaryActionText}>View project</Text>
-          <LineIcon name="arrow" color="#fff" size={16} />
         </Pressable>
       </View>
     </View>
@@ -749,10 +703,8 @@ const s = StyleSheet.create({
   },
   quickText: { color: ink, fontSize: 9, fontWeight: "700", lineHeight: 12, textAlign: "center" },
   sectionHead: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 14,
+    paddingHorizontal: 2,
   },
   sectionTitle: {
     color: ink,
@@ -760,53 +712,42 @@ const s = StyleSheet.create({
     fontSize: 24,
     lineHeight: 28,
   },
-  sectionSub: { color: muted, fontSize: 9, marginTop: 4 },
-  filter: {
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderColor: line,
-    borderRadius: 22,
-    borderWidth: 1,
-    justifyContent: "center",
-    minHeight: 44,
-    minWidth: 44,
-  },
-  cards: { gap: 7 },
+  sectionSub: { color: muted, fontSize: 10, lineHeight: 15, marginTop: 5 },
+  cards: { gap: 10 },
   card: {
     backgroundColor: "#fff",
     borderColor: line,
     borderRadius: 13,
     borderWidth: 1,
     overflow: "hidden",
-    padding: 12,
+    padding: 14,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.055,
     shadowRadius: 9,
   },
-  cardNarrow: { padding: 10 },
-  cardLead: { flexDirection: "row", minWidth: 0 },
-  cardImage: { borderRadius: 7, height: 105, width: "38%" },
-  cardImageNarrow: { width: "32%" },
-  cardSummary: { flex: 1, minWidth: 0, paddingLeft: 10 },
+  cardNarrow: { padding: 12 },
+  cardLead: { alignItems: "stretch", flexDirection: "row", minWidth: 0 },
+  cardImage: { borderRadius: 9, height: 112, width: "38%" },
+  cardImageNarrow: { height: 104, width: "34%" },
+  cardSummary: { flex: 1, justifyContent: "center", minWidth: 0, paddingLeft: 13 },
   statusRow: { alignItems: "center", flexDirection: "row", gap: 6 },
-  status: { color: gold, fontSize: 7, fontWeight: "800", letterSpacing: 0.7 },
+  status: { color: gold, fontSize: 8, fontWeight: "800", letterSpacing: 0.7 },
   newDot: { backgroundColor: gold, borderRadius: 3, height: 5, width: 5 },
   cardTitle: {
     color: ink,
     fontFamily: "serif",
-    fontSize: 14,
-    lineHeight: 17,
-    marginBottom: 2,
-    marginTop: 2,
+    fontSize: 17,
+    lineHeight: 20,
+    marginBottom: 5,
+    marginTop: 4,
   },
-  location: { color: muted, flex: 1, fontSize: 8 },
-  update: { color: "#484641", fontSize: 7, marginTop: 4 },
-  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 5 },
-  progress: { color: ink, fontFamily: "serif", fontSize: 14 },
-  complete: { color: muted, fontSize: 8, marginLeft: 4 },
-  percent: { color: muted, fontSize: 8, marginLeft: "auto" },
-  progressRow: { marginTop: 2 },
+  location: { color: muted, flex: 1, fontSize: 10, lineHeight: 14 },
+  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 11 },
+  progress: { color: ink, fontFamily: "serif", fontSize: 16 },
+  complete: { color: muted, fontSize: 9, marginLeft: 5 },
+  percent: { color: muted, fontSize: 9, marginLeft: "auto" },
+  progressRow: { marginTop: 4 },
   rail: {
     backgroundColor: "#ece9e3",
     borderRadius: 4,
@@ -843,30 +784,20 @@ const s = StyleSheet.create({
     minWidth: 24,
   },
   actions: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
+    alignItems: "stretch",
+    marginTop: 14,
   },
-  textAction: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 7,
-    minHeight: 44,
-    paddingHorizontal: 4,
-  },
-  secondaryActionText: { color: ink, fontSize: 9, fontWeight: "600" },
   primaryAction: {
     alignItems: "center",
-    backgroundColor: ink,
-    borderRadius: 7,
-    flexDirection: "row",
-    gap: 8,
+    backgroundColor: "#fbf8f2",
+    borderColor: "#e8dfd2",
+    borderRadius: 8,
+    borderWidth: 1,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 14,
   },
-  primaryActionText: { color: "#fff", fontSize: 9, fontWeight: "700" },
+  primaryActionText: { color: ink, fontSize: 11, fontWeight: "700" },
   privacy: {
     alignItems: "center",
     backgroundColor: "#fbf7ef",

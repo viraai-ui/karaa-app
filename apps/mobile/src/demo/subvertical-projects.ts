@@ -103,6 +103,32 @@ function genericProjects(
   });
 }
 
+function linkedCustomerProject(
+  pathwayId: string,
+  projects: PortfolioProject[],
+): PortfolioProject[] {
+  const linked = pathwayId === "smart-cities-and-complete-human-ecosystems"
+    ? {
+        name: "Amaravati Riverfront District",
+        location: "Amaravati, Andhra Pradesh",
+        status: "On Track" as const,
+        progress: 64,
+        update: "Public realm and utilities underway",
+        currentMilestone: "Landscape Works",
+      }
+    : pathwayId === "renewable-energy-and-green-hydrogen"
+      ? {
+          name: "Surya Integrated Energy Park",
+          location: "Kurnool, Andhra Pradesh",
+          status: "In Progress" as const,
+          progress: 31,
+          update: "Solar array foundations underway",
+          currentMilestone: "Module Installation",
+        }
+      : null;
+  return linked ? [{ ...projects[0], ...linked }, ...projects.slice(1)] : projects;
+}
+
 const healthcareProjects: PortfolioProject[] = [
   {
     id: "aarohan-medical-city-pune",
@@ -179,13 +205,16 @@ export const subverticalPortfolios: readonly SubverticalPortfolio[] =
           : pathway.image,
         projects: healthcare
           ? healthcareProjects
-          : genericProjects(
-              pathway.title,
-              verticalIndex,
-              pathwayIndex,
-              vertical.id === "healthcare-life-sciences"
-                ? [healthcareConceptualImage, healthcareConceptualImage, healthcareConceptualImage]
-                : generatedSubverticalProjectImages[id],
+          : linkedCustomerProject(
+              id,
+              genericProjects(
+                pathway.title,
+                verticalIndex,
+                pathwayIndex,
+                vertical.id === "healthcare-life-sciences"
+                  ? [healthcareConceptualImage, healthcareConceptualImage, healthcareConceptualImage]
+                  : generatedSubverticalProjectImages[id],
+              ),
             ),
       };
     }),

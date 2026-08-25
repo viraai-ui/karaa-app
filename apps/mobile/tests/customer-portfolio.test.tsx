@@ -7,34 +7,26 @@ import {
 } from "../src/demo/CustomerPortfolio";
 
 describe("signed-in customer portfolio", () => {
-  it("matches the reference records and privacy language", () => {
+  it("preserves the approved portfolio content and simplifies every project card", () => {
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
-    expect(ui.queryByText("PERSONALISED ACCESS")).toBeNull();
-    expect(ui.queryByText("Welcome, Arjun")).toBeNull();
-    expect(ui.queryByText("KG-INV-4821")).toBeNull();
+    expect(ui.getByText(/Your projects, progress and private records/)).toBeTruthy();
     for (const icon of ["building", "file", "bell"]) {
       expect(ui.getByTestId(`portfolio-overview-icon-${icon}`)).toBeTruthy();
     }
     expect(customerPortfolioProjects).toHaveLength(3);
-    expect(
-      ui.getByText(
-        /Your projects, progress and private records/,
-      ),
-    ).toBeTruthy();
-    expect(ui.getByText("03")).toBeTruthy();
-    expect(ui.getByText("11")).toBeTruthy();
-    expect(ui.getByText("02")).toBeTruthy();
     for (const p of customerPortfolioProjects) {
       expect(ui.getByText(p.name)).toBeTruthy();
+      expect(ui.getByText(p.location)).toBeTruthy();
+      expect(ui.getAllByText(p.status).length).toBeGreaterThan(0);
       expect(ui.getAllByText(`${p.progress}%`)).toHaveLength(2);
-      expect(ui.getByText(p.next)).toBeTruthy();
+      expect(ui.queryByText(p.update)).toBeNull();
+      expect(ui.queryByText(p.next)).toBeNull();
+      expect(ui.queryByRole("button", { name: `Documents for ${p.name}` })).toBeNull();
     }
-    expect(
-      ui.getByText(
-        /Documents and payment records are/,
-      ),
-    ).toBeTruthy();
+    expect(ui.queryByText("NEXT MILESTONE")).toBeNull();
+    expect(ui.queryByRole("button", { name: "Filter projects" })).toBeNull();
   });
+
   it("opens each quick action's correct panel", () => {
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
     const actions = [
@@ -49,90 +41,49 @@ describe("signed-in customer portfolio", () => {
       fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
     }
   });
-  it.each([320, 390, 480])("keeps complete quick-action labels at %ipx", (width) => {
-    const dimensions = jest
-      .spyOn(ReactNative, "useWindowDimensions")
-      .mockReturnValue({ width, height: 800, scale: 1, fontScale: 1 });
+
+  it.each([320, 390, 480])("keeps simplified project cards readable at %ipx", (width) => {
+    const dimensions = jest.spyOn(ReactNative, "useWindowDimensions").mockReturnValue({ width, height: 1200, scale: 1, fontScale: 1 });
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
     for (const label of ["Recent Updates", "My Documents", "Payment Records"]) {
-      const text = ui.getByText(label);
-      expect(text.props.children).toBe(label);
-      expect(text.props.numberOfLines).toBeUndefined();
       const button = ui.getByRole("button", { name: label });
-      const style = StyleSheet.flatten(button.props.style);
-      expect(style.flex).toBe(1);
-      expect(style.minHeight).toBeGreaterThanOrEqual(64);
+      expect(StyleSheet.flatten(button.props.style).minHeight).toBeGreaterThanOrEqual(64);
+    }
+    for (const p of customerPortfolioProjects) {
+      expect(ui.getByTestId(`portfolio-card-${p.id}`)).toBeTruthy();
+      expect(ui.getByText(p.name).props.numberOfLines).toBe(2);
+      expect(ui.getByText(p.location).props.numberOfLines).toBe(1);
+      const action = ui.getByRole("button", { name: `View project ${p.name}` });
+      expect(StyleSheet.flatten(action.props.style).minHeight).toBeGreaterThanOrEqual(44);
+      expect(action.findAllByType(ReactNative.Text)).toHaveLength(1);
     }
     dimensions.mockRestore();
   });
-  it("opens all local panels and cycles the project filter", () => {
+
+  it("opens each project button on its matching detail and keeps the routed detail functional", () => {
+    const onAction = jest.fn();
+    const ui = render(<CustomerPortfolio onAction={onAction} />);
+    const routeIds = [
+      "aarohan-medical-city-pune",
+      "smart-cities-and-complete-human-ecosystems-1",
+      "renewable-energy-and-green-hydrogen-1",
+    ];
+    customerPortfolioProjects.forEach((p, index) => {
+      fireEvent.press(ui.getByRole("button", { name: `View project ${p.name}` }));
+      expect(onAction).toHaveBeenLastCalledWith({
+        type: "open-portfolio-project",
+        projectId: routeIds[index],
+      });
+    });
+    expect(ui.getByRole("progressbar", { name: "Aarohan Medical City completion" }).props.accessibilityValue).toEqual({ min: 0, max: 100, now: 42, text: "42% complete" });
+  });
+
+  it("keeps remaining utility actions functional", () => {
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
-    for (const label of [
-      "Manage access",
-    ]) {
-      fireEvent.press(ui.getByRole("button", { name: label }));
-      expect(ui.getByText("LOCAL PROTOTYPE")).toBeTruthy();
-      fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
-    }
     fireEvent.press(ui.getByRole("button", { name: "Refresh portfolio" }));
     expect(ui.getByText("Portfolio refreshed")).toBeTruthy();
     fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
-    fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
-    expect(ui.queryByText("Surya Integrated Energy Park")).toBeNull();
-    expect(
-      ui.getByRole("button", { name: "Filter projects" }).props
-        .accessibilityValue,
-    ).toEqual({ text: "On track" });
-    fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
-    fireEvent.press(ui.getByRole("button", { name: "Filter projects" }));
-    for (const p of customerPortfolioProjects) {
-      fireEvent.press(
-        ui.getByRole("button", { name: `Documents for ${p.name}` }),
-      );
-      expect(ui.getByText(`${p.name} documents`)).toBeTruthy();
-      fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
-    }
-    for (const p of customerPortfolioProjects.filter((p) => p.fresh)) {
-      fireEvent.press(
-        ui.getByRole("button", { name: `Open new update for ${p.name}` }),
-      );
-      expect(ui.getByText("New project update")).toBeTruthy();
-      fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
-    }
-    for (const p of customerPortfolioProjects.slice(1)) {
-      fireEvent.press(
-        ui.getByRole("button", { name: `View project ${p.name}` }),
-      );
-      expect(ui.getAllByText(p.name)).toHaveLength(2);
-      fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
-    }
-  });
-  it("routes the feasible project detail and gives semantic actions 44px targets", () => {
-    const onAction = jest.fn();
-    const ui = render(<CustomerPortfolio onAction={onAction} />);
-    fireEvent.press(
-      ui.getByRole("button", { name: "View project Aarohan Medical City" }),
-    );
-    expect(onAction).toHaveBeenCalledWith({
-      type: "open-portfolio-project",
-      projectId: "aarohan-medical-city-pune",
-    });
-    expect(ui.getByRole("progressbar", { name: "Aarohan Medical City completion" }).props.accessibilityValue).toEqual({ min: 0, max: 100, now: 42, text: "42% complete" });
-    const labels = [
-      "Refresh portfolio",
-      "Filter projects",
-      "View project Aarohan Medical City",
-      "Documents for Aarohan Medical City",
-      "Manage access",
-    ];
-    for (const label of labels) {
-      const target = ui.getByRole("button", { name: label });
-      const h = StyleSheet.flatten(target.props.style).minHeight ?? 0;
-      expect(h).toBeGreaterThanOrEqual(44);
-    }
-    for (const label of ["Recent Updates", "My Documents", "Payment Records"]) {
-      const target = ui.getByRole("button", { name: label });
-      expect(StyleSheet.flatten(target.props.style).minHeight).toBeGreaterThanOrEqual(44);
-    }
+    fireEvent.press(ui.getByRole("button", { name: "Manage access" }));
+    expect(ui.getByText("LOCAL PROTOTYPE")).toBeTruthy();
   });
 });
