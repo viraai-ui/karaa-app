@@ -212,20 +212,12 @@ export function CustomerPortfolio({ onAction }: Props) {
         <View style={s.heroFadeSoft} />
         <View style={s.heroFadeEdge} />
         <View style={s.heroCopy}>
-          <Text style={s.heroEyebrow}>PERSONALISED ACCESS</Text>
           <Text numberOfLines={1} style={s.title}>
             My Portfolio
           </Text>
           <Text style={s.subtitle}>
             Your projects, progress and private records—{`\n`}all in one place.
           </Text>
-        </View>
-        <View style={s.identity}>
-          <View style={s.identityIcon}><LineIcon name="pin" color={gold} size={14} /></View>
-          <View>
-            <Text style={s.welcome}>Welcome, Arjun</Text>
-            <Text style={s.member}>KG-INV-4821</Text>
-          </View>
         </View>
       </View>
       <View style={s.content}>
@@ -270,10 +262,9 @@ export function CustomerPortfolio({ onAction }: Props) {
               style={s.quickButton}
             >
               <LineIcon name={icon} size={18} />
-              <Text numberOfLines={1} style={s.quickText}>
+              <Text style={s.quickText}>
                 {title}
               </Text>
-              <LineIcon name="arrow" color={gold} size={14} />
             </Pressable>
           ))}
         </View>
@@ -368,19 +359,49 @@ function Metric({
   l,
   last,
 }: {
-  icon: IconName;
+  icon: "building" | "file" | "bell";
   n: string;
   l: string;
   last?: boolean;
 }) {
   return (
     <View style={[s.metric, last && s.metricLast]}>
-      <LineIcon name={icon} color={gold} size={21} />
+      <OverviewIcon name={icon} />
       <Text style={s.metricN}>{n}</Text>
       <Text style={s.metricL}>{l}</Text>
     </View>
   );
 }
+
+/** Consistent line symbols reserved for the three portfolio overview metrics. */
+function OverviewIcon({ name }: { name: "building" | "file" | "bell" }) {
+  return (
+    <View style={s.overviewIcon} testID={`portfolio-overview-icon-${name}`}>
+      {name === "building" ? (
+        <View style={o.projects}>
+          <View style={o.projectBack} />
+          <View style={o.projectFront}>
+            <View style={o.iconLine} />
+            <View style={o.iconLineShort} />
+          </View>
+        </View>
+      ) : name === "file" ? (
+        <View style={o.document}>
+          <View style={o.documentFold} />
+          <View style={o.iconLine} />
+          <View style={o.iconLineShort} />
+        </View>
+      ) : (
+        <View style={o.notification}>
+          <View style={o.notificationBody} />
+          <View style={o.notificationBase} />
+          <View style={o.notificationDot} />
+        </View>
+      )}
+    </View>
+  );
+}
+
 function ProjectCard({
   p,
   open,
@@ -566,6 +587,19 @@ const i = StyleSheet.create({
     width: 7,
   },
 });
+const o = StyleSheet.create({
+  projects: { height: 18, position: "relative", width: 18 },
+  projectBack: { borderColor: gold, borderRadius: 2, borderWidth: 1.4, height: 12, left: 1, position: "absolute", top: 1, width: 13 },
+  projectFront: { backgroundColor: "#fffdf8", borderColor: gold, borderRadius: 2, borderWidth: 1.4, bottom: 1, height: 12, paddingLeft: 3, paddingTop: 3, position: "absolute", right: 1, width: 13 },
+  iconLine: { backgroundColor: gold, height: 1.2, width: 6 },
+  iconLineShort: { backgroundColor: gold, height: 1.2, marginTop: 2.5, width: 4 },
+  document: { borderColor: gold, borderRadius: 2, borderWidth: 1.4, height: 18, overflow: "hidden", paddingLeft: 3, paddingTop: 7, position: "relative", width: 15 },
+  documentFold: { borderBottomColor: gold, borderBottomWidth: 1.4, borderLeftColor: gold, borderLeftWidth: 1.4, height: 5, position: "absolute", right: -1, top: -1, width: 5 },
+  notification: { height: 18, position: "relative", width: 18 },
+  notificationBody: { borderColor: gold, borderBottomWidth: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderWidth: 1.4, height: 12, left: 3, position: "absolute", top: 2, width: 12 },
+  notificationBase: { backgroundColor: gold, height: 1.4, left: 1.5, position: "absolute", top: 14, width: 15 },
+  notificationDot: { backgroundColor: gold, borderRadius: 2, bottom: 0, height: 2.5, left: 7.75, position: "absolute", width: 2.5 },
+});
 // White-first portfolio language: generous rhythm, warm accents and one clear action per level.
 const s = StyleSheet.create({
   page: {
@@ -630,24 +664,10 @@ const s = StyleSheet.create({
   heroCopy: {
     left: 20,
     position: "absolute",
-    top: 22,
+    top: 47,
     width: "64%",
     zIndex: 2,
   },
-  identity: {
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,.9)",
-    borderRadius: 18,
-    bottom: 20,
-    flexDirection: "row",
-    left: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    position: "absolute",
-    zIndex: 3,
-  },
-  heroEyebrow: { color: gold, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, marginBottom: 5 },
-  identityIcon: { alignItems: "center", borderColor: "#d7b976", borderRadius: 18, borderWidth: 1, height: 30, justifyContent: "center", marginRight: 8, width: 30 },
   title: {
     color: ink,
     fontFamily: "serif",
@@ -655,8 +675,6 @@ const s = StyleSheet.create({
     lineHeight: 37,
   },
   subtitle: { color: "#4f4d49", fontSize: 10, lineHeight: 15, marginTop: 8 },
-  welcome: { color: ink, fontSize: 9, fontWeight: "700" },
-  member: { color: muted, fontSize: 8, marginTop: 2 },
   content: { gap: 10, paddingHorizontal: 16 },
   overview: {
     backgroundColor: "#fff",
@@ -681,6 +699,17 @@ const s = StyleSheet.create({
     gap: 3,
   },
   metricLast: { borderRightWidth: 0 },
+  overviewIcon: {
+    alignItems: "center",
+    backgroundColor: "#fbf7ef",
+    borderColor: "#eee2d0",
+    borderRadius: 16,
+    borderWidth: 1,
+    height: 32,
+    justifyContent: "center",
+    marginBottom: 1,
+    width: 32,
+  },
   metricN: { color: ink, fontFamily: "serif", fontSize: 23, lineHeight: 27 },
   metricL: { color: muted, fontSize: 8 },
   syncRow: {
@@ -711,13 +740,14 @@ const s = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     flex: 1,
-    flexDirection: "row",
-    gap: 5,
+    flexDirection: "column",
+    gap: 6,
     justifyContent: "center",
-    minHeight: 46,
-    paddingHorizontal: 5,
+    minHeight: 64,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
   },
-  quickText: { color: ink, fontSize: 8, fontWeight: "600" },
+  quickText: { color: ink, fontSize: 9, fontWeight: "700", lineHeight: 12, textAlign: "center" },
   sectionHead: {
     alignItems: "center",
     flexDirection: "row",
