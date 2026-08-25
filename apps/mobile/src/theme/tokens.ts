@@ -1,5 +1,5 @@
 export const colors = {
-  canvas: '#FCFBF8',
+  canvas: '#FFFFFF',
   paper: '#FFFFFF',
   ink: '#050605',
   muted: '#625F58',

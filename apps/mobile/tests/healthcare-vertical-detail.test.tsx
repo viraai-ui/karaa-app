@@ -26,7 +26,7 @@ describe.each(verticalDetails)('$title universal vertical detail', (vertical) =>
       expect(screen.getByText(pathway.description)).toBeTruthy();
       expect(StyleSheet.flatten(screen.getByTestId(`vertical-pathway-${index+1}`).props.style)).toMatchObject({height:101,borderRadius:10});
       expect(StyleSheet.flatten(screen.getByTestId(`vertical-pathway-title-${index+1}`).props.style)).toMatchObject({fontSize:16,lineHeight:17});
-      expect(StyleSheet.flatten(screen.getByTestId(`vertical-pathway-description-${index+1}`).props.style)).toMatchObject({fontSize:9,lineHeight:12,marginTop:7});
+      expect(StyleSheet.flatten(screen.getByTestId(`vertical-pathway-description-${index+1}`).props.style)).toMatchObject({fontSize:10,lineHeight:12,marginTop:7});
       expect(screen.getByTestId(`vertical-pathway-description-${index+1}`).props.numberOfLines).toBe(1);
     });
     vertical.matters.forEach(matter => {

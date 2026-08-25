@@ -77,7 +77,7 @@ function installWorkspaceFixture(directory) {
 test('root test command runs the dispatcher suite before workspace aggregation', () => {
   assert.equal(
     rootPackage.scripts.test,
-    'node --test tests/workspace-script-dispatcher.test.mjs && node scripts/run-workspace-script.mjs test',
+    'node --test tests/workspace-script-dispatcher.test.mjs && node scripts/check-image-performance.mjs && node scripts/run-workspace-script.mjs test',
   );
 });
 

@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import type { ImageSourcePropType } from "react-native";
+import { cardShadow, colors, radii } from "../theme/tokens";
 import type { OfflineDemoAction, OfflineDemoState } from "./offline-demo";
 import type {
   PortfolioProject,
@@ -168,7 +169,7 @@ type IconName =
   | "right"
   | "grid"
   | "check";
-const GOLD = "#C88712",
+const GOLD = colors.brass,
   INK = "#27231D",
   LINE = "#E7E1D7";
 const galleryOffset = (key: GalleryKey) =>
@@ -431,7 +432,7 @@ export function UniversalProjectTimeline({
         onPress={() => onAction({ type: "return-to-subvertical" })}
         style={a.back}
       >
-        <Text style={a.backArrow}>‹</Text>
+        <View style={a.backIcon} testID="aarohan-back-icon"><Icon name="back" color={colors.brass} size={18} /></View>
         <Text numberOfLines={1} style={a.backLabel}>{(backLabel ?? portfolio.title).toUpperCase()}</Text>
       </Pressable>
       <View style={a.postBackGap} testID="aarohan-post-back-gap" />
@@ -1021,7 +1022,7 @@ const cap = (x: string) => x[0].toUpperCase() + x.slice(1);
 
 export const a = StyleSheet.create({
   page: {
-    backgroundColor: "#FBFAF7",
+    backgroundColor: "#FFFFFF",
     marginHorizontal: -16,
     marginTop: -16,
     paddingBottom: 14,
@@ -1034,16 +1035,16 @@ export const a = StyleSheet.create({
     height: 44,
     paddingHorizontal: 15,
   },
-  backArrow: { color: "#C99B36", fontSize: 23, marginRight: 6 },
+  backIcon: { alignItems: "center", justifyContent: "center", marginRight: 6 },
   backLabel: {
     color: "#EEE9DF",
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
   },
-  postBackGap: { height: 12, backgroundColor: "#FBFAF7" },
+  postBackGap: { height: 12, backgroundColor: "#FFFFFF" },
   summary: {
-    backgroundColor: "#FFFDF8",
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
     paddingTop: 0,
     paddingBottom: 6,
@@ -1067,25 +1068,25 @@ export const a = StyleSheet.create({
     backgroundColor: "#4B8A55",
     marginTop: 5,
   },
-  status: { fontSize: 9, color: "#4B8A55", fontWeight: "800", marginTop: 5 },
+  status: { fontSize: 10, color: "#4B8A55", fontWeight: "800", marginTop: 5 },
   metrics: { flexDirection: "row", marginTop: 6 },
   metric: { flex: 1, minWidth: 0 },
   metricBig: { fontFamily: "serif", fontSize: 18, lineHeight: 19, color: GOLD },
   metricSmall: {
     fontFamily: undefined,
-    fontSize: 9,
+    fontSize: 10,
     color: INK,
     fontWeight: "700",
     paddingTop: 4,
   },
-  metricLabel: { fontSize: 8, color: "#777168" },
+  metricLabel: { fontSize: 10, color: "#777168" },
   progress: { height: 2, backgroundColor: "#EAE4DA", marginTop: 6 },
   progressFill: { height: 2, backgroundColor: GOLD, shadowColor: GOLD, shadowOpacity: 0.25, shadowRadius: 2 },
   progressNumber: {
     position: "absolute",
     right: 16,
     bottom: 2,
-    fontSize: 7,
+    fontSize: 10,
     color: "#777168",
   },
   tabs: {
@@ -1107,7 +1108,7 @@ export const a = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   tabOn: { borderBottomColor: GOLD },
-  tabText: { fontSize: 9, color: "#58534C", fontWeight: "700" },
+  tabText: { fontSize: 10, color: "#58534C", fontWeight: "700" },
   gold: { color: GOLD },
   body: { paddingHorizontal: 16, paddingTop: 8 },
   filters: { flexDirection: "row", gap: 4, marginBottom: 7 },
@@ -1123,10 +1124,10 @@ export const a = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingHorizontal: 1,
   },
-  chipOn: { borderColor: GOLD, backgroundColor: "#FFF7E7" },
-  chipText: { fontSize: 8.5, color: "#625D55", fontWeight: "700" },
+  chipOn: { borderColor: GOLD, backgroundColor: colors.secondarySurface },
+  chipText: { fontSize: 10, color: "#625D55", fontWeight: "700" },
   heading: { fontFamily: "serif", fontSize: 20, lineHeight: 23, color: INK },
-  intro: { fontSize: 9.5, lineHeight: 13, color: "#777168", marginTop: 1 },
+  intro: { fontSize: 10, lineHeight: 13, color: "#777168", marginTop: 1 },
   timeline: { marginTop: 6 },
   row: { paddingLeft: 30, position: "relative", paddingBottom: 7 },
   line: {
@@ -1169,17 +1170,17 @@ export const a = StyleSheet.create({
     minHeight: 58,
     borderWidth: 1,
     borderColor: LINE,
-    borderRadius: 5,
+    borderRadius: radii.sm,
     padding: 8,
     backgroundColor: "#FFF",
     position: "relative",
   },
-  featured: { borderColor: "#D9AD4D", backgroundColor: "#FFFCF4", shadowColor: GOLD, shadowOpacity: 0.16, shadowRadius: 9, elevation: 3 },
+  featured: { borderColor: GOLD, backgroundColor: colors.secondarySurface, ...cardShadow },
   cardCopy: { minWidth: 0 },
   meta: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 4, minWidth: 0 },
-  date: { fontSize: 8, lineHeight: 10, color: "#8B6418", fontWeight: "900", backgroundColor: "#FBF3DF", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 8, flexShrink: 1 },
+  date: { fontSize: 10, lineHeight: 10, color: "#8B6418", fontWeight: "900", backgroundColor: "#FBF3DF", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 8, flexShrink: 1 },
   badge: {
-    fontSize: 7.5,
+    fontSize: 10,
     lineHeight: 10,
     color: "#46804D",
     fontWeight: "900",
@@ -1198,7 +1199,7 @@ export const a = StyleSheet.create({
     marginTop: 3,
     flexShrink: 1,
   },
-  detail: { fontSize: 8.5, lineHeight: 12, color: "#625D55", marginTop: 1, flexShrink: 1 },
+  detail: { fontSize: 10, lineHeight: 12, color: "#625D55", marginTop: 1, flexShrink: 1 },
   mediaRow: { flex: 1, flexDirection: "row", gap: 4, marginTop: 6 },
   thumb: { flex: 1, minWidth: 0, height: 58, position: "relative" },
   photo: { width: "100%", height: "100%", borderRadius: 2 },
@@ -1227,7 +1228,7 @@ export const a = StyleSheet.create({
     paddingHorizontal: 3,
   },
   actionText: {
-    fontSize: 8,
+    fontSize: 10,
     lineHeight: 10,
     color: "#69583F",
     fontWeight: "700",
@@ -1241,7 +1242,7 @@ export const a = StyleSheet.create({
     gap: 4,
     marginTop: 3,
   },
-  verifiedText: { fontSize: 8, color: "#777168", flexShrink: 1, minWidth: 0 },
+  verifiedText: { fontSize: 10, color: "#777168", flexShrink: 1, minWidth: 0 },
   sideCopy: { paddingRight: 132, minHeight: 61 },
   sideMedia: { position: "absolute", right: 8, top: 8, width: 124 },
   siteMedia: { position: "absolute", right: 8, top: 8, width: 105 },
@@ -1256,11 +1257,11 @@ export const a = StyleSheet.create({
     borderColor: LINE,
     borderRadius: 3,
   },
-  approved: { fontSize: 8.5, color: "#43804B", fontWeight: "800" },
-  onSchedule: { fontSize: 8.5, color: "#777168" },
+  approved: { fontSize: 10, color: "#43804B", fontWeight: "800" },
+  onSchedule: { fontSize: 10, color: "#777168" },
   miniBox: { width: 8, height: 8, borderWidth: 1, borderColor: "#99938A" },
-  planned: { fontSize: 8.5, color: GOLD, fontWeight: "700", marginTop: 4 },
-  nextLabel: { fontSize: 8, color: GOLD, fontWeight: "900" },
+  planned: { fontSize: 10, color: GOLD, fontWeight: "700", marginTop: 4 },
+  nextLabel: { fontSize: 10, color: GOLD, fontWeight: "900" },
   modalBackdrop: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
   modalShade: {
     flex: 1,

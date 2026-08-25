@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import type { OfflineDemoAction } from "./offline-demo";
+import { cardShadow, colors, radii } from "../theme/tokens";
 
 export const customerPortfolioProjects = [
   {
@@ -73,12 +74,12 @@ export function customerPortfolioProjectAction(
 
 type Props = { onAction: (action: OfflineDemoAction) => void };
 type Panel = { title: string; body: string } | null;
-const gold = "#b57a19",
+const gold = colors.brass,
   ink = "#171717",
   ivory = "#fbf8f1",
   muted = "#62615e",
   line = "#e4e1da",
-  orange = "#dc7e09";
+  orange = colors.brass;
 
 type IconName =
   | "building"
@@ -520,7 +521,7 @@ const i = StyleSheet.create({
 const o = StyleSheet.create({
   projects: { height: 18, position: "relative", width: 18 },
   projectBack: { borderColor: gold, borderRadius: 2, borderWidth: 1.4, height: 12, left: 1, position: "absolute", top: 1, width: 13 },
-  projectFront: { backgroundColor: "#fffdf8", borderColor: gold, borderRadius: 2, borderWidth: 1.4, bottom: 1, height: 12, paddingLeft: 3, paddingTop: 3, position: "absolute", right: 1, width: 13 },
+  projectFront: { backgroundColor: "#FFFFFF", borderColor: gold, borderRadius: 2, borderWidth: 1.4, bottom: 1, height: 12, paddingLeft: 3, paddingTop: 3, position: "absolute", right: 1, width: 13 },
   iconLine: { backgroundColor: gold, height: 1.2, width: 6 },
   iconLineShort: { backgroundColor: gold, height: 1.2, marginTop: 2.5, width: 4 },
   document: { borderColor: gold, borderRadius: 2, borderWidth: 1.4, height: 18, overflow: "hidden", paddingLeft: 3, paddingTop: 7, position: "relative", width: 15 },
@@ -609,16 +610,13 @@ const s = StyleSheet.create({
   overview: {
     backgroundColor: "#fff",
     borderColor: line,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1,
     marginTop: -22,
     paddingHorizontal: 14,
     paddingBottom: 15,
     paddingTop: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    ...cardShadow,
   },
   overline: { color: ink, fontFamily: "serif", fontSize: 16, marginBottom: 14 },
   metrics: { flexDirection: "row", minHeight: 74 },
@@ -632,7 +630,7 @@ const s = StyleSheet.create({
   metricLast: { borderRightWidth: 0 },
   overviewIcon: {
     alignItems: "center",
-    backgroundColor: "#fbf7ef",
+    backgroundColor: "#FFFFFF",
     borderColor: "#eee2d0",
     borderRadius: 16,
     borderWidth: 1,
@@ -642,12 +640,12 @@ const s = StyleSheet.create({
     width: 32,
   },
   metricN: { color: ink, fontFamily: "serif", fontSize: 23, lineHeight: 27 },
-  metricL: { color: muted, fontSize: 8 },
+  metricL: { color: muted, fontSize: 10 },
   inline: { alignItems: "center", flexDirection: "row", gap: 6 },
   quick: { flexDirection: "row", gap: 6 },
   quickButton: {
     alignItems: "center",
-    backgroundColor: "#fbf8f2",
+    backgroundColor: "#FFFFFF",
     borderColor: "#eee5d8",
     borderRadius: 10,
     borderWidth: 1,
@@ -659,7 +657,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 8,
   },
-  quickText: { color: ink, fontSize: 9, fontWeight: "700", lineHeight: 12, textAlign: "center" },
+  quickText: { color: ink, fontSize: 10, fontWeight: "700", lineHeight: 12, textAlign: "center" },
   sectionHead: {
     marginTop: 14,
     paddingHorizontal: 2,
@@ -675,14 +673,11 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderColor: line,
-    borderRadius: 13,
+    borderRadius: radii.md,
     borderWidth: 1,
     overflow: "hidden",
     padding: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.055,
-    shadowRadius: 9,
+    ...cardShadow,
   },
   cardNarrow: { padding: 12 },
   cardLead: { alignItems: "stretch", flexDirection: "row", minWidth: 0 },
@@ -690,7 +685,7 @@ const s = StyleSheet.create({
   cardImageNarrow: { height: 104, width: "34%" },
   cardSummary: { flex: 1, justifyContent: "center", minWidth: 0, paddingLeft: 13 },
   statusRow: { alignItems: "center", flexDirection: "row", gap: 6 },
-  status: { color: gold, fontSize: 8, fontWeight: "800", letterSpacing: 0.7 },
+  status: { color: gold, fontSize: 10, fontWeight: "800", letterSpacing: 0.7 },
   newDot: { backgroundColor: gold, borderRadius: 3, height: 5, width: 5 },
   cardTitle: {
     color: ink,
@@ -703,8 +698,8 @@ const s = StyleSheet.create({
   location: { color: muted, flex: 1, fontSize: 10, lineHeight: 14 },
   progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 11 },
   progress: { color: ink, fontFamily: "serif", fontSize: 16 },
-  complete: { color: muted, fontSize: 9, marginLeft: 5 },
-  percent: { color: muted, fontSize: 9, marginLeft: "auto" },
+  complete: { color: muted, fontSize: 10, marginLeft: 5 },
+  percent: { color: muted, fontSize: 10, marginLeft: "auto" },
   progressRow: { marginTop: 4 },
   rail: {
     backgroundColor: "#ece9e3",
@@ -716,7 +711,7 @@ const s = StyleSheet.create({
   fill: { backgroundColor: orange, borderRadius: 4, height: 3 },
   milestone: {
     alignItems: "center",
-    backgroundColor: "#fbf8f2",
+    backgroundColor: "#FFFFFF",
     borderRadius: 9,
     flexDirection: "row",
     marginTop: 5,
@@ -730,11 +725,11 @@ const s = StyleSheet.create({
   },
   factLabel: {
     color: gold,
-    fontSize: 6,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
-  factValue: { color: ink, fontSize: 9, marginTop: 3 },
+  factValue: { color: ink, fontSize: 10, marginTop: 3 },
   updateButton: {
     alignItems: "center",
     justifyContent: "center",
@@ -756,7 +751,7 @@ const s = StyleSheet.create({
   primaryActionText: { color: "#000", fontSize: 11, fontWeight: "700" },
   privacy: {
     alignItems: "center",
-    backgroundColor: "#fbf7ef",
+    backgroundColor: "#FFFFFF",
     borderColor: "#eadfce",
     borderRadius: 12,
     borderWidth: 1,
@@ -775,7 +770,7 @@ const s = StyleSheet.create({
   },
   flex: { flex: 1, minWidth: 0 },
   privacyTitle: { color: ink, fontSize: 10, fontWeight: "700" },
-  privacyCopy: { color: muted, fontSize: 7, lineHeight: 11, marginTop: 3 },
+  privacyCopy: { color: muted, fontSize: 10, lineHeight: 11, marginTop: 3 },
   manage: {
     alignItems: "center",
     flexDirection: "row",
@@ -784,7 +779,7 @@ const s = StyleSheet.create({
     minHeight: 44,
     paddingLeft: 6,
   },
-  manageText: { color: gold, fontSize: 8, fontWeight: "700" },
+  manageText: { color: gold, fontSize: 10, fontWeight: "700" },
   modalShade: {
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,.62)",
@@ -801,7 +796,7 @@ const s = StyleSheet.create({
   },
   modalEyebrow: {
     color: gold,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "900",
     letterSpacing: 1,
   },

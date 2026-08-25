@@ -71,10 +71,11 @@ describe("portfolio project timeline experience", () => {
     expect(aarohanStyles.page).toMatchObject({ marginTop: -16, marginHorizontal: -16 });
     expect(aarohanVisualMetrics).toMatchObject({ topInsetCompensation: -16, backTouchTarget: 44, backChevron: 23 });
     expect(view.getByTestId("aarohan-back-control").props.style).toMatchObject({ alignItems: "center", backgroundColor: "#080908", flexDirection: "row", height: 44, paddingHorizontal: 15 });
-    expect(view.getByTestId("aarohan-post-back-gap").props.style).toEqual({ height: 12, backgroundColor: "#FBFAF7" });
+    expect(view.getByTestId("aarohan-post-back-gap").props.style).toEqual({ height: 12, backgroundColor: "#FFFFFF" });
     expect(aarohanVisualMetrics.postBackGap).toBe(12);
-    expect(view.getByText("‹").props.style).toMatchObject({ color: "#C99B36", fontSize: 23, marginRight: 6 });
-    expect(view.getByText("MULTI-SPECIALTY HOSPITALS").props.style).toMatchObject({ color: "#EEE9DF", fontSize: 8, fontWeight: "800", letterSpacing: 1 });
+    expect(view.getByTestId("aarohan-back-icon").props.style).toMatchObject({ marginRight: 6 });
+    expect(view.queryByText("‹")).toBeNull();
+    expect(view.getByText("MULTI-SPECIALTY HOSPITALS").props.style).toMatchObject({ color: "#EEE9DF", fontSize: 10, fontWeight: "800", letterSpacing: 1 });
     expect(view.queryByTestId("aarohan-back-icon-area")).toBeNull();
     fireEvent.press(view.getByLabelText("Back to Multi-Specialty Hospitals"));
     expect(onAction).toHaveBeenLastCalledWith({ type: "return-to-subvertical" });
@@ -193,7 +194,7 @@ describe("portfolio project timeline experience", () => {
     expect(aarohanStyles.badge).toMatchObject({ flexShrink: 1 });
     expect(aarohanStyles.actions).toMatchObject({ minWidth: 0 });
     expect(aarohanStyles.action).toMatchObject({ minWidth: 0, minHeight: 44 });
-    expect(aarohanStyles.actionText).toMatchObject({ fontSize: 8, lineHeight: 10, flexShrink: 1, minWidth: 0 });
+    expect(aarohanStyles.actionText).toMatchObject({ fontSize: 10, lineHeight: 10, flexShrink: 1, minWidth: 0 });
     expect(aarohanStyles.modalHead).toMatchObject({ gap: 8 });
     expect(aarohanStyles.modalHeadCopy).toMatchObject({ flex: 1, minWidth: 0 });
     expect(aarohanStyles.modalTitle).toMatchObject({ fontSize: 16.5, lineHeight: 20, flexShrink: 1, minWidth: 0 });
