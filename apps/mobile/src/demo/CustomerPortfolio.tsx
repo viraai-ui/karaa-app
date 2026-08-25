@@ -202,11 +202,6 @@ export function CustomerPortfolio({ onAction }: Props) {
           style={s.heroImage}
           accessibilityLabel="Construction site"
         />
-        <View style={s.heroFadeSolid} />
-        <View style={s.heroFadeStrong} />
-        <View style={s.heroFadeMedium} />
-        <View style={s.heroFadeSoft} />
-        <View style={s.heroFadeEdge} />
         <View style={s.heroCopy}>
           <Text numberOfLines={1} style={s.title}>
             My Portfolio
@@ -551,46 +546,6 @@ const s = StyleSheet.create({
     position: "absolute",
     right: 0,
     width: "64%",
-  },
-  heroFadeSolid: {
-    backgroundColor: "#fff",
-    bottom: 0,
-    height: 178,
-    left: "32%",
-    position: "absolute",
-    width: "12%",
-  },
-  heroFadeStrong: {
-    backgroundColor: "rgba(255,255,255,.92)",
-    bottom: 0,
-    height: 178,
-    left: "44%",
-    position: "absolute",
-    width: "6%",
-  },
-  heroFadeMedium: {
-    backgroundColor: "rgba(255,255,255,.72)",
-    bottom: 0,
-    height: 178,
-    left: "50%",
-    position: "absolute",
-    width: "6%",
-  },
-  heroFadeSoft: {
-    backgroundColor: "rgba(255,255,255,.45)",
-    bottom: 0,
-    height: 178,
-    left: "56%",
-    position: "absolute",
-    width: "6%",
-  },
-  heroFadeEdge: {
-    backgroundColor: "rgba(255,255,255,.2)",
-    bottom: 0,
-    height: 178,
-    left: "62%",
-    position: "absolute",
-    width: "6%",
   },
   heroCopy: {
     left: 20,
