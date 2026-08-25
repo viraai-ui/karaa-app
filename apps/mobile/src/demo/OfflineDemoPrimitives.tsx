@@ -16,7 +16,7 @@ export function DemoAppBar({ role, onSwitchWorkspace, onOpenSearch, onOpenNotifi
   const account = demoAccounts.find((item) => item.role === role)!;
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.appBar, healthcareBack && styles.healthcareAppBar, { paddingTop: insets.top }]} testID="demo-app-bar">
+    <View style={[styles.appBar, role === 'employee' && styles.employeeAppBar, healthcareBack && styles.healthcareAppBar, { paddingTop: insets.top }]} testID="demo-app-bar">
       <View style={styles.brandGroup}>
         {healthcareBack ? <Pressable accessibilityLabel="Back to Power of 9" accessibilityRole="button" onPress={healthcareBack} style={styles.headerBack}><Text style={styles.headerBackArrow}>←</Text></Pressable> : null}
         <KaraaBrand height={healthcareBack ? 28 : 26} variant={healthcareBack ? 'crown' : 'lockup'} />
@@ -112,6 +112,7 @@ export function OfflineDemoPrimitivesPreview() {
 
 const styles = StyleSheet.create({
   appBar: { alignItems: 'center', backgroundColor: '#050605', borderBottomColor: colors.brass, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 62, paddingHorizontal: 12 },
+  employeeAppBar: { minHeight: 70 },
   healthcareAppBar: { minHeight: 44, paddingHorizontal: 8 },
   headerBack: { alignItems: 'center', height: 44, justifyContent: 'center', marginLeft: -12, width: 44 }, headerBackArrow: { color: colors.brass, fontSize: 19 },
   brandGroup: { alignItems: 'center', flexDirection: 'row', flexShrink:1, gap: 6, minWidth:0 }, mark: { borderColor: colors.brass, borderWidth: 1, color: colors.brass, fontSize: 22, fontWeight: '900', height: 32, lineHeight: 29, textAlign: 'center', width: 32 }, brand: { color: colors.paper, fontSize: 15, fontWeight: '800', letterSpacing: 2.1 }, role: { color: colors.brass, fontSize: 10, fontWeight: '800', letterSpacing: 1.05, marginTop: 1 },

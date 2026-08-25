@@ -65,6 +65,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
           <ScrollView
             contentContainerStyle={[
               styles.content,
+              role === 'employee' && styles.employeeContent,
               {
                 paddingBottom: PAGE_END_CLEARANCE,
                 paddingLeft: spacing.md + insets.left,
@@ -99,5 +100,6 @@ const styles = StyleSheet.create({
   chatMotionSurface: { flex: 1 },
   scrollView: { flex: 1 },
   content: { gap: spacing.md, padding: spacing.md },
+  employeeContent: { paddingTop: 28 },
   floatingOverlay: { bottom: 82, position: 'absolute', right: 18, zIndex: 10 },
 });
