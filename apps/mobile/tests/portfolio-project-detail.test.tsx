@@ -9,7 +9,6 @@ import {
   aarohanTimeline,
   projectDetailResponsiveMetrics,
   projectDetailTabs,
-  projectTimelineFilters,
   s as projectDetailStyles,
 } from "../src/demo/PortfolioProjectDetail";
 import { a as aarohanStyles, aarohanGallerySizes, aarohanMotionContract, aarohanPhotos, aarohanVisualMetrics } from "../src/demo/AarohanTimelineBody";
@@ -40,7 +39,6 @@ describe("portfolio project timeline experience", () => {
     ]);
     expect(new Set(aarohanTimeline.map((item) => item.variant))).toHaveProperty("size", 6);
     expect(projectDetailTabs).toEqual(["timeline", "overview", "documents", "media"]);
-    expect(projectTimelineFilters).toHaveLength(4);
     expect(projectDetailResponsiveMetrics.supportedWidths).toEqual([320, 360, 390, 430]);
     expect(projectDetailResponsiveMetrics.filterMinFont).toBeGreaterThanOrEqual(10);
     expect(projectDetailResponsiveMetrics.touchTarget).toBe(44);
@@ -145,15 +143,9 @@ describe("portfolio project timeline experience", () => {
     expect(view.queryByText("NEXT MAJOR MILESTONE")).toBeNull();
     expect(view.queryByText("Expected Q2 2027")).toBeNull();
     expect(view.queryByLabelText("Notify me")).toBeNull();
-    fireEvent.press(view.getByLabelText("Filter Documents"));
-    expect(view.getByText("Planning and statutory approvals")).toBeTruthy();
-    expect(view.queryByText("Foundation works completed")).toBeNull();
-    expect(view.queryByText("Basement and services core underway")).toBeNull();
-    expect(view.queryByLabelText("View 8 Photos")).toBeNull();
-    fireEvent.press(view.getByLabelText("Filter Site Updates"));
-    expect(view.getByText("Basement and services core underway")).toBeTruthy();
-    expect(view.queryByText("Foundation works completed")).toBeNull();
-    fireEvent.press(view.getByLabelText("Filter All updates"));
+    expect(view.queryByTestId("aarohan-filter-row")).toBeNull();
+    expect(view.queryByLabelText("Filter All updates")).toBeNull();
+    expect(view.queryByLabelText("Filter Documents")).toBeNull();
     expect(view.getAllByLabelText("View 8 Photos")).toHaveLength(1);
     fireEvent.press(view.getByLabelText("Open Site report PDF"));
     await waitFor(() => expect(Linking.openURL).toHaveBeenCalled());

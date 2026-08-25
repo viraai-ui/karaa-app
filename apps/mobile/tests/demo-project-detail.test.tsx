@@ -92,19 +92,17 @@ describe('Power-of-9 project detail', () => {
     expect(rendered.getByRole('tab', { name: heading.replace('Project ', '').replace('facts', 'Overview').replace('timeline', 'Timeline').replace('documents', 'Documents').replace('media', 'Media') }).props.accessibilityState).toEqual({ selected: true });
   });
 
-  it('filters the Timeline records in component state', () => {
+  it('shows the complete Timeline without secondary filter controls', () => {
     const { rendered } = renderDetail();
 
     expect(rendered.getByText('Inverter row commissioning review recorded')).toBeTruthy();
     expect(rendered.getByText('Amaravati Solar Commons field coordination')).toBeTruthy();
     expect(rendered.getByText('Inverter row commissioning brief')).toBeTruthy();
 
-    fireEvent.press(rendered.getByRole('button', { name: 'Filter Site updates' }));
-
-    expect(rendered.getByText('Amaravati Solar Commons field coordination')).toBeTruthy();
-    expect(rendered.queryByText('Inverter row commissioning review recorded')).toBeNull();
-    expect(rendered.queryByText('Inverter row commissioning brief')).toBeNull();
-    expect(rendered.getByRole('button', { name: 'Filter Site updates' }).props.accessibilityState).toEqual({ selected: true });
+    expect(rendered.queryByRole('button', { name: 'Filter All updates' })).toBeNull();
+    expect(rendered.queryByRole('button', { name: 'Filter Milestones' })).toBeNull();
+    expect(rendered.queryByRole('button', { name: 'Filter Site updates' })).toBeNull();
+    expect(rendered.queryByRole('button', { name: 'Filter Documents' })).toBeNull();
   });
 
   it('shows the reviewed Amaravati field update once with shared Customer and Management state', () => {

@@ -20,7 +20,6 @@ import type {
   SubverticalPortfolio,
 } from "./subvertical-projects";
 export const projectDetailTabs = ["timeline", "overview", "documents", "media"] as const;
-export const projectTimelineFilters = ["All updates", "Milestones", "Site Updates", "Documents"] as const;
 export type TimelineVariant = "current" | "foundation" | "site" | "mobilisation" | "approvals" | "upcoming";
 export type TimelineItem = { variant: TimelineVariant; title: string; date: string; status: string; detail: string; filters: readonly string[] };
 export const aarohanTimeline: readonly TimelineItem[] = [
@@ -404,8 +403,6 @@ export function UniversalProjectTimeline({
   selectedTab: OfflineDemoState["selectedProjectDetailTab"];
   onAction: (a: OfflineDemoAction) => void;
 }): React.ReactElement {
-  const [filter, setFilter] =
-    useState<(typeof projectTimelineFilters)[number]>("All updates");
   const [gallery, setGallery] = useState<GalleryState>(null);
   const [pdf, setPdf] = useState<string | null>(null);
   const reducedMotion = useReducedMotion();
@@ -496,38 +493,12 @@ export function UniversalProjectTimeline({
       </PremiumReveal>
       {selectedTab === "timeline" && (
         <View style={a.body}>
-          <View style={a.filters} testID="aarohan-filter-row">
-            {projectTimelineFilters.map((x) => (
-              <Pressable
-                key={x}
-                accessibilityRole="button"
-                accessibilityLabel={`Filter ${x}`}
-                onPress={() => setFilter(x)}
-                style={(state) => [
-                  a.chip,
-                  filter === x && a.chipOn,
-                  pressed(state),
-                ]}
-              >
-                <Text
-                  numberOfLines={1}
-                  style={[a.chipText, filter === x && a.gold]}
-                >
-                  {x}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
           <Text style={a.heading}>Project Timeline</Text>
           <Text style={a.intro}>
             Follow every milestone, update and verified site record.
           </Text>
           <View style={a.timeline}>
-            {timeline
-              .filter(
-                (x) => filter === "All updates" || x.filters.includes(filter),
-              )
-              .map((item, i, list) => (
+            {timeline.map((item, i, list) => (
                 <Entry
                   key={item.variant}
                   item={item}

@@ -6,10 +6,9 @@ import {
   UniversalProjectTimeline,
   aarohanTimeline,
   projectDetailTabs,
-  projectTimelineFilters,
 } from "./UniversalProjectTimeline";
 
-export { aarohanTimeline, projectDetailTabs, projectTimelineFilters };
+export { aarohanTimeline, projectDetailTabs };
 export type { TimelineItem, TimelineVariant } from "./UniversalProjectTimeline";
 
 /** Compatibility contract retained for consumers while all rendering is universal. */

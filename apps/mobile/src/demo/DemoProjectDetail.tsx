@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import type React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import {
-  DemoFilterChip,
   DemoImageFrame,
   DemoProgressRail,
   DemoStatusPill,
@@ -33,12 +31,6 @@ const projectTabs: readonly { key: ProjectDetailTab; label: string }[] = [
   { key: 'media', label: 'Media' },
 ];
 
-const timelineFilters: readonly { key: TimelineFilter; label: string }[] = [
-  { key: 'all', label: 'All updates' },
-  { key: 'milestone', label: 'Milestones' },
-  { key: 'site', label: 'Site updates' },
-  { key: 'document', label: 'Documents' },
-];
 
 const sharedAmaravatiProjectId = 'amaravati-solar-commons';
 
@@ -189,9 +181,7 @@ function TimelineTab({
   project: DemoProject;
   includeReviewedFieldUpdate: boolean;
 }) {
-  const [filter, setFilter] = useState<TimelineFilter>('all');
   const records = timelineForProject(project, includeReviewedFieldUpdate);
-  const visibleRecords = filter === 'all' ? records : records.filter((record) => record.kind === filter);
 
   return (
     <View style={styles.section}>
@@ -199,18 +189,8 @@ function TimelineTab({
         <Text style={styles.sectionTitle}>Project timeline</Text>
         <Text style={styles.sectionIntro}>Delivery decisions, field notes, document revisions, and the next review.</Text>
       </View>
-      <View style={styles.filterRow}>
-        {timelineFilters.map((option) => (
-          <DemoFilterChip
-            key={option.key}
-            label={option.label}
-            onPress={() => setFilter(option.key)}
-            selected={filter === option.key}
-          />
-        ))}
-      </View>
       <View style={styles.recordList}>
-        {visibleRecords.map((record) => (
+        {records.map((record) => (
           <View key={record.id} style={styles.timelineRecord} testID={record.reviewed ? 'reviewed-field-update' : undefined}>
             <Text style={styles.recordContext}>{record.context}</Text>
             <Text style={styles.recordTitle}>{record.title}</Text>
