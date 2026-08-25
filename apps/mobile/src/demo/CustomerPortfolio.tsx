@@ -56,10 +56,13 @@ export const customerPortfolioProjects = [
   },
 ] as const;
 
-export type CustomerPortfolioProject = (typeof customerPortfolioProjects)[number];
+export type CustomerPortfolioProject =
+  (typeof customerPortfolioProjects)[number];
 
 /** Canonical navigation for records displayed by My Portfolio surfaces. */
-export function customerPortfolioProjectAction(project: CustomerPortfolioProject): OfflineDemoAction {
+export function customerPortfolioProjectAction(
+  project: CustomerPortfolioProject,
+): OfflineDemoAction {
   return project.id === "aarohan-medical-city-pune"
     ? { type: "open-portfolio-project", projectId: project.id }
     : { type: "select-tab", tab: "portfolio" };
@@ -393,125 +396,103 @@ function ProjectCard({
       style={[s.card, narrow && s.cardNarrow]}
       testID={`portfolio-card-${p.id}`}
     >
-      <Image
-        accessibilityLabel={`${p.name} project`}
-        source={p.image as ImageSourcePropType}
-        resizeMode="cover"
-        style={[s.cardImage, narrow && s.cardImageNarrow]}
-      />
-      <View style={s.cardBody}>
-        <Text numberOfLines={1} style={s.category}>
-          {p.category}
-        </Text>
-        <Text numberOfLines={2} style={s.cardTitle}>
-          {p.name}
-        </Text>
-        <View style={s.inline}>
-          <LineIcon name="pin" size={11} color={muted} />
-          <Text numberOfLines={1} style={s.location}>
-            {p.location}
+      <View style={s.cardLead}>
+        <Image
+          accessibilityLabel={`${p.name} project`}
+          source={p.image as ImageSourcePropType}
+          resizeMode="cover"
+          style={[s.cardImage, narrow && s.cardImageNarrow]}
+        />
+        <View style={s.cardSummary}>
+          <View style={s.statusRow}>
+            <Text style={s.status}>{p.status}</Text>
+            {p.fresh ? <View style={s.newDot} /> : null}
+          </View>
+          <Text numberOfLines={2} style={s.cardTitle}>
+            {p.name}
           </Text>
-        </View>
-        <View style={s.badges}>
-          <Text
-            style={[
-              s.role,
-              p.role === "UNIT HOLDER" && s.roleBlue,
-              p.role === "STAKEHOLDER" && s.rolePurple,
-            ]}
-          >
-            {p.role}
-          </Text>
-          <Text style={[s.status, p.status !== "ON TRACK" && s.statusBlue]}>
-            {p.status}
-          </Text>
-        </View>
-        <View style={s.progressTop}>
-          <Text style={s.progress}>{p.progress}%</Text>
-          <Text style={s.complete}>Complete</Text>
+          <View style={s.inline}>
+            <LineIcon name="pin" size={12} color={muted} />
+            <Text numberOfLines={1} style={s.location}>
+              {p.location}
+            </Text>
+          </View>
           <Text numberOfLines={1} style={s.update}>
             {p.update}
           </Text>
         </View>
-        <View
-          accessible
-          accessibilityLabel={`${p.name} completion`}
-          accessibilityRole="progressbar"
-          accessibilityValue={{
-            min: 0,
-            max: 100,
-            now: p.progress,
-            text: `${p.progress}% complete`,
-          }}
-          style={s.progressRow}
-        >
-          <View style={s.rail}>
-            <View style={[s.fill, { width: `${p.progress}%` }]} />
-          </View>
-          <Text style={s.percent}>{p.progress}%</Text>
+      </View>
+      <View style={s.progressTop}>
+        <Text style={s.progress}>{p.progress}%</Text>
+        <Text style={s.complete}>complete</Text>
+        <Text style={s.percent}>{p.progress}%</Text>
+      </View>
+      <View
+        accessible
+        accessibilityLabel={`${p.name} completion`}
+        accessibilityRole="progressbar"
+        accessibilityValue={{
+          min: 0,
+          max: 100,
+          now: p.progress,
+          text: `${p.progress}% complete`,
+        }}
+        style={s.progressRow}
+      >
+        <View style={s.rail}>
+          <View style={[s.fill, { width: `${p.progress}%` }]} />
         </View>
-        <View style={s.factStrip}>
-          <View style={s.milestone}>
-            <LineIcon name="calendar" size={15} />
-            <View>
-              <Text style={s.factLabel}>Next milestone</Text>
-              <Text numberOfLines={1} style={s.factValue}>
-                {p.next}
-              </Text>
-            </View>
-          </View>
-          <View style={s.fact}>
-            <LineIcon name="file" size={15} />
-            <Text style={s.factValue}>{p.docs} documents</Text>
-          </View>
-          {p.fresh ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Open new update for ${p.name}`}
-              hitSlop={10}
-              onPress={() =>
-                open(
-                  "New project update",
-                  `${p.update} — unread local prototype update.`,
-                )
-              }
-              style={s.fact}
-            >
-              <LineIcon name="bell" size={15} />
-              <View style={s.dot} />
-              <Text style={s.factValue}>1 new update</Text>
-            </Pressable>
-          ) : (
-            <View style={s.fact} />
-          )}
+      </View>
+      <View style={s.milestone}>
+        <View style={s.milestoneIcon}>
+          <LineIcon name="calendar" size={15} color={gold} />
         </View>
-        <View style={s.actions}>
+        <View style={s.flex}>
+          <Text style={s.factLabel}>NEXT MILESTONE</Text>
+          <Text numberOfLines={1} style={s.factValue}>
+            {p.next}
+          </Text>
+        </View>
+        {p.fresh ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`View project ${p.name}`}
-            hitSlop={10}
-            onPress={detail}
-            style={s.textAction}
-          >
-            <Text style={s.actionText}>View project</Text>
-            <LineIcon name="arrow" color={gold} size={16} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Documents for ${p.name}`}
-            hitSlop={10}
+            accessibilityLabel={`Open new update for ${p.name}`}
             onPress={() =>
               open(
-                `${p.name} documents`,
-                `${p.docs} project documents are represented in this local prototype.`,
+                "New project update",
+                `${p.update} — unread local prototype update.`,
               )
             }
-            style={s.textAction}
+            style={s.updateButton}
           >
-            <LineIcon name="file" color={gold} size={15} />
-            <Text style={s.actionText}>Documents</Text>
+            <LineIcon name="bell" size={16} color={gold} />
           </Pressable>
-        </View>
+        ) : null}
+      </View>
+      <View style={s.actions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Documents for ${p.name}`}
+          onPress={() =>
+            open(
+              `${p.name} documents`,
+              `${p.docs} project documents are represented in this local prototype.`,
+            )
+          }
+          style={s.textAction}
+        >
+          <LineIcon name="file" color={ink} size={15} />
+          <Text style={s.secondaryActionText}>Documents</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`View project ${p.name}`}
+          onPress={detail}
+          style={s.primaryAction}
+        >
+          <Text style={s.primaryActionText}>View project</Text>
+          <LineIcon name="arrow" color="#fff" size={16} />
+        </Pressable>
       </View>
     </View>
   );
@@ -613,318 +594,283 @@ const i = StyleSheet.create({
     width: 7,
   },
 });
+// White-first portfolio language: generous rhythm, warm accents and one clear action per level.
 const s = StyleSheet.create({
   page: {
-    backgroundColor: ivory,
+    backgroundColor: "#fff",
     marginHorizontal: -16,
     marginTop: -16,
-    paddingBottom: 6,
+    paddingBottom: 24,
   },
   hero: {
-    backgroundColor: "#f3eee4",
-    height: 136,
+    backgroundColor: "#f6f0e5",
+    height: 210,
     overflow: "hidden",
     position: "relative",
   },
-  heroImage: { height: "100%", position: "absolute", right: 0, width: "48%" },
-  heroFade: {
-    backgroundColor: "rgba(243,238,228,.34)",
-    height: "100%",
+  heroImage: {
+    bottom: 0,
+    height: 148,
     position: "absolute",
-    right: "32%",
-    width: "20%",
+    right: 0,
+    width: "55%",
   },
-  heroCopy: { left: 17, position: "absolute", top: 24, width: "58%" },
-  identity: { left: "51.5%", position: "absolute", top: 29, zIndex: 2 },
-  eyebrow: { color: gold, fontSize: 8, fontWeight: "700", letterSpacing: 0.7 },
+  heroFade: {
+    backgroundColor: "rgba(246,240,229,.42)",
+    bottom: 0,
+    height: 148,
+    position: "absolute",
+    right: "45%",
+    width: "18%",
+  },
+  heroCopy: {
+    left: 20,
+    position: "absolute",
+    top: 30,
+    width: "58%",
+    zIndex: 2,
+  },
+  identity: {
+    backgroundColor: "rgba(255,255,255,.9)",
+    borderRadius: 18,
+    bottom: 18,
+    left: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: "absolute",
+    zIndex: 3,
+  },
+  eyebrow: { color: gold, fontSize: 9, fontWeight: "800", letterSpacing: 1.2 },
   title: {
     color: ink,
     fontFamily: "serif",
-    fontSize: 25,
-    lineHeight: 30,
-    marginTop: 5,
+    fontSize: 31,
+    lineHeight: 37,
+    marginTop: 7,
   },
-  subtitle: { color: "#555451", fontSize: 9, lineHeight: 13, marginTop: 6 },
-  welcome: { color: ink, fontSize: 8, fontWeight: "600" },
-  member: { color: "#383838", fontSize: 8, marginTop: 2 },
-  content: { gap: 11, paddingHorizontal: 17, paddingTop: 0 },
+  subtitle: { color: "#4f4d49", fontSize: 10, lineHeight: 15, marginTop: 8 },
+  welcome: { color: ink, fontSize: 9, fontWeight: "700" },
+  member: { color: muted, fontSize: 8, marginTop: 2 },
+  content: { gap: 16, paddingHorizontal: 16 },
   overview: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderColor: line,
+    borderRadius: 12,
     borderWidth: 1,
-    borderRadius: 7,
-    elevation: 3,
-    height: 147,
     marginTop: -1,
-    paddingHorizontal: 13,
-    paddingTop: 12,
+    paddingHorizontal: 14,
+    paddingTop: 15,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
   },
-  overline: { color: ink, fontSize: 10, marginBottom: 8 },
-  metrics: { flexDirection: "row", height: 62 },
+  overline: { color: ink, fontFamily: "serif", fontSize: 16, marginBottom: 14 },
+  metrics: { flexDirection: "row", minHeight: 74 },
   metric: {
     alignItems: "center",
     borderRightColor: line,
     borderRightWidth: 1,
     flex: 1,
-    gap: 1,
+    gap: 3,
   },
   metricLast: { borderRightWidth: 0 },
-  metricN: {
-    color: "#d18a20",
-    fontFamily: "serif",
-    fontSize: 21,
-    lineHeight: 24,
-  },
+  metricN: { color: ink, fontFamily: "serif", fontSize: 23, lineHeight: 27 },
   metricL: { color: muted, fontSize: 8 },
   syncRow: {
     alignItems: "center",
+    borderTopColor: "#eeeae3",
+    borderTopWidth: 1,
     flexDirection: "row",
-    height: 44,
+    minHeight: 50,
     justifyContent: "space-between",
+    marginTop: 7,
   },
-  inline: { alignItems: "center", flexDirection: "row", gap: 5 },
+  inline: { alignItems: "center", flexDirection: "row", gap: 6 },
   sync: { color: muted, fontSize: 8 },
   refresh: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 5,
-    minHeight: 44,
-  },
-  refreshText: { color: gold, fontSize: 8 },
-  quick: { flexDirection: "row", gap: 9 },
-  quickButton: {
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderColor: line,
-    borderRadius: 6,
-    borderWidth: 1,
-    elevation: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: 8,
-    height: 44,
+    gap: 6,
     justifyContent: "center",
     minHeight: 44,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.07,
-    shadowRadius: 2,
+    minWidth: 72,
   },
-  quickText: { color: "#2d2d2c", fontSize: 8, fontWeight: "600" },
+  refreshText: { color: gold, fontSize: 9, fontWeight: "700" },
+  quick: { flexDirection: "row", gap: 8 },
+  quickButton: {
+    alignItems: "center",
+    backgroundColor: "#fbf8f2",
+    borderColor: "#eee5d8",
+    borderRadius: 10,
+    borderWidth: 1,
+    flex: 1,
+    gap: 7,
+    justifyContent: "center",
+    minHeight: 62,
+    paddingHorizontal: 5,
+  },
+  quickText: { color: ink, fontSize: 8, fontWeight: "600" },
   sectionHead: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 6,
+    marginTop: 10,
   },
   sectionTitle: {
     color: ink,
     fontFamily: "serif",
-    fontSize: 20,
-    lineHeight: 23,
+    fontSize: 24,
+    lineHeight: 28,
   },
-  sectionSub: { color: muted, fontSize: 8, marginTop: 3 },
+  sectionSub: { color: muted, fontSize: 9, marginTop: 4 },
   filter: {
     alignItems: "center",
+    backgroundColor: "#fff",
     borderColor: line,
-    borderRadius: 6,
+    borderRadius: 22,
     borderWidth: 1,
-    height: 38,
     justifyContent: "center",
     minHeight: 44,
-    width: 38,
+    minWidth: 44,
   },
-  cards: { gap: 8 },
+  cards: { gap: 14 },
   card: {
     backgroundColor: "#fff",
     borderColor: line,
-    borderRadius: 7,
+    borderRadius: 13,
     borderWidth: 1,
-    elevation: 2,
-    height: 168,
     overflow: "hidden",
+    padding: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.055,
+    shadowRadius: 9,
   },
-  cardNarrow: { height: 192 },
-  cardImage: {
-    height: 96,
-    left: 8,
-    position: "absolute",
-    top: 8,
-    width: "37%",
-    borderRadius: 5,
-  },
-  cardImageNarrow: { height: 106, width: "34%" },
-  cardBody: {
-    height: "100%",
-    paddingLeft: "41.5%",
-    paddingRight: 8,
-    paddingTop: 8,
-  },
-  category: {
-    color: "#343432",
-    fontSize: 6,
-    fontWeight: "700",
-    letterSpacing: 0.35,
-  },
+  cardNarrow: { padding: 10 },
+  cardLead: { flexDirection: "row", minWidth: 0 },
+  cardImage: { borderRadius: 9, height: 102, width: "35%" },
+  cardImageNarrow: { width: "32%" },
+  cardSummary: { flex: 1, minWidth: 0, paddingLeft: 12 },
+  statusRow: { alignItems: "center", flexDirection: "row", gap: 6 },
+  status: { color: gold, fontSize: 7, fontWeight: "800", letterSpacing: 0.7 },
+  newDot: { backgroundColor: gold, borderRadius: 3, height: 5, width: 5 },
   cardTitle: {
     color: ink,
     fontFamily: "serif",
-    fontSize: 14,
-    lineHeight: 17,
-    marginTop: 2,
+    fontSize: 17,
+    lineHeight: 21,
+    marginBottom: 5,
+    marginTop: 5,
   },
-  location: { color: muted, flexShrink: 1, fontSize: 7 },
-  badges: { flexDirection: "row", gap: 8, marginTop: 4 },
-  role: {
-    backgroundColor: "#fff7eb",
-    borderColor: "#efd8b6",
-    borderRadius: 3,
-    borderWidth: 1,
-    color: "#9c661c",
-    fontSize: 6,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-  },
-  roleBlue: {
-    backgroundColor: "#eef7fb",
-    borderColor: "#c5dfeb",
-    color: "#35657d",
-  },
-  rolePurple: {
-    backgroundColor: "#f7f0fb",
-    borderColor: "#dec9e8",
-    color: "#6d3d82",
-  },
-  status: {
-    backgroundColor: "#edf8ef",
-    borderColor: "#c9e5cf",
-    borderRadius: 3,
-    borderWidth: 1,
-    color: "#397448",
-    fontSize: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  statusBlue: {
-    backgroundColor: "#edf5fb",
-    borderColor: "#c8dceb",
-    color: "#356181",
-  },
-  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 5 },
-  progress: { color: ink, fontFamily: "serif", fontSize: 17 },
-  complete: { color: muted, fontSize: 6, marginLeft: 3 },
-  update: { color: "#454542", flex: 1, fontSize: 6, marginLeft: 14 },
-  progressRow: { alignItems: "center", flexDirection: "row", gap: 7 },
+  location: { color: muted, flex: 1, fontSize: 8 },
+  update: { color: "#484641", fontSize: 8, marginTop: 11 },
+  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 14 },
+  progress: { color: ink, fontFamily: "serif", fontSize: 18 },
+  complete: { color: muted, fontSize: 8, marginLeft: 4 },
+  percent: { color: muted, fontSize: 8, marginLeft: "auto" },
+  progressRow: { marginTop: 6 },
   rail: {
-    backgroundColor: "#e5e5e3",
-    borderRadius: 3,
-    flex: 1,
-    height: 4,
-    overflow: "hidden",
-  },
-  fill: { backgroundColor: orange, borderRadius: 3, height: 4 },
-  percent: { color: muted, fontSize: 6 },
-  factStrip: {
-    alignItems: "center",
-    borderColor: "#ece9e3",
+    backgroundColor: "#ece9e3",
     borderRadius: 4,
-    borderWidth: 1,
-    bottom: 27,
-    flexDirection: "row",
-    height: 29,
-    left: 8,
-    position: "absolute",
-    right: 8,
+    height: 5,
+    overflow: "hidden",
+    width: "100%",
   },
+  fill: { backgroundColor: orange, borderRadius: 4, height: 5 },
   milestone: {
     alignItems: "center",
-    borderRightColor: line,
-    borderRightWidth: 1,
+    backgroundColor: "#fbf8f2",
+    borderRadius: 9,
     flexDirection: "row",
-    gap: 5,
-    height: 20,
-    paddingHorizontal: 7,
-    width: "41%",
+    marginTop: 13,
+    minHeight: 52,
+    paddingHorizontal: 10,
   },
-  fact: {
+  milestoneIcon: {
     alignItems: "center",
-    borderRightColor: line,
-    borderRightWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: 4,
-    height: 20,
     justifyContent: "center",
+    marginRight: 10,
   },
-  factLabel: { color: muted, fontSize: 5 },
-  factValue: { color: "#343431", fontSize: 6 },
-  dot: {
-    backgroundColor: orange,
-    borderRadius: 3,
-    height: 4,
-    marginLeft: -7,
-    marginTop: -12,
-    width: 4,
+  factLabel: {
+    color: gold,
+    fontSize: 6,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  factValue: { color: ink, fontSize: 9, marginTop: 3 },
+  updateButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 44,
+    minWidth: 44,
   },
   actions: {
     alignItems: "center",
-    bottom: 0,
     flexDirection: "row",
-    height: 25,
     justifyContent: "space-between",
-    left: 8,
-    position: "absolute",
-    right: 8,
+    marginTop: 10,
   },
   textAction: {
     alignItems: "center",
     flexDirection: "row",
     gap: 7,
     minHeight: 44,
+    paddingHorizontal: 4,
   },
-  actionText: { color: gold, fontSize: 8, fontWeight: "600" },
+  secondaryActionText: { color: ink, fontSize: 9, fontWeight: "600" },
+  primaryAction: {
+    alignItems: "center",
+    backgroundColor: ink,
+    borderRadius: 7,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: 14,
+  },
+  primaryActionText: { color: "#fff", fontSize: 9, fontWeight: "700" },
   privacy: {
     alignItems: "center",
-    backgroundColor: "#fdf7ec",
-    borderColor: "#eadcc7",
-    borderRadius: 7,
+    backgroundColor: "#fbf7ef",
+    borderColor: "#eadfce",
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
-    minHeight: 65,
-    paddingHorizontal: 12,
+    minHeight: 86,
+    padding: 12,
   },
   lockCircle: {
     alignItems: "center",
-    backgroundColor: "#fff1d7",
-    borderRadius: 30,
-    height: 42,
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    height: 44,
     justifyContent: "center",
     marginRight: 10,
-    width: 42,
+    width: 44,
   },
-  flex: { flex: 1 },
-  privacyTitle: { color: ink, fontSize: 10, fontWeight: "600" },
-  privacyCopy: { color: muted, fontSize: 7, lineHeight: 10, marginTop: 2 },
-  manage: { alignItems: "center", flexDirection: "row", gap: 8, minHeight: 44 },
-  manageText: { color: gold, fontSize: 8, fontWeight: "600" },
+  flex: { flex: 1, minWidth: 0 },
+  privacyTitle: { color: ink, fontSize: 10, fontWeight: "700" },
+  privacyCopy: { color: muted, fontSize: 7, lineHeight: 11, marginTop: 3 },
+  manage: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingLeft: 6,
+  },
+  manageText: { color: gold, fontSize: 8, fontWeight: "700" },
   modalShade: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,.6)",
+    backgroundColor: "rgba(0,0,0,.62)",
     flex: 1,
     justifyContent: "center",
     padding: 24,
   },
   modal: {
-    backgroundColor: ivory,
-    borderRadius: 8,
+    backgroundColor: "#fff",
+    borderRadius: 14,
     maxWidth: 342,
     padding: 22,
     width: "100%",
@@ -940,9 +886,9 @@ const s = StyleSheet.create({
   close: {
     alignItems: "center",
     backgroundColor: ink,
-    borderRadius: 5,
+    borderRadius: 7,
     justifyContent: "center",
     minHeight: 44,
   },
-  closeText: { color: ivory, fontSize: 11, fontWeight: "800" },
+  closeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
 });
