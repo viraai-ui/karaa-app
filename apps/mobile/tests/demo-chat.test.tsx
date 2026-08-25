@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DemoChatExperience } from '../src/demo/DemoChatExperience';
+import { OfflineAppShell } from '../src/demo/OfflineAppShell';
 import { OfflineEmployeeViews } from '../src/demo/OfflineEmployeeViews';
 import {
   createOfflineDemoState,
+  offlineDemoStore,
   offlineDemoReducer,
   type OfflineDemoAction,
   type OfflineDemoState,
@@ -144,7 +147,33 @@ describe('Karaa shared chat demo', () => {
         justifyContent: 'center',
         width: 60,
       }));
+      const image = rendered.getByTestId(`chat-avatar-image-${thread.id}`);
+      expect(image.props.resizeMode).toBe('cover');
+      expect(StyleSheet.flatten(image.props.style)).toEqual(expect.objectContaining({ height: 60, width: 60 }));
     });
+  });
+
+  it('mounts the Management query FAB in the fixed shell overlay, never inside the inbox ScrollView', () => {
+    offlineDemoStore.reset();
+    offlineDemoStore.dispatch({ type: 'set-active-role', role: 'management' });
+    offlineDemoStore.dispatch({ type: 'select-tab', tab: 'chat' });
+    const rendered = render(
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 360, height: 740 }, insets: { top: 0, right: 0, bottom: 0, left: 0 } }}>
+        <OfflineAppShell onSwitchRole={jest.fn()} role="management" />
+      </SafeAreaProvider>,
+    );
+    const fab = rendered.getByTestId('management-query-fab');
+    const overlay = rendered.getByTestId('demo-fixed-overlay');
+    const scroll = rendered.getByTestId('demo-scroll-surface');
+    let ancestor = fab.parent;
+    while (ancestor) {
+      expect(ancestor).not.toBe(scroll);
+      ancestor = ancestor.parent;
+    }
+    expect(StyleSheet.flatten(overlay.props.style)).toEqual(expect.objectContaining({ position: 'absolute', zIndex: 10 }));
+    expect(StyleSheet.flatten(overlay.props.style).bottom).toBeGreaterThan(72);
+    fireEvent.press(fab);
+    expect(rendered.getByTestId('management-query-form')).toBeTruthy();
   });
 
   it('keeps short thread histories anchored above the composer instead of leaving a dead lower viewport', () => {

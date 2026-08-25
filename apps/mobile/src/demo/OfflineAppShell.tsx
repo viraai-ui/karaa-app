@@ -8,12 +8,14 @@ import { OfflineCustomerViews } from './OfflineCustomerViews';
 import { DemoAppBar, DemoBottomNavigation, DemoUtilitySheet, DemoWorkspaceSheet } from './OfflineDemoPrimitives';
 import { OfflineEmployeeViews } from './OfflineEmployeeViews';
 import { OfflineManagementViews } from './OfflineManagementViews';
+import { ManagementQueryFab } from './DemoChatExperience';
 import { offlineDemoStore, offlineRoleTabs, type OfflineDemoRole } from './offline-demo';
 import { PAGE_END_CLEARANCE } from './bottom-spacing';
 
 export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole; onSwitchRole: (role: OfflineDemoRole) => void }) {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [utilityOpen, setUtilityOpen] = useState<'search' | 'notifications' | null>(null);
+  const [managementQueryOpenRequest, setManagementQueryOpenRequest] = useState(0);
   const [state, setState] = useState(offlineDemoStore.getState);
   const insets = useSafeAreaInsets();
 
@@ -31,7 +33,7 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
     ? <OfflineCustomerViews onAction={offlineDemoStore.dispatch} state={state} />
     : role === 'employee'
       ? <OfflineEmployeeViews onAction={offlineDemoStore.dispatch} state={state} />
-      : <OfflineManagementViews onAction={offlineDemoStore.dispatch} state={state} />;
+      : <OfflineManagementViews managementQueryOpenRequest={managementQueryOpenRequest} onAction={offlineDemoStore.dispatch} state={state} />;
   const chatThreadOpen = state.surface === 'chat-thread';
 
   return (
@@ -77,6 +79,11 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
           </ScrollView>
         )}
       </View>
+      {role === 'management' && state.selectedTab === 'chat' && state.surface === 'root' ? (
+        <View pointerEvents="box-none" style={styles.floatingOverlay} testID="demo-fixed-overlay">
+          <ManagementQueryFab onPress={() => setManagementQueryOpenRequest((request) => request + 1)} />
+        </View>
+      ) : null}
       <DemoBottomNavigation onSelect={(tab) => offlineDemoStore.dispatch({ type: 'select-tab', tab })} role={role} selectedTab={state.selectedTab} tabs={offlineRoleTabs[role]} />
       {workspaceOpen ? <DemoWorkspaceSheet onDismiss={() => setWorkspaceOpen(false)} onSelect={(nextRole) => { setWorkspaceOpen(false); onSwitchRole(nextRole); }} /> : null}
       {utilityOpen ? <DemoUtilitySheet mode={utilityOpen} onDismiss={() => setUtilityOpen(null)} /> : null}
@@ -92,4 +99,5 @@ const styles = StyleSheet.create({
   chatMotionSurface: { flex: 1 },
   scrollView: { flex: 1 },
   content: { gap: spacing.md, padding: spacing.md },
+  floatingOverlay: { bottom: 82, position: 'absolute', right: 18, zIndex: 10 },
 });

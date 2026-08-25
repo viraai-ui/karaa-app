@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, type ImageSourcePropType, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
@@ -14,6 +14,8 @@ import {
 type Props = {
   readonly state: OfflineDemoState;
   readonly onAction: (action: OfflineDemoAction) => void;
+  readonly managementQueryOpenRequest?: number;
+  readonly showManagementQueryFab?: boolean;
 };
 
 type ChatFilter = 'all' | 'tenders' | 'projects' | 'open' | 'resolved';
@@ -47,7 +49,7 @@ function threadPresentationForRole(thread: DemoChatThread, role: OfflineDemoStat
   return thread;
 }
 
-export function DemoChatExperience({ onAction, state }: Props) {
+export function DemoChatExperience({ managementQueryOpenRequest, onAction, showManagementQueryFab = true, state }: Props) {
   const [filter, setFilter] = useState<ChatFilter>('all');
   const [search, setSearch] = useState('');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -83,6 +85,9 @@ export function DemoChatExperience({ onAction, state }: Props) {
     resetManagementQuery();
     setQueryOpen(true);
   };
+  useEffect(() => {
+    if (managementQueryOpenRequest) openManagementQuery();
+  }, [managementQueryOpenRequest]);
   const selectQueryChannel = (channel: DemoManagementQueryChannel) => {
     setQueryChannel(channel);
     setQueryRelatedRecordId(managementQueryRecords[channel].id);
@@ -240,12 +245,14 @@ export function DemoChatExperience({ onAction, state }: Props) {
               </ScrollView>
             </KeyboardAvoidingView>
           </Modal>
-        ) : (
-          <Pressable accessibilityLabel="New query" accessibilityRole="button" onPress={openManagementQuery} style={styles.newQuery}><Text style={styles.newQueryText}>＋</Text></Pressable>
-        )
+        ) : showManagementQueryFab ? <ManagementQueryFab onPress={openManagementQuery} /> : null
       ) : null}
     </View>
   );
+}
+
+export function ManagementQueryFab({ onPress }: { readonly onPress: () => void }) {
+  return <Pressable accessibilityLabel="New query" accessibilityRole="button" onPress={onPress} style={styles.newQuery} testID="management-query-fab"><Text style={styles.newQueryText}>＋</Text></Pressable>;
 }
 
 function ChatRow({ onOpen, state, thread }: { readonly onOpen: () => void; readonly state: OfflineDemoState; readonly thread: DemoChatThread }) {
@@ -255,7 +262,7 @@ function ChatRow({ onOpen, state, thread }: { readonly onOpen: () => void; reado
   const meta = thread.kind === 'direct' ? `${presentation.identityLabel} · ${thread.contextLabel}` : thread.kind === 'project' ? `Project channel · ${thread.vertical}` : thread.kind === 'tender' ? 'Tender coordination' : `${presentation.identityLabel} · Customer & mgmt.`;
   const displayTitle = thread.kind === 'support' ? presentation.title.replace(/ context$/u, '') : presentation.title;
   return <Pressable accessibilityLabel={`Open ${presentation.title} conversation`} accessibilityRole="button" onPress={onOpen} style={styles.row}>
-    <View style={styles.avatarSlot} testID={`chat-avatar-slot-${thread.id}`}><View style={[styles.avatar, { backgroundColor: avatarColor(thread.id) }]}>{chatAvatarByThread[thread.id] ? <Image accessibilityIgnoresInvertColors source={chatAvatarByThread[thread.id]} style={styles.avatarImage} /> : <Text style={styles.avatarText}>{presentation.initials}</Text>}{thread.kind === 'direct' ? <View style={styles.presence} /> : null}</View></View>
+    <View style={styles.avatarSlot} testID={`chat-avatar-slot-${thread.id}`}><View style={[styles.avatar, { backgroundColor: avatarColor(thread.id) }]}><View style={styles.avatarPicture}>{chatAvatarByThread[thread.id] ? <Image accessibilityIgnoresInvertColors resizeMode="cover" source={chatAvatarByThread[thread.id]} style={styles.avatarImage} testID={`chat-avatar-image-${thread.id}`} /> : <Text style={styles.avatarText}>{presentation.initials}</Text>}</View>{thread.kind === 'direct' ? <View style={styles.presence} /> : null}</View></View>
     <View style={styles.rowCopy}><Text numberOfLines={1} style={styles.rowTitle}>{displayTitle}</Text><Text numberOfLines={1} style={styles.rowIdentity}>{meta}</Text><Text numberOfLines={1} style={styles.preview}>{preview.body}</Text></View>
     <View style={styles.rowAside}><Text style={styles.timestamp}>{preview.timestamp}</Text>{unread ? <View style={styles.unread}><Text style={styles.unreadText}>{unread}</Text></View> : thread.status === 'resolved' ? <Text style={styles.resolved}>RESOLVED</Text> : thread.kind === 'support' ? <Text style={styles.open}>OPEN</Text> : <View style={styles.readDot} />}</View>
   </Pressable>;
@@ -278,7 +285,7 @@ const styles = StyleSheet.create({
   filterText: { color: colors.ink, fontSize: 11, fontWeight: '700' },
   filterTextSelected: { color: colors.paper },
   inbox: { borderTopColor: colors.line, borderTopWidth: 1 },
-  newQuery: { alignItems: 'center', backgroundColor: '#C39725', borderColor: '#FFFFFF', borderRadius: 36, borderWidth: 5, bottom: 8, elevation: 6, height: 72, justifyContent: 'center', minHeight: 72, position: 'absolute', right: 2, shadowColor: '#000', shadowOffset: { height: 3, width: 0 }, shadowOpacity: .16, shadowRadius: 7, width: 72 },
+  newQuery: { alignItems: 'center', backgroundColor: '#C39725', borderColor: '#FFFFFF', borderRadius: 36, borderWidth: 5, elevation: 6, height: 72, justifyContent: 'center', minHeight: 72, shadowColor: '#000', shadowOffset: { height: 3, width: 0 }, shadowOpacity: .16, shadowRadius: 7, width: 72 },
   newQueryText: { color: colors.paper, fontSize: 37, fontWeight: '300', lineHeight: 40 },
   queryModal: { backgroundColor: colors.canvas, flex: 1 },
   queryScroll: { flex: 1 },
@@ -309,6 +316,7 @@ const styles = StyleSheet.create({
   row: { alignItems: 'center', borderBottomColor: '#E8E5DF', borderBottomWidth: 1, flexDirection: 'row', gap: 14, minHeight: 112, paddingVertical: 13 },
   avatarSlot: { alignItems: 'center', alignSelf: 'center', flexShrink: 0, height: 60, justifyContent: 'center', width: 60 },
   avatar: { alignItems: 'center', backgroundColor: colors.ink, borderRadius: 30, flexShrink: 0, height: 60, justifyContent: 'center', position: 'relative', width: 60 },
+  avatarPicture: { alignItems: 'center', borderRadius: 30, height: 60, justifyContent: 'center', overflow: 'hidden', width: 60 },
   avatarImage: { borderRadius: 30, height: 60, width: 60 },
   avatarText: { color: colors.paper, fontFamily: 'serif', fontSize: 16, fontWeight: '700' },
   presence: { backgroundColor: colors.moss, borderColor: colors.paper, borderRadius: radii.pill, borderWidth: 2, bottom: -1, height: 12, position: 'absolute', right: -1, width: 12 },
