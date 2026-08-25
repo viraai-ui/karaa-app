@@ -739,7 +739,12 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
     }
     case 'open-dashboard-project': {
       if (state.activeRole !== 'customer' || state.selectedTab !== 'power' || state.surface !== 'root') throw new Error('Dashboard projects require the Customer Dashboard root');
-      const project = projectForId(action.projectId);
+      let project: { id: string; verticalId: string; subverticalId: string };
+      try { project = projectForId(action.projectId); }
+      catch (catalogError) {
+        try { const page = portfolioForProjectId(action.projectId); project = { id: action.projectId, verticalId: page.verticalId, subverticalId: page.id }; }
+        catch { throw catalogError; }
+      }
       return { ...state, surface: 'project', selectedVerticalId: project.verticalId, selectedSubverticalId: project.subverticalId, selectedProjectId: project.id, selectedProjectDetailTab: action.tab ?? 'timeline', projectReturnTarget: 'dashboard' };
     }
     case 'return-to-subvertical':

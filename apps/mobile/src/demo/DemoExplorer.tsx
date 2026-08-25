@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Animated, Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoProjectDetail } from './DemoProjectDetail';
@@ -10,7 +10,7 @@ import { demoVisualAssets } from './demo-visual-assets';
 import type { OfflineDemoAction, OfflineDemoState } from './offline-demo';
 import { VerticalDetailPage } from './VerticalDetailPage';
 import { SubverticalProjectPage } from './SubverticalProjectPage';
-import { subverticalPortfolios, portfolioProjectForId, portfolioForProjectId } from './subvertical-projects';
+import { subverticalPortfolios, portfolioProjectForId, portfolioForProjectId, type PortfolioProject } from './subvertical-projects';
 import { PortfolioProjectDetail } from './PortfolioProjectDetail';
 import { dashboardAssets } from './dashboard-assets';
 
@@ -33,9 +33,11 @@ function visualForProject(project: DemoProject) {
   return project.visual === 'hero' ? demoVisualAssets.hero : project.visual === 'inspection' ? demoVisualAssets.inspection : demoVisualAssets.progress;
 }
 
-export function DemoExplorer({ state, onAction }: {
+export function DemoExplorer({ state, onAction, random }: {
   state: OfflineDemoState;
   onAction: (action: OfflineDemoAction) => void;
+  /** Injectable so screenshots and tests can select a repeatable catalogue sample. */
+  random?: () => number;
 }): React.ReactElement {
   if (state.surface === 'vertical' && state.selectedVerticalId) {
     return <VerticalExplorer onAction={onAction} verticalId={state.selectedVerticalId} />;
@@ -49,38 +51,73 @@ export function DemoExplorer({ state, onAction }: {
 
   if (state.surface === 'project' && state.selectedProjectId) {
     if (subverticalPortfolios.some(page => page.projects.some(project => project.id === state.selectedProjectId))) {
-      return <PortfolioProjectDetail backLabel={state.projectReturnTarget === 'portfolio' ? 'My Portfolio' : undefined} onAction={onAction} project={portfolioProjectForId(state.selectedProjectId)} portfolio={portfolioForProjectId(state.selectedProjectId)} selectedTab={state.selectedProjectDetailTab} />;
+      const backLabel = state.projectReturnTarget === 'portfolio' ? 'My Portfolio' : state.projectReturnTarget === 'dashboard' ? 'Dashboard' : undefined;
+      return <PortfolioProjectDetail backLabel={backLabel} onAction={onAction} project={portfolioProjectForId(state.selectedProjectId)} portfolio={portfolioForProjectId(state.selectedProjectId)} selectedTab={state.selectedProjectDetailTab} />;
     }
     return <DemoProjectDetail backLabel={state.projectReturnTarget === 'dashboard' ? 'Back to Dashboard' : undefined} onAction={onAction} project={projectForId(state.selectedProjectId)} state={state} />;
   }
 
-  return <RootExplorer onAction={onAction} showContinuation={state.activeRole === 'customer' && state.selectedTab === 'power'} />;
+  return <RootExplorer onAction={onAction} random={random} showContinuation={state.activeRole === 'customer' && state.selectedTab === 'power'} />;
 }
 
-function RootExplorer({ onAction, showContinuation }: { onAction: (action: OfflineDemoAction) => void; showContinuation: boolean }) {
+function RootExplorer({ onAction, random, showContinuation }: { onAction: (action: OfflineDemoAction) => void; random?: () => number; showContinuation: boolean }) {
   return <View style={styles.dashboard} testID="karaa-home-dashboard">
     <DashboardReveal index={0}><View style={styles.headingBlock}><Text style={styles.eyebrow}>EXPLORE KARAA</Text><Text style={styles.powerTitle}>The Power of 9</Text><Text style={styles.powerSubtitle}>One ecosystem. Nine worlds. Infinite possibilities.</Text><View style={styles.goldRule} /></View></DashboardReveal>
     <DashboardReveal index={1}><View style={styles.rootGrid}>{demoVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
       <View style={styles.photoFrame}><Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.arrowButton}><View style={styles.cardArrowShaft} /><View style={styles.cardArrowHead} /></View></View><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{dashboardDisplayTitles[vertical.id] ?? vertical.title}</Text></View>
     </Pressable>)}</View></DashboardReveal>
-    {showContinuation ? <DashboardContinuation onAction={onAction} /> : null}
+    {showContinuation ? <DashboardContinuation onAction={onAction} random={random} /> : null}
   </View>;
 }
 
-const watchProjects = [
-  { category: 'Infrastructure & Urban Development', id: 'amaravati-smart-mobility-corridor', image: require('../../assets/dashboard/continuation/amaravati-smart-mobility-corridor.webp'), meta: 'Station access alignment', name: 'Amaravati Smart Mobility Corridor', progress: 54 },
-  { category: 'Energy & Utilities', id: 'amaravati-solar-commons', image: require('../../assets/dashboard/continuation/amaravati-solar-commons.webp'), meta: 'Inverter row commissioning', name: 'Amaravati Solar Commons', progress: 65 },
-] as const;
+export type WatchProject = { category: string; id: string; image: PortfolioProject['image']; meta: string; name: string; progress: number; status: PortfolioProject['status']; subverticalId: string; verticalId: string };
+
+function shuffled<T>(values: readonly T[], random: () => number): T[] {
+  const copy = [...values];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const candidate = Math.max(0, Math.min(index, Math.floor(random() * (index + 1))));
+    [copy[index], copy[candidate]] = [copy[candidate], copy[index]];
+  }
+  return copy;
+}
+
+/** Selects four real projects from four distinct verticals and sub-verticals. */
+export function selectWatchProjects(random: () => number = Math.random): WatchProject[] {
+  const selected: WatchProject[] = [];
+  const usedVerticals = new Set<string>();
+  for (const portfolio of shuffled(subverticalPortfolios, random)) {
+    if (usedVerticals.has(portfolio.verticalId) || portfolio.projects.length === 0) continue;
+    const project = shuffled(portfolio.projects, random)[0];
+    selected.push({
+      category: portfolio.verticalTitle,
+      id: project.id,
+      image: project.image,
+      meta: project.currentMilestone,
+      name: project.name,
+      progress: project.progress,
+      status: project.status,
+      subverticalId: portfolio.id,
+      verticalId: portfolio.verticalId,
+    });
+    usedVerticals.add(portfolio.verticalId);
+    if (selected.length === 4) break;
+  }
+  if (selected.length !== 4) throw new Error('Projects to watch requires four distinct verticals');
+  return selected;
+}
 
 function GoldArrow() { return <Text style={styles.goldArrow}>→</Text>; }
-function DashboardContinuation({ onAction }: { onAction: (action: OfflineDemoAction) => void }) {
+function DashboardContinuation({ onAction, random = Math.random }: { onAction: (action: OfflineDemoAction) => void; random?: () => number }) {
+  const { width } = useWindowDimensions();
+  const watchCardWidth = Math.min(304, Math.max(240, width - 80));
+  const [watchProjects] = useState(() => selectWatchProjects(random));
   const openProject = (projectId: string, tab: OfflineDemoState['selectedProjectDetailTab'] = 'timeline') => onAction({ type: 'open-dashboard-project', projectId, tab });
   return <View style={styles.continuation} testID="customer-dashboard-continuation">
     <SectionHeading action="View all" onPress={() => onAction({ type: 'select-vertical', verticalId: 'infrastructure-urban-development' })} title="Projects to watch" />
-    <View style={styles.watchGrid}>{watchProjects.map((project) => <Pressable accessibilityLabel={`Open ${project.name} project`} accessibilityRole="button" key={project.id} onPress={() => openProject(project.id)} style={({pressed}) => [styles.watchTile, pressed && styles.pressed]}>
+    <ScrollView accessibilityLabel="Projects to watch carousel" decelerationRate="fast" directionalLockEnabled horizontal showsHorizontalScrollIndicator={false} snapToAlignment="start" snapToInterval={watchCardWidth + 10} contentContainerStyle={styles.watchGrid}>{watchProjects.map((project) => <Pressable accessibilityLabel={`Open ${project.name} project`} accessibilityRole="button" key={project.id} onPress={() => openProject(project.id)} style={({pressed}) => [styles.watchTile, { width: watchCardWidth }, pressed && styles.pressed]}>
       <Image accessibilityLabel={`${project.name} project view`} source={project.image} style={styles.watchTileImage} />
-      <View style={styles.watchTileBody}><Text numberOfLines={2} style={styles.watchTileTitle}>{project.name}</Text><Text numberOfLines={1} style={styles.watchTileCategory}>{project.category}</Text><View style={styles.watchTileBottom}><View style={styles.watchStatusRow}><Text style={styles.watchTilePercent}>{project.progress}%</Text><Text style={styles.statusDot}>●</Text><Text style={styles.watchOnTrack}>On track</Text></View><View accessible accessibilityLabel={`${project.name} progress: ${project.progress}%`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: project.progress }} style={styles.watchRail}><View style={[styles.watchRailFill, { width: `${project.progress}%` }]} /></View><Text numberOfLines={1} style={styles.watchTileMeta}>◷  {project.meta}</Text></View></View>
-    </Pressable>)}</View>
+      <View style={styles.watchTileBody}><Text numberOfLines={2} style={styles.watchTileTitle}>{project.name}</Text><Text numberOfLines={1} style={styles.watchTileCategory}>{project.category}</Text><View style={styles.watchTileBottom}><View style={styles.watchStatusRow}><Text style={styles.watchTilePercent}>{project.progress}%</Text><Text style={styles.statusDot}>●</Text><Text style={styles.watchOnTrack}>{project.status}</Text></View><View accessible accessibilityLabel={`${project.name} progress: ${project.progress}%`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: project.progress }} style={styles.watchRail}><View style={[styles.watchRailFill, { width: `${project.progress}%` }]} /></View><Text numberOfLines={1} style={styles.watchTileMeta}>◷  {project.meta}</Text></View></View>
+    </Pressable>)}</ScrollView>
     <Text style={styles.sectionTitle}>My Portfolio</Text>
     <Pressable accessibilityLabel="Open My Portfolio" accessibilityRole="button" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} style={({pressed}) => [styles.portfolioPanel, pressed && styles.pressed]}>
       <View style={styles.portfolioSummary}><View style={styles.summaryCell}><Text style={styles.summaryValue}>1</Text><Text style={styles.summaryLabel}>Investment</Text></View><View style={styles.summaryDivider} /><View style={styles.summaryCell}><Text style={styles.summaryValue}>₹ —</Text><Text style={styles.summaryLabel}>Portfolio value</Text></View><View style={styles.summaryDivider} /><View style={styles.summaryCell}><Text style={styles.summaryValue}>18 Sep</Text><Text style={styles.summaryLabel}>Next due date</Text></View></View>
@@ -182,7 +219,7 @@ const styles = StyleSheet.create({
   portfolioCard: { alignItems: 'center', borderBottomColor: '#CFC8BA', borderBottomWidth: 1, borderTopColor: '#CFC8BA', borderTopWidth: 1, flexDirection: 'row', minHeight: 72, paddingVertical: 12 }, portfolioMetric: { flex: 1, gap: 4 }, metricLabel: { color: '#6B675F', fontSize: 10, fontWeight: '800', letterSpacing: .4 }, goldValue: { color: '#725C2A', fontFamily: 'serif', fontSize: 17 }, paymentRow: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 56, paddingVertical: 8 }, flex: { flex: 1 }, paymentTitle: { color: '#292A27', fontSize: 13, fontWeight: '800' }, paymentDetail: { color: '#6B675F', fontSize: 11, marginTop: 2 },
   latestCard: { backgroundColor: '#F4F0E7', borderRadius: 4, flexDirection: 'row', height: 136, overflow: 'hidden', marginTop: 8 }, latestImage: { height: 136, width: '42%' }, latestCopy: { flex: 1, gap: 5, justifyContent: 'center', padding: 12 }, latestEyebrow: { color: '#80672F', fontSize: 10, fontWeight: '900', letterSpacing: .6 }, latestTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 16, lineHeight: 20 }, latestDetail: { color: '#625F58', fontSize: 11 }, latestMeta: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }, latestDate: { color: '#625F58', fontSize: 11 }, notice: { alignItems: 'center', borderBottomColor: '#CFC8BA', borderBottomWidth: 1, borderTopColor: '#CFC8BA', borderTopWidth: 1, flexDirection: 'row', gap: 10, minHeight: 64, paddingVertical: 10 }, noticeTitle: { color: '#292A27', fontSize: 13, fontWeight: '800' }, noticeText: { color: '#625F58', fontSize: 11, lineHeight: 15, marginTop: 2 }, quickRow: { borderTopColor: '#D7D1C5', borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }, quickItem: { alignItems: 'center', justifyContent: 'center', minHeight: 72, paddingHorizontal: 3, width: '24%' }, quickLabel: { color: '#292A27', fontSize: 11, lineHeight: 14, marginTop: 5, textAlign: 'center' },
   iconBox: { alignItems: 'center', height: 18, justifyContent: 'center', width: 18 }, iconBoxLight: { height: 14, width: 14 }, iconLine: { borderColor: '#80672F', borderRightWidth: 1.5, borderTopWidth: 1.5, height: 7, transform: [{ rotate: '45deg' }], width: 7 }, iconCross: { borderBottomWidth: 0, borderRightWidth: 1.5, height: 12, transform: [{ rotate: '45deg' }], width: 1 }, iconLineSecond: { borderColor: '#80672F', borderRadius: 8, borderWidth: 1.5, height: 12, position: 'absolute', transform: [{ rotate: '-12deg' }], width: 12 }, iconLineLight: { borderColor: '#F9F3E6' }, pressed: { opacity: .72, transform: [{ scale: .985 }] },
-  continuation: { gap: 14, paddingTop: 4 }, transition: { alignItems: 'center', gap: 8, paddingBottom: 6 }, transitionRule: { backgroundColor: '#B98A20', height: 2, width: 17 }, transitionText: { color: '#77736D', fontSize: 8, letterSpacing: 1.7 }, goldArrow: { color: '#B48720', fontSize: 22 }, watchGrid: { flexDirection: 'row', gap: 8 }, watchTile: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, flex: 1, overflow: 'hidden', shadowColor: '#000', shadowOffset: {width:0,height:2}, shadowOpacity:.06, shadowRadius:5 }, watchTileImage: { height: 82, width: '100%' }, watchTileBody: { flex: 1, gap: 3, minHeight: 106, padding: 8 }, watchTileTitle: { color: '#171717', fontSize: 11, fontWeight: '500', lineHeight: 14, minHeight: 28 }, watchTileCategory: { color: '#77736D', fontSize: 8.5 }, watchTileBottom: { marginTop: 'auto' }, watchStatusRow: { alignItems: 'center', flexDirection: 'row', gap: 5, marginTop: 4 }, watchTilePercent: { color: '#111', fontSize: 17 }, statusDot: { color: '#C58E17', fontSize: 8 }, watchOnTrack: { color: '#917127', fontSize: 8.5 }, watchRail: { backgroundColor: '#ECECEB', borderRadius: 2, height: 3, marginVertical: 3, overflow: 'hidden' }, watchRailFill: { backgroundColor: '#C08B17', borderRadius: 2, height: 3 }, watchTileMeta: { color: '#77736D', fontSize: 8 }, portfolioPanel: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, overflow: 'hidden' }, portfolioSummary: { alignItems: 'center', flexDirection: 'row', height: 58 }, summaryCell: { alignItems: 'center', flex: 1, gap: 4 }, summaryDivider: { backgroundColor: '#E6E3DD', height: 31, width: 1 }, summaryValue: { color: '#B0811D', fontFamily: 'serif', fontSize: 17 }, summaryLabel: { color: '#77736D', fontSize: 9 }, portfolioProject: { alignItems: 'center', borderTopColor: '#E8E5DF', borderTopWidth: 1, flexDirection: 'row', gap: 10, minHeight: 50, paddingHorizontal: 12 }, buildingBadge: { alignItems: 'center', backgroundColor: '#F6F4EF', borderRadius: 7, height: 35, justifyContent: 'center', width: 35 }, buildingGlyph: { color: '#171717', fontSize: 23 }, portfolioProjectTitle: { color: '#171717', fontSize: 12, fontWeight: '500' }, portfolioProjectDetail: { color: '#77736D', fontSize: 9, marginTop: 2 }, progressCard: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, overflow: 'hidden' }, progressTop: { flexDirection: 'row', height: 122 }, progressPhoto: { width: '51%' }, progressCopy: { flex: 1, gap: 4, padding: 9 }, progressEyebrow: { color: '#B0811D', fontSize: 8, letterSpacing: .8 }, progressHeadline: { color: '#171717', fontFamily: 'serif', fontSize: 13, lineHeight: 15 }, progressProject: { color: '#77736D', fontSize: 8.5 }, progressTimestamp: { color: '#77736D', fontSize: 7.5, marginTop: 2 }, fieldRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 }, fieldTeam: { color: '#77736D', fontSize: 8 }, updateLink: { color: '#B0811D', fontSize: 8 }, noticeRow: { alignItems: 'center', borderTopColor: '#E5E3DF', borderTopWidth: 1, flexDirection: 'row', gap: 9, minHeight: 47, paddingHorizontal: 14 }, noticeBell: { color: '#B0811D', fontSize: 22 }, latestNoticeTitle: { color: '#171717', fontSize: 10, fontWeight: '500' }, latestNoticeText: { color: '#67645F', fontSize: 8.5 }, noticeChevron: { color: '#B0811D', fontSize: 24 }, quickGrid: { flexDirection: 'row', gap: 8 }, quickControl: { alignItems: 'center', backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 62, shadowColor: '#000', shadowOffset: {width:0,height:1}, shadowOpacity:.04, shadowRadius:4 }, quickGlyph: { color: '#171717', fontSize: 24 }, quickGlyphGold: { color: '#B0811D' }, quickControlLabel: { color: '#171717', fontSize: 8.5, marginTop: 3, textAlign: 'center' },
+  continuation: { gap: 14, paddingTop: 4 }, transition: { alignItems: 'center', gap: 8, paddingBottom: 6 }, transitionRule: { backgroundColor: '#B98A20', height: 2, width: 17 }, transitionText: { color: '#77736D', fontSize: 8, letterSpacing: 1.7 }, goldArrow: { color: '#B48720', fontSize: 22 }, watchGrid: { flexDirection: 'row', gap: 10, paddingBottom: 6, paddingRight: 16 }, watchTile: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 9, borderWidth: 1, height: 194, overflow: 'hidden', shadowColor: '#000', shadowOffset: {width:0,height:2}, shadowOpacity:.06, shadowRadius:5, elevation: 2 }, watchTileImage: { height: 88, width: '100%' }, watchTileBody: { flex: 1, gap: 3, height: 106, paddingBottom: 7, paddingHorizontal: 8, paddingTop: 8 }, watchTileTitle: { color: '#171717', fontSize: 12, fontWeight: '600', lineHeight: 15, minHeight: 30 }, watchTileCategory: { color: '#77736D', fontSize: 9, lineHeight: 12 }, watchTileBottom: { marginTop: 'auto' }, watchStatusRow: { alignItems: 'center', flexDirection: 'row', gap: 5, marginTop: 4 }, watchTilePercent: { color: '#111', fontSize: 17 }, statusDot: { color: '#C58E17', fontSize: 8 }, watchOnTrack: { color: '#917127', fontSize: 8.5 }, watchRail: { backgroundColor: '#ECECEB', borderRadius: 2, height: 3, marginVertical: 3, overflow: 'hidden' }, watchRailFill: { backgroundColor: '#C08B17', borderRadius: 2, height: 3 }, watchTileMeta: { color: '#77736D', fontSize: 8 }, portfolioPanel: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, overflow: 'hidden' }, portfolioSummary: { alignItems: 'center', flexDirection: 'row', height: 58 }, summaryCell: { alignItems: 'center', flex: 1, gap: 4 }, summaryDivider: { backgroundColor: '#E6E3DD', height: 31, width: 1 }, summaryValue: { color: '#B0811D', fontFamily: 'serif', fontSize: 17 }, summaryLabel: { color: '#77736D', fontSize: 9 }, portfolioProject: { alignItems: 'center', borderTopColor: '#E8E5DF', borderTopWidth: 1, flexDirection: 'row', gap: 10, minHeight: 50, paddingHorizontal: 12 }, buildingBadge: { alignItems: 'center', backgroundColor: '#F6F4EF', borderRadius: 7, height: 35, justifyContent: 'center', width: 35 }, buildingGlyph: { color: '#171717', fontSize: 23 }, portfolioProjectTitle: { color: '#171717', fontSize: 12, fontWeight: '500' }, portfolioProjectDetail: { color: '#77736D', fontSize: 9, marginTop: 2 }, progressCard: { backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, overflow: 'hidden' }, progressTop: { flexDirection: 'row', height: 122 }, progressPhoto: { width: '51%' }, progressCopy: { flex: 1, gap: 4, padding: 9 }, progressEyebrow: { color: '#B0811D', fontSize: 8, letterSpacing: .8 }, progressHeadline: { color: '#171717', fontFamily: 'serif', fontSize: 13, lineHeight: 15 }, progressProject: { color: '#77736D', fontSize: 8.5 }, progressTimestamp: { color: '#77736D', fontSize: 7.5, marginTop: 2 }, fieldRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginTop: 3 }, fieldTeam: { color: '#77736D', fontSize: 8 }, updateLink: { color: '#B0811D', fontSize: 8 }, noticeRow: { alignItems: 'center', borderTopColor: '#E5E3DF', borderTopWidth: 1, flexDirection: 'row', gap: 9, minHeight: 47, paddingHorizontal: 14 }, noticeBell: { color: '#B0811D', fontSize: 22 }, latestNoticeTitle: { color: '#171717', fontSize: 10, fontWeight: '500' }, latestNoticeText: { color: '#67645F', fontSize: 8.5 }, noticeChevron: { color: '#B0811D', fontSize: 24 }, quickGrid: { flexDirection: 'row', gap: 8 }, quickControl: { alignItems: 'center', backgroundColor: '#FFF', borderColor: '#E5E3DF', borderRadius: 8, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 62, shadowColor: '#000', shadowOffset: {width:0,height:1}, shadowOpacity:.04, shadowRadius:4 }, quickGlyph: { color: '#171717', fontSize: 24 }, quickGlyphGold: { color: '#B0811D' }, quickControlLabel: { color: '#171717', fontSize: 8.5, marginTop: 3, textAlign: 'center' },
   localPanel: { alignItems: 'flex-start', backgroundColor: '#F4F0E7', borderLeftColor: '#9B7B37', borderLeftWidth: 2, flexDirection: 'row', gap: 12, padding: 12 }, panelEyebrow: { color: '#80672F', fontSize: 10, fontWeight: '900', letterSpacing: .7 }, panelTitle: { color: '#292A27', fontFamily: 'serif', fontSize: 17, marginTop: 2 }, panelText: { color: '#625F58', fontSize: 12, lineHeight: 17, marginTop: 3 }, closeButton: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 },
   recordList: { borderTopColor: colors.line, borderTopWidth: 1 },
   subverticalRow: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 94, paddingVertical: spacing.sm },
