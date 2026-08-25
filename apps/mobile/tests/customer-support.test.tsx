@@ -1,117 +1,73 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { DemoSupportExperience } from "../src/demo/DemoSupportExperience";
-import { createOfflineDemoState } from "../src/demo/offline-demo";
-import { Linking } from "react-native";
+import * as React from 'react';
+import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
-jest.mock("expo-image-picker", () => ({
-  launchImageLibraryAsync: jest.fn(async () => ({
-    canceled: false,
-    assets: [{ fileName: "receipt.jpg" }],
-  })),
-}));
-const renderPage = () => {
-  const onAction = jest.fn();
-  return {
-    onAction,
-    ...render(
-      <DemoSupportExperience
-        state={createOfflineDemoState("customer")}
-        onAction={onAction}
-      />,
-    ),
-  };
-};
-describe("customer support screenshot experience", () => {
-  it("contains exact overview, actions, conversation and three detailed ticket rows", () => {
-    const r = renderPage();
-    [
-      "HELP & ASSISTANCE",
-      "Support",
-      "We’re here to help with your projects, documents and account.",
-      "Your support",
-      "01",
-      "Open Ticket",
-      "02",
-      "< 2 hrs",
-      "Avg. Response",
-      "Live Chat",
-      "Raise Ticket",
-      "Karaa Support",
-      "Hello Arjun, how can we help you today?",
-      "Commissioning checklist context",
-      "Updated 14 Aug · 11:05 AM",
-      "Project update notification delayed",
-      "Change registered phone number",
-      "Need urgent assistance?",
-    ].forEach((x) => expect(r.getByText(x)).toBeTruthy());
-    expect(r.getAllByText("RESOLVED")).toHaveLength(2);
-    expect(r.getAllByRole("button").length).toBeGreaterThan(15);
+import { OfflineCustomerViews } from '../src/demo/OfflineCustomerViews';
+import { createOfflineDemoState, offlineDemoReducer } from '../src/demo/offline-demo';
+
+function Harness() {
+  const [state, dispatch] = React.useReducer(offlineDemoReducer, createOfflineDemoState('customer'));
+  React.useEffect(() => { dispatch({ type: 'select-tab', tab: 'support' }); }, []);
+  return <OfflineCustomerViews onAction={dispatch} state={state} />;
+}
+
+function openTicketForm(rendered: ReturnType<typeof render>) {
+  fireEvent.press(rendered.getByRole('button', { name: 'Raise a Ticket' }));
+}
+
+function completeTicket(rendered: ReturnType<typeof render>) {
+  fireEvent.press(rendered.getByLabelText('Amaravati Solar Commons'));
+  fireEvent.press(rendered.getByLabelText('Documents'));
+  fireEvent.changeText(rendered.getByLabelText('Ticket subject'), 'Missing completion plan');
+  fireEvent.changeText(rendered.getByLabelText('Ticket description'), 'Please share the latest completion plan.');
+}
+
+describe('simplified customer Support experience', () => {
+  it('shows the polished hero, exactly two help cards, then canonical ticket history without inline clutter', () => {
+    const rendered = render(<Harness />);
+    expect(rendered.getByText('HELP & ASSISTANCE')).toBeTruthy();
+    expect(rendered.getByText('How can we help?')).toBeTruthy();
+    expect(rendered.getAllByRole('button', { name: /Live Chat|Raise a Ticket/ })).toHaveLength(2);
+    expect(rendered.getByText('Ticket History')).toBeTruthy();
+    expect(rendered.getByText('Commissioning checklist context')).toBeTruthy();
+    expect(rendered.queryByText('Raise a request')).toBeNull();
+    expect(rendered.queryByText('Live support')).toBeNull();
   });
-  it("validates then creates a truthful local ticket action", () => {
-    const r = renderPage();
-    fireEvent.press(r.getByLabelText("Submit Ticket"));
-    expect(r.getByText(/Select a category and enter a subject/)).toBeTruthy();
-    fireEvent.press(r.getByLabelText("Issue category"));
-    fireEvent.press(r.getByLabelText("Choose Documents"));
-    fireEvent.changeText(r.getByLabelText("Subject"), "Missing plan");
-    fireEvent.changeText(
-      r.getByLabelText("Description"),
-      "Cannot access the latest plan",
-    );
-    fireEvent.press(r.getByLabelText("Submit Ticket"));
-    expect(r.onAction).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "create-support-ticket",
-        subject: "Missing plan",
-      }),
-    );
-    expect(r.getByText(/created locally.*nothing was sent/)).toBeTruthy();
+
+  it('opens an accessible modal with project, category, content, priority, cancel and submit controls', () => {
+    const rendered = render(<Harness />);
+    openTicketForm(rendered);
+    expect(rendered.getByTestId('support-ticket-modal')).toBeTruthy();
+    expect(rendered.getByLabelText('Ticket subject')).toBeTruthy();
+    expect(rendered.getByLabelText('Ticket description')).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Cancel ticket' })).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Submit ticket' })).toBeTruthy();
+    ['Normal priority', 'Urgent priority', 'Cancel ticket', 'Submit ticket'].forEach((name) => expect(StyleSheet.flatten(rendered.getByLabelText(name).props.style).minHeight).toBeGreaterThanOrEqual(44));
   });
-  it("sends chat messages, filters rows, opens details and service hours", () => {
-    const r = renderPage();
-    fireEvent.changeText(r.getByLabelText("Message"), "Aarohan Medical City");
-    fireEvent.press(r.getByLabelText("Send message"));
-    expect(r.getAllByText("Aarohan Medical City").length).toBeGreaterThan(1);
-    expect(r.onAction).toHaveBeenCalledWith({
-      type: "send-chat-message",
-      threadId: "sup-001-support",
-      body: "Aarohan Medical City",
-    });
-    fireEvent.press(r.getByLabelText("Filter Open tickets"));
-    expect(r.getByText("Commissioning checklist context")).toBeTruthy();
-    expect(r.queryByText("Change registered phone number")).toBeNull();
-    fireEvent.press(r.getByLabelText("View Commissioning checklist context"));
-    expect(r.getByText(/IN REVIEW · Updated 14 Aug/)).toBeTruthy();
-    fireEvent.press(r.getByLabelText("Close dialog"));
-    fireEvent.press(r.getByLabelText("View service hours"));
-    expect(r.getByText(/Monday–Saturday/)).toBeTruthy();
+
+  it('creates exactly one canonical ticket, closes, and immediately adds it to history', () => {
+    const rendered = render(<Harness />);
+    openTicketForm(rendered); completeTicket(rendered);
+    const submit = rendered.getByRole('button', { name: 'Submit ticket' });
+    fireEvent.press(submit);
+    fireEvent.press(submit);
+    expect(rendered.queryByTestId('support-ticket-modal')).toBeNull();
+    expect(rendered.getAllByText('Missing completion plan')).toHaveLength(1);
+    expect(rendered.getByText('02')).toBeTruthy();
   });
-  it("uses honest native/link actions and attachment label", async () => {
-    jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    const r = renderPage();
-    fireEvent.press(r.getByLabelText("Call now"));
-    expect(Linking.openURL).toHaveBeenCalledWith("tel:+911204507890");
-    fireEvent.press(r.getByLabelText("Add photo to ticket"));
-    await waitFor(() => expect(r.getByText("receipt.jpg")).toBeTruthy());
-  });
-  it("gives core controls 44px hit areas", () => {
-    const r = renderPage();
-    fireEvent.changeText(r.getByLabelText("Message"), "Ready to send");
-    [
-      "Submit Ticket",
-      "Send message",
-      "Call now",
-      "View service hours",
-      "Filter All tickets",
-      "Normal priority",
-    ].forEach((label) => {
-      const style = r.getByLabelText(label).props.style;
-      const flat = Array.isArray(style)
-        ? Object.assign({}, ...style.filter(Boolean))
-        : style;
-      expect(
-        Math.max(flat.minHeight || 0, flat.height || 0),
-      ).toBeGreaterThanOrEqual(44);
-    });
+
+  it('routes live chat and ticket rows to the dedicated canonical, keyboard-safe thread and sends messages', () => {
+    const rendered = render(<Harness />);
+    fireEvent.press(rendered.getByRole('button', { name: 'Live Chat' }));
+    expect(rendered.getByTestId('chat-thread-page')).toBeTruthy();
+    expect(rendered.getByText('Karaa Support')).toBeTruthy();
+    expect(rendered.getByText(/Online/)).toBeTruthy();
+    const input = rendered.getByLabelText('Message Commissioning checklist context');
+    fireEvent.changeText(input, 'Please help with the checklist.');
+    fireEvent.press(rendered.getByRole('button', { name: 'Send message to Commissioning checklist context' }));
+    expect(rendered.getByText('Please help with the checklist.')).toBeTruthy();
+    fireEvent.press(rendered.getByRole('button', { name: 'Back to Support history' }));
+    fireEvent.press(rendered.getByRole('button', { name: 'Open Commissioning checklist context ticket thread' }));
+    expect(rendered.getByTestId('chat-thread-page')).toBeTruthy();
   });
 });

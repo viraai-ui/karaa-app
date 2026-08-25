@@ -152,60 +152,58 @@ describe('Karaa Customer Support state and shared chat', () => {
     expect(customer).toEqual(expect.objectContaining({ selectedTab: 'support', surface: 'root' }));
   });
 
-  it('shows inline validation and dispatches nothing for blank required fields', () => {
+  it('opens the accessible ticket modal, validates required fields and dispatches nothing when blank', () => {
     const onAction = jest.fn();
     const rendered = render(<DemoSupportExperience onAction={onAction} state={createOfflineDemoState('customer')} />);
 
-    fireEvent.press(rendered.getByRole('button', { name: 'Submit Ticket' }));
+    fireEvent.press(rendered.getByRole('button', { name: 'Raise a Ticket' }));
+    fireEvent.press(rendered.getByRole('button', { name: 'Submit ticket' }));
 
-    expect(rendered.getByText(/Select a category and enter a subject and description/)).toBeTruthy();
+    expect(rendered.getByText('Choose a project context.')).toBeTruthy();
+    expect(rendered.getByText('Choose a category.')).toBeTruthy();
+    expect(rendered.getByText('Enter a subject.')).toBeTruthy();
+    expect(rendered.getByText('Enter a description.')).toBeTruthy();
     expect(onAction).not.toHaveBeenCalled();
   });
 
   it('renders accessible 44px history and form actions with selected priority states', () => {
     const rendered = render(<DemoSupportExperience onAction={() => undefined} state={createOfflineDemoState('customer')} />);
-    const create = rendered.getByRole('button', { name: 'Raise Ticket' });
-    const seededRow = rendered.getByRole('button', { name: 'View Commissioning checklist context' });
+    const create = rendered.getByRole('button', { name: 'Raise a Ticket' });
+    const seededRow = rendered.getByRole('button', { name: 'Open Commissioning checklist context ticket thread' });
 
     expect(StyleSheet.flatten(create.props.style).minHeight).toBeGreaterThanOrEqual(44);
     expect(StyleSheet.flatten(seededRow.props.style).minHeight).toBeGreaterThanOrEqual(44);
     expect(rendered.getByText('Commissioning checklist context')).toBeTruthy();
     expect(rendered.getByText('IN REVIEW')).toBeTruthy();
-    expect(rendered.getByText('NORMAL')).toBeTruthy();
-
     fireEvent.press(create);
-    expect(rendered.getByLabelText('Select project Aarohan Medical City')).toBeTruthy();
-    expect(rendered.getByLabelText('Subject')).toBeTruthy();
-    expect(rendered.getByLabelText('Description')).toBeTruthy();
+    expect(rendered.getByLabelText('Aarohan Medical City')).toBeTruthy();
+    expect(rendered.getByLabelText('Ticket subject')).toBeTruthy();
+    expect(rendered.getByLabelText('Ticket description')).toBeTruthy();
 
-    const normal = rendered.getByRole('button', { name: 'Normal priority' });
-    const urgent = rendered.getByRole('button', { name: 'Urgent priority' });
+    const normal = rendered.getByLabelText('Normal priority');
+    const urgent = rendered.getByLabelText('Urgent priority');
     expect(normal.props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
     expect(urgent.props.accessibilityState).toEqual(expect.objectContaining({ selected: false }));
     expect(StyleSheet.flatten(normal.props.style).minHeight).toBeGreaterThanOrEqual(44);
     expect(StyleSheet.flatten(urgent.props.style).minHeight).toBeGreaterThanOrEqual(44);
 
     fireEvent.press(urgent);
-    expect(rendered.getByRole('button', { name: 'Urgent priority' }).props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
-    const note = rendered.getByRole('button', { name: 'Document attachment options' });
-    expect(StyleSheet.flatten(note.props.style).minHeight).toBeGreaterThanOrEqual(44);
-    fireEvent.press(note);
-    expect(rendered.getByText('Document attachments')).toBeTruthy();
-    expect(StyleSheet.flatten(rendered.getByRole('button', { name: 'Submit Ticket' }).props.style).minHeight).toBeGreaterThanOrEqual(44);
+    expect(rendered.getByLabelText('Urgent priority').props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
+    expect(StyleSheet.flatten(rendered.getByRole('button', { name: 'Submit ticket' }).props.style).minHeight).toBeGreaterThanOrEqual(44);
   });
 
   it('creates an urgent ticket and keeps it available in canonical history and detail', () => {
     const rendered = render(<SupportHarness />);
-    fireEvent.press(rendered.getByRole('button', { name: 'Issue category' }));
-    fireEvent.press(rendered.getByRole('button', { name: 'Choose Documents' }));
-    fireEvent.changeText(rendered.getByLabelText('Subject'), ' Revised checklist reference ');
-    fireEvent.changeText(rendered.getByLabelText('Description'), ' Please clarify the revised checklist sequence. ');
-    fireEvent.press(rendered.getByRole('button', { name: 'Urgent priority' }));
-    fireEvent.press(rendered.getByRole('button', { name: 'Submit Ticket' }));
+    fireEvent.press(rendered.getByRole('button', { name: 'Raise a Ticket' }));
+    fireEvent.press(rendered.getByLabelText('Aarohan Medical City'));
+    fireEvent.press(rendered.getByLabelText('Documents'));
+    fireEvent.changeText(rendered.getByLabelText('Ticket subject'), ' Revised checklist reference ');
+    fireEvent.changeText(rendered.getByLabelText('Ticket description'), ' Please clarify the revised checklist sequence. ');
+    fireEvent.press(rendered.getByLabelText('Urgent priority'));
+    fireEvent.press(rendered.getByRole('button', { name: 'Submit ticket' }));
 
     expect(rendered.getByText('Revised checklist reference')).toBeTruthy();
-    fireEvent.press(rendered.getByRole('button', { name: 'View Revised checklist reference' }));
-    expect(rendered.getAllByText(/Aarohan Medical City · Documents/).length).toBeGreaterThan(0);
-    expect(rendered.getByText(/IN REVIEW · Updated 16 Aug/)).toBeTruthy();
+    fireEvent.press(rendered.getByRole('button', { name: 'Open Revised checklist reference ticket thread' }));
+    expect(rendered.getByText('Revised checklist reference')).toBeTruthy();
   });
 });

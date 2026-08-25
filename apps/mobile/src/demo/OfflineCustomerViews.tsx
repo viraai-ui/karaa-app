@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoAction, DemoImageFrame, DemoListRow, DemoProgressRail, DemoSectionTitle, DemoStatusPill } from './OfflineDemoPrimitives';
 import { DemoExplorer } from './DemoExplorer';
+import { DemoChatExperience } from './DemoChatExperience';
 import { DemoSupportExperience } from './DemoSupportExperience';
 import { DemoTenderExperience } from './DemoTenderExperience';
 import { demoVisualAssets } from './demo-visual-assets';
@@ -19,7 +20,7 @@ export function OfflineCustomerViews({ state, onAction }: Props) {
   switch (state.selectedTab) {
     case 'tenders': return <DemoTenderExperience onAction={onAction} role="customer" state={state} />;
     case 'portfolio': return state.surface === 'project' ? <DemoExplorer onAction={onAction} state={state} /> : <CustomerPortfolio onAction={onAction} />;
-    case 'support': return <DemoSupportExperience onAction={onAction} state={state} />;
+    case 'support': return state.surface === 'chat-thread' ? <DemoChatExperience onAction={onAction} state={state} /> : <DemoSupportExperience onAction={onAction} state={state} />;
     case 'power':
     default: return <PowerView state={state} onAction={onAction} />;
   }

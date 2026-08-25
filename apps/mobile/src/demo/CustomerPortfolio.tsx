@@ -85,7 +85,6 @@ type IconName =
   | "file"
   | "bell"
   | "clock"
-  | "refresh"
   | "wallet"
   | "filter"
   | "pin"
@@ -102,7 +101,7 @@ function LineIcon({
   size?: number;
 }) {
   const frame = { width: size, height: size };
-  if (name === "clock" || name === "refresh")
+  if (name === "clock")
     return (
       <View style={[frame, i.round, { borderColor: color }]}>
         <View style={[i.handV, { backgroundColor: color }]} />
@@ -176,7 +175,6 @@ export function CustomerPortfolio({ onAction }: Props) {
   const { width } = useWindowDimensions();
   const narrow = width < 350;
   const [panel, setPanel] = useState<Panel>(null);
-  const [synced, setSynced] = useState("today, 10:42 AM");
   const open = (title: string, body: string) => setPanel({ title, body });
   const quick: [IconName, string, string][] = [
     [
@@ -224,28 +222,6 @@ export function CustomerPortfolio({ onAction }: Props) {
             <Metric icon="building" n="03" l="Linked Projects" />
             <Metric icon="file" n="11" l="Documents" />
             <Metric icon="bell" n="02" l="New Updates" last />
-          </View>
-          <View style={s.syncRow}>
-            <View style={s.inline}>
-              <LineIcon name="clock" color="#a9aaa7" size={13} />
-              <Text style={s.sync}>Last synced {synced}</Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Refresh portfolio"
-              hitSlop={12}
-              onPress={() => {
-                setSynced("just now");
-                open(
-                  "Portfolio refreshed",
-                  "This local prototype has refreshed the records shown on this device.",
-                );
-              }}
-              style={s.refresh}
-            >
-              <LineIcon name="refresh" color={gold} size={13} />
-              <Text style={s.refreshText}>Refresh</Text>
-            </Pressable>
           </View>
         </View>
         <View style={s.quick}>
@@ -637,6 +613,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     marginTop: -22,
     paddingHorizontal: 14,
+    paddingBottom: 15,
     paddingTop: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -666,26 +643,7 @@ const s = StyleSheet.create({
   },
   metricN: { color: ink, fontFamily: "serif", fontSize: 23, lineHeight: 27 },
   metricL: { color: muted, fontSize: 8 },
-  syncRow: {
-    alignItems: "center",
-    borderTopColor: "#eeeae3",
-    borderTopWidth: 1,
-    flexDirection: "row",
-    minHeight: 50,
-    justifyContent: "space-between",
-    marginTop: 7,
-  },
   inline: { alignItems: "center", flexDirection: "row", gap: 6 },
-  sync: { color: muted, fontSize: 8 },
-  refresh: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 6,
-    justifyContent: "center",
-    minHeight: 44,
-    minWidth: 72,
-  },
-  refreshText: { color: gold, fontSize: 9, fontWeight: "700" },
   quick: { flexDirection: "row", gap: 6 },
   quickButton: {
     alignItems: "center",
@@ -784,20 +742,18 @@ const s = StyleSheet.create({
     minWidth: 24,
   },
   actions: {
-    alignItems: "stretch",
-    marginTop: 14,
+    alignItems: "flex-end",
+    marginTop: 4,
   },
   primaryAction: {
     alignItems: "center",
-    backgroundColor: "#fbf8f2",
-    borderColor: "#e8dfd2",
-    borderRadius: 8,
-    borderWidth: 1,
+    alignSelf: "flex-end",
     justifyContent: "center",
     minHeight: 44,
-    paddingHorizontal: 14,
+    minWidth: 88,
+    paddingHorizontal: 8,
   },
-  primaryActionText: { color: ink, fontSize: 11, fontWeight: "700" },
+  primaryActionText: { color: "#000", fontSize: 11, fontWeight: "700" },
   privacy: {
     alignItems: "center",
     backgroundColor: "#fbf7ef",

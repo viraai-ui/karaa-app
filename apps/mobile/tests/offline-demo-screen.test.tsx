@@ -176,11 +176,11 @@ describe('Karaa Global role demo surfaces', () => {
     const rendered = render(<OfflineCustomerViews state={state} onAction={jest.fn()} />);
 
     expect(rendered.getByText('Support')).toBeTruthy();
-    expect(rendered.getByText('Ticket history')).toBeTruthy();
-    expect(rendered.getByRole('button', { name: 'Raise Ticket' })).toBeTruthy();
-    expect(rendered.getByRole('button', { name: 'Submit Ticket' })).toBeTruthy();
+    expect(rendered.getByText('Ticket History')).toBeTruthy();
+    expect(rendered.getAllByRole('button', { name: /Live Chat|Raise a Ticket/ })).toHaveLength(2);
+    expect(rendered.queryByRole('button', { name: 'Submit ticket' })).toBeNull();
     expect(rendered.getByText('Commissioning checklist context')).toBeTruthy();
-    expect(rendered.getByRole('button', { name: 'View Commissioning checklist context' })).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Open Commissioning checklist context ticket thread' })).toBeTruthy();
     expect(rendered.queryByText('Karaa project team')).toBeNull();
   });
 

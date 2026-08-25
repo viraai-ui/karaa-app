@@ -111,13 +111,13 @@ export function DemoChatExperience({ onAction, state }: Props) {
     };
 
     return (
-      <View style={styles.threadPage} testID="chat-thread-page">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.threadPage, state.activeRole === 'customer' && styles.supportThreadPage]} testID="chat-thread-page">
         <Pressable accessibilityLabel={state.activeRole === 'customer' ? 'Back to Support history' : 'Back to Chat inbox'} accessibilityRole="button" onPress={() => onAction({ type: 'return-to-chat-inbox' })} style={styles.backAction}>
           <Text style={styles.backText}>‹ {state.activeRole === 'customer' ? 'Support' : 'Chat'}</Text>
         </Pressable>
-        <View style={styles.contextHeader}>
+        <View style={[styles.contextHeader, state.activeRole === 'customer' && styles.supportContextHeader]}>
           <View style={styles.contextAvatar}><Text style={styles.contextAvatarText}>{selectedThread.initials}</Text></View>
-          <View style={styles.contextCopy}><Text numberOfLines={1} style={styles.contextTitle}>{selectedThread.title}</Text><Text numberOfLines={1} style={styles.contextMeta}>{selectedThread.contextLabel} · {selectedThread.vertical}</Text></View>
+          <View style={styles.contextCopy}><Text numberOfLines={1} style={styles.contextTitle}>{state.activeRole === 'customer' ? 'Karaa Support' : selectedThread.title}</Text><View style={styles.onlineLine}>{state.activeRole === 'customer' ? <View style={styles.onlineDot} /> : null}<Text numberOfLines={1} style={styles.contextMeta}>{state.activeRole === 'customer' ? `Online · ${selectedThread.contextLabel}` : `${selectedThread.contextLabel} · ${selectedThread.vertical}`}</Text></View></View>
           <DemoStatusPill label={selectedThread.status === 'resolved' ? 'RESOLVED' : 'OPEN'} tone={selectedThread.status === 'resolved' ? 'positive' : 'neutral'} />
         </View>
         <ScrollView
@@ -134,14 +134,14 @@ export function DemoChatExperience({ onAction, state }: Props) {
         </ScrollView>
         <View style={styles.composer} testID="chat-composer">
           <View style={styles.composerControls}>
-            <TextInput accessibilityLabel={`Message ${selectedThread.title}`} multiline onChangeText={(value) => setDrafts((current) => ({ ...current, [selectedThread.id]: value }))} placeholder="Write a project note" placeholderTextColor={colors.muted} style={styles.input} value={draft} />
+            <TextInput accessibilityLabel={`Message ${selectedThread.title}`} multiline onChangeText={(value) => setDrafts((current) => ({ ...current, [selectedThread.id]: value }))} onSubmitEditing={send} placeholder={state.activeRole === 'customer' ? 'Type your message…' : 'Write a project note'} placeholderTextColor={colors.muted} style={styles.input} value={draft} />
             <Pressable accessibilityLabel={`Show supporting note option for ${selectedThread.title}`} accessibilityRole="button" onPress={() => setSupportNoteOpen(true)} style={styles.attach}><Text style={styles.attachText}>＋</Text></Pressable>
             <Pressable accessibilityLabel={`Send message to ${selectedThread.title}`} accessibilityRole="button" onPress={send} style={styles.send}><Text style={styles.sendText}>Send</Text></Pressable>
           </View>
           {supportNoteOpen ? <Text accessibilityLiveRegion="polite" style={styles.supportNote}>Add supporting note</Text> : null}
           <Text accessibilityLiveRegion="polite" style={styles.announcement}>{announcement}</Text>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -298,6 +298,10 @@ const styles = StyleSheet.create({
   unread: { color: colors.brass, fontSize: 10, fontWeight: '900' },
   chevron: { color: colors.brass, fontSize: 27, fontWeight: '300' },
   threadPage: { flex: 1, gap: spacing.sm },
+  supportThreadPage: { backgroundColor: '#F8F5EE', marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 12 },
+  supportContextHeader: { backgroundColor: '#FFFEFA', borderColor: '#D9D3C8', borderRadius: radii.md, borderWidth: 1, paddingHorizontal: spacing.sm },
+  onlineLine: { alignItems: 'center', flexDirection: 'row', gap: 5 },
+  onlineDot: { backgroundColor: '#3B9850', borderRadius: 4, height: 8, width: 8 },
   backAction: { alignItems: 'flex-start', justifyContent: 'center', minHeight: 44 },
   backText: { color: colors.brass, fontSize: 13, fontWeight: '900' },
   contextHeader: { alignItems: 'center', backgroundColor: colors.paper, borderColor: colors.line, borderRadius: radii.sm, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, padding: spacing.sm },
@@ -311,7 +315,7 @@ const styles = StyleSheet.create({
   messageWrap: { flexDirection: 'row' },
   messageIncomingWrap: { justifyContent: 'flex-start', paddingRight: spacing.lg },
   messageOutgoingWrap: { justifyContent: 'flex-end', paddingLeft: spacing.lg },
-  messageBubble: { borderRadius: radii.md, gap: 5, padding: spacing.sm },
+  messageBubble: { borderRadius: radii.md, flexShrink: 1, gap: 5, maxWidth: '88%', padding: spacing.sm },
   messageIncoming: { backgroundColor: colors.paper, borderColor: colors.line, borderWidth: 1 },
   messageOutgoing: { backgroundColor: colors.brass },
   messageBody: { color: colors.ink, fontSize: 14, lineHeight: 20 },

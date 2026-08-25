@@ -25,6 +25,9 @@ describe("signed-in customer portfolio", () => {
     }
     expect(ui.queryByText("NEXT MILESTONE")).toBeNull();
     expect(ui.queryByRole("button", { name: "Filter projects" })).toBeNull();
+    expect(ui.queryByText(/Last synced/)).toBeNull();
+    expect(ui.queryByText("Refresh")).toBeNull();
+    expect(ui.queryByRole("button", { name: "Refresh portfolio" })).toBeNull();
   });
 
   it("opens each quick action's correct panel", () => {
@@ -54,8 +57,13 @@ describe("signed-in customer portfolio", () => {
       expect(ui.getByText(p.name).props.numberOfLines).toBe(2);
       expect(ui.getByText(p.location).props.numberOfLines).toBe(1);
       const action = ui.getByRole("button", { name: `View project ${p.name}` });
-      expect(StyleSheet.flatten(action.props.style).minHeight).toBeGreaterThanOrEqual(44);
+      const actionStyle = StyleSheet.flatten(action.props.style);
+      expect(actionStyle.minHeight).toBeGreaterThanOrEqual(44);
+      expect(actionStyle.alignSelf).toBe("flex-end");
+      expect(actionStyle.backgroundColor).toBeUndefined();
+      expect(actionStyle.borderWidth).toBeUndefined();
       expect(action.findAllByType(ReactNative.Text)).toHaveLength(1);
+      expect(action.findByType(ReactNative.Text).props.style).toEqual(expect.objectContaining({ color: "#000" }));
     }
     dimensions.mockRestore();
   });
@@ -80,9 +88,6 @@ describe("signed-in customer portfolio", () => {
 
   it("keeps remaining utility actions functional", () => {
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
-    fireEvent.press(ui.getByRole("button", { name: "Refresh portfolio" }));
-    expect(ui.getByText("Portfolio refreshed")).toBeTruthy();
-    fireEvent.press(ui.getByRole("button", { name: "Close panel" }));
     fireEvent.press(ui.getByRole("button", { name: "Manage access" }));
     expect(ui.getByText("LOCAL PROTOTYPE")).toBeTruthy();
   });
