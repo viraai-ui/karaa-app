@@ -35,7 +35,6 @@ describe("customer support screenshot experience", () => {
       "< 2 hrs",
       "Avg. Response",
       "Live Chat",
-      "WhatsApp",
       "Raise Ticket",
       "Karaa Support",
       "Hello Arjun, how can we help you today?",
@@ -73,6 +72,11 @@ describe("customer support screenshot experience", () => {
     fireEvent.changeText(r.getByLabelText("Message"), "Aarohan Medical City");
     fireEvent.press(r.getByLabelText("Send message"));
     expect(r.getAllByText("Aarohan Medical City").length).toBeGreaterThan(1);
+    expect(r.onAction).toHaveBeenCalledWith({
+      type: "send-chat-message",
+      threadId: "sup-001-support",
+      body: "Aarohan Medical City",
+    });
     fireEvent.press(r.getByLabelText("Filter Open tickets"));
     expect(r.getByText("Commissioning checklist context")).toBeTruthy();
     expect(r.queryByText("Change registered phone number")).toBeNull();
@@ -85,19 +89,14 @@ describe("customer support screenshot experience", () => {
   it("uses honest native/link actions and attachment label", async () => {
     jest.spyOn(Linking, "openURL").mockResolvedValue(true as never);
     const r = renderPage();
-    fireEvent.press(r.getByLabelText("WhatsApp"));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      expect.stringContaining("wa.me"),
-    );
     fireEvent.press(r.getByLabelText("Call now"));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      expect.stringContaining("tel:"),
-    );
+    expect(Linking.openURL).toHaveBeenCalledWith("tel:+911204507890");
     fireEvent.press(r.getByLabelText("Add photo to ticket"));
     await waitFor(() => expect(r.getByText("receipt.jpg")).toBeTruthy());
   });
   it("gives core controls 44px hit areas", () => {
     const r = renderPage();
+    fireEvent.changeText(r.getByLabelText("Message"), "Ready to send");
     [
       "Submit Ticket",
       "Send message",
