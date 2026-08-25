@@ -21,7 +21,7 @@ describe('customer dashboard continuation', () => {
 
     selected.forEach(project => fireEvent.press(screen.getByRole('button', { name: `Open ${project.name} project` })));
     fireEvent.press(screen.getByRole('button', { name: 'Open My Portfolio' }));
-    fireEvent.press(screen.getByRole('button', { name: 'View all Projects to watch' }));
+    expect(screen.queryByRole('button', { name: 'View all Projects to watch' })).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Open Amaravati Smart Mobility Corridor latest progress' }));
     fireEvent.press(screen.getByRole('button', { name: 'Open Amaravati Smart Mobility Corridor important notice' }));
     fireEvent.press(screen.getByRole('button', { name: 'Open Track Progress for Amaravati Smart Mobility Corridor' }));
@@ -32,7 +32,7 @@ describe('customer dashboard continuation', () => {
     expect(onAction.mock.calls.map(([action]) => action)).toEqual([
       ...selected.map(project => ({ type: 'open-dashboard-project', projectId: project.id, tab: 'timeline' })),
       { type: 'select-tab', tab: 'portfolio' },
-      { type: 'select-vertical', verticalId: 'infrastructure-urban-development' },
+
       { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'timeline' },
       { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'documents' },
       { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'timeline' },
