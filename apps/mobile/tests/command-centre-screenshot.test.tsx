@@ -6,12 +6,13 @@ import { createOfflineDemoState } from '../src/demo/offline-demo';
 
 const screen = () => render(<OfflineManagementViews onAction={jest.fn()} state={{...createOfflineDemoState('management'), selectedTab:'command'}} />);
 
-describe('screenshot Command Centre', () => {
+describe('management Overview', () => {
   it('keeps the exact continuous section order and headline data', () => {
     const r=screen();
-    const copy=['Command Centre','Company snapshot','Project health','Portfolio progress','Upcoming milestones','Overdue milestones','Critical blockers','Latest activity','Tender deadlines','Workforce status','Project portfolio','Project detail','Employee activity','3 items need your attention'];
+    const copy=['Overview','Company snapshot','Project health','Portfolio progress','Upcoming milestones','Overdue milestones','Critical blockers','Latest activity','Tender deadlines','Workforce status','Project portfolio','Project detail','Employee activity','3 items need your attention'];
     copy.forEach(x=>expect(r.getByText(x)).toBeTruthy());
     const json=JSON.stringify(r.toJSON()); let at=-1; copy.forEach(x=>{const next=json.indexOf(x); expect(next).toBeGreaterThan(at); at=next;});
+    expect(r.queryByText('Command Centre')).toBeNull();
     ['27','61%','₹1,248 Cr','14','19','05','03','4,860','3,912','628','320','80%'].forEach(x=>expect(r.getAllByText(x).length).toBeGreaterThan(0));
   });
   it('filters verticals and month with semantic 44px controls',()=>{const r=screen(); const v=r.getByRole('button',{name:'Filter vertical'}); const m=r.getByRole('button',{name:'Filter month'}); [v,m].forEach(x=>expect(StyleSheet.flatten(x.props.style).minHeight).toBeGreaterThanOrEqual(44)); fireEvent.press(v); expect(r.queryByText('Ports & Logistics')).toBeNull(); expect(r.getAllByText('Energy & Utilities').length).toBeGreaterThan(0); fireEvent.press(m); expect(r.getByText(/August/)).toBeTruthy();});

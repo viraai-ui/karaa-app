@@ -189,7 +189,7 @@ describe('Karaa Global role demo surfaces', () => {
     const onAction = jest.fn();
     const rendered = render(<OfflineManagementViews state={state} onAction={onAction} />);
 
-    expect(rendered.getByText('Command Centre')).toBeTruthy();
+    expect(rendered.getByText('Overview')).toBeTruthy();
     expect(rendered.getByText('Transformer delivery risk')).toBeTruthy();
 
     fireEvent.press(rendered.getByRole('button', { name: 'Assign Transformer delivery risk' }));

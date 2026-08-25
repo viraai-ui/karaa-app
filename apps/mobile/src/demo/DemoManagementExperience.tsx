@@ -56,27 +56,29 @@ function CommandCentre({ state, onAction }: Omit<Props, 'view'>) {
   return (
     <View style={styles.ccPage}>
       <Text style={styles.eyebrow}>EXECUTIVE OPERATIONS</Text>
-      <Text style={styles.title}>Command Centre</Text>
+      <Text accessibilityRole="header" style={styles.title}>Overview</Text>
       <Text style={styles.ccGreeting}>Good morning, Arjun.</Text>
       <Text style={styles.ccSmall}>A live view of projects, people and priorities.</Text>
-      <View style={styles.ccFilterLine}><Text style={styles.ccLive}>● Live data</Text><Text style={styles.ccSmall}>Updated 10:42 AM</Text><View style={styles.flex} />
-        <Pressable accessibilityRole="button" accessibilityLabel="Filter vertical" onPress={() => setVertical(vertical === 'All Verticals' ? 'Energy & Utilities' : 'All Verticals')} style={styles.ccFilter}><Text style={styles.ccFilterText}>{vertical}⌄</Text></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Filter month" onPress={() => setMonth(month === 'This Month' ? 'August' : 'This Month')} style={styles.ccFilter}><Text style={styles.ccFilterText}>{month}⌄</Text></Pressable>
+      <View style={styles.ccDataRow}><Text style={styles.ccLive}>● Live data</Text><Text style={styles.ccSmall}>Updated 10:42 AM</Text></View>
+      <View style={styles.ccFilterLine}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Filter vertical" accessibilityHint={`Current selection: ${vertical}`} onPress={() => setVertical(vertical === 'All Verticals' ? 'Energy & Utilities' : 'All Verticals')} style={styles.ccFilter}><Text numberOfLines={1} style={styles.ccFilterText}>{vertical}</Text><Text style={styles.ccFilterChevron}>⌄</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Filter month" accessibilityHint={`Current selection: ${month}`} onPress={() => setMonth(month === 'This Month' ? 'August' : 'This Month')} style={styles.ccFilter}><Text numberOfLines={1} style={styles.ccFilterText}>{month}</Text><Text style={styles.ccFilterChevron}>⌄</Text></Pressable>
       </View>
 
       <Text style={styles.ccSectionTitle}>Company snapshot</Text>
       <View style={styles.ccSnapshot} testID="management-summary-band">
-        {[['▥','27','Active Projects'],['◔','61%','Avg. Progress'],['₹','₹1,248 Cr','Active Portfolio'],['▤','14','Open Tenders']].map(([icon,value,label]) => <Pressable key={label} accessibilityRole="button" accessibilityLabel={`Open ${label}`} onPress={() => toggle(label)} style={styles.ccMetric} testID="management-summary-value"><Text style={styles.ccMetricIcon}>{icon}</Text><View><Text style={styles.ccMetricValue}>{value}</Text><Text style={styles.ccMetricLabel}>{label}</Text></View></Pressable>)}
-        <Text style={styles.ccSnapshotNote}>⌁  Portfolio value  +8.2% this month</Text><Text style={styles.ccSnapshotLink}>View report  →</Text>
+        {[['▥','27','Active Projects'],['◔','61%','Avg. Progress'],['₹','₹1,248 Cr','Active Portfolio'],['▤','14','Open Tenders']].map(([icon,value,label]) => <Pressable key={label} accessibilityRole="button" accessibilityLabel={`Open ${label}`} onPress={() => toggle(label)} style={styles.ccMetric} testID="management-summary-value"><Text style={styles.ccMetricIcon}>{icon}</Text><View style={styles.ccMetricCopy}><Text style={styles.ccMetricValue}>{value}</Text><Text style={styles.ccMetricLabel}>{label}</Text></View></Pressable>)}
+        <View style={styles.ccSnapshotFooter}><Text style={styles.ccSnapshotNote}>↑ 8.2% portfolio value this month</Text><Pressable accessibilityRole="button" accessibilityLabel="View portfolio report" onPress={() => toggle('report')} style={styles.ccReportButton}><Text style={styles.ccSnapshotLink}>View report →</Text></Pressable></View>
       </View>
 
       <Text style={styles.ccSectionTitle}>Project health</Text>
-      <View style={styles.ccHealth}><View style={styles.ccDonut}><Text style={styles.ccDonutNum}>27</Text><Text style={styles.ccTiny}>Projects</Text></View><View style={styles.flex}>
-        {[['#31924A','19','On Track','70%'],['#E89416','05','At Risk','19%'],['#D34435','03','Delayed','11%']].map(([c,n,l,p]) => <Pressable key={l} accessibilityRole="button" accessibilityLabel={`Open ${l} projects`} onPress={() => toggle(l)} style={styles.ccHealthRow}><Text style={{color:c}}>●</Text><Text style={styles.ccHealthN}>{n}</Text><Text style={styles.ccSmall}>{l}</Text><Text style={styles.ccSmall}>{p}</Text></Pressable>)}</View></View>
+      <View style={styles.ccHealth}><View style={styles.ccHealthTotal}><Text style={styles.ccDonutNum}>27</Text><Text style={styles.ccSmall}>Total projects</Text></View>
+        {[['#31924A','19','On Track','70%'],['#E89416','05','At Risk','19%'],['#D34435','03','Delayed','11%']].map(([c,n,l,p]) => <Pressable key={l} accessibilityRole="button" accessibilityLabel={`Open ${l} projects, ${n}, ${p}`} onPress={() => toggle(l)} style={styles.ccHealthRow}><View style={[styles.ccStatusDot,{backgroundColor:c}]} /><Text style={styles.ccHealthLabel}>{l}</Text><Text style={styles.ccHealthN}>{n}</Text><Text style={styles.ccHealthPercent}>{p}</Text></Pressable>)}
+      </View>
       <Text style={styles.ccPositive}>⌁  2 projects returned to On Track this month</Text>
 
       <View style={styles.ccHeadingRow}><Text style={styles.ccSectionTitle}>Portfolio progress</Text><Text style={styles.ccSmall}>By Vertical⌄</Text></View>
-      <View style={styles.ccLines}>{verticals.filter(([name]) => vertical === 'All Verticals' || name === vertical).map(([name,value]) => <View key={name} style={styles.ccProgressRow}><Text style={styles.ccProgressLabel}>{name}</Text><View style={styles.ccProgressTrack}><View style={[styles.ccProgressFill,{width:`${value}%` as `${number}%`}]} /></View><Text style={styles.ccProgressValue}>{value}%</Text></View>)}</View>
+      <View style={styles.ccLines}>{verticals.filter(([name]) => vertical === 'All Verticals' || name === vertical).map(([name,value]) => <View key={name} style={styles.ccProgressRow}><View style={styles.ccProgressHeader}><Text style={styles.ccProgressLabel}>{name}</Text><Text style={styles.ccProgressValue}>{value}%</Text></View><View accessibilityRole="progressbar" accessibilityLabel={`${name} progress`} accessibilityValue={{min:0,max:100,now:value}} style={styles.ccProgressTrack}><View style={[styles.ccProgressFill,{width:`${value}%` as `${number}%`}]} /></View></View>)}</View>
 
       <Text style={styles.ccSectionTitle}>Upcoming milestones</Text><Text style={styles.ccCount}>14 <Text style={styles.ccSmall}>Next 30 days</Text></Text>
       {interactiveRow('m1','Envelope works','Amaravati Medical City','24 Aug')}{interactiveRow('m2','Landscape package','Aarohan Waterfront','28 Aug')}{interactiveRow('m3','Module installation','Surya Energy Park','04 Sep')}
@@ -374,37 +376,38 @@ const styles = StyleSheet.create({
   geoPrivacyIcon: { color:'#A87309', fontSize:20 },
   geoPrivacyTitle: { color:'#302C23', fontSize:10, fontWeight:'900' },
   geoPrivacyCopy: { color:'#706857', fontSize: 10, marginTop:3 },
-  ccPage: { gap: 5 },
-  ccGreeting: { color: colors.ink, fontFamily: 'serif', fontSize: 14, fontWeight: '700' },
-  ccSmall: { color: '#696760', fontSize: 10, lineHeight: 12 },
-  ccTiny: { color: '#77746C', fontSize: 10, lineHeight: 9 },
-  ccGold: { color: '#B67B08', fontSize: 10, fontWeight: '800' },
-  ccFilterLine: { alignItems: 'center', flexDirection: 'row', gap: 5 },
-  ccLive: { color: '#329346', fontSize: 10, fontWeight: '800' },
-  ccFilter: { alignItems: 'center', borderColor: '#D8D3C8', borderRadius: 3, borderWidth: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 8 },
-  ccFilterText: { color: '#292824', fontSize: 10, fontWeight: '700' },
-  ccSectionTitle: { color: '#171713', fontFamily: 'serif', fontSize: 14, fontWeight: '800', marginTop: 7 },
-  ccSnapshot: { backgroundColor: '#151716', borderRadius: 4, flexDirection: 'row', flexWrap: 'wrap', overflow: 'hidden', padding: 7 },
-  ccMetric: { alignItems: 'center', borderBottomColor: '#393A37', borderBottomWidth: 1, flexDirection: 'row', gap: 9, minHeight: 58, paddingHorizontal: 9, width: '50%' },
-  ccMetricIcon: { borderColor: '#71500A', borderRadius: 12, borderWidth: 1, color: '#C28A13', fontSize: 16, height: 28, lineHeight: 26, textAlign: 'center', width: 28 },
-  ccMetricValue: { color: '#F5F0E6', fontFamily: 'serif', fontSize: 17, fontWeight: '800' },
-  ccMetricLabel: { color: '#D5D0C7', fontSize: 10, lineHeight: 10 },
-  ccSnapshotNote: { color: '#65A875', fontSize: 10, padding: 7 }, ccSnapshotLink: { color: '#D09314', flex: 1, fontSize: 10, padding: 7, textAlign: 'right' },
-  ccHealth: { alignItems: 'center', flexDirection: 'row', gap: 28, paddingHorizontal: 45, paddingVertical: 8 },
-  ccDonut: { alignItems: 'center', borderColor: '#58A83F', borderLeftColor: '#F39A0A', borderRadius: 35, borderWidth: 9, height: 70, justifyContent: 'center', width: 70 },
-  ccDonutNum: { color: '#23221E', fontFamily: 'serif', fontSize: 17, fontWeight: '800' },
-  ccHealthRow: { alignItems: 'center', flexDirection: 'row', gap: 7, minHeight: 44 }, ccHealthN: { color: '#25241F', fontSize: 10, fontWeight: '900', width: 18 },
-  ccPositive: { color: '#429B59', fontSize: 10, fontWeight: '700' },
-  ccHeadingRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, ccLines: { borderBottomColor: '#E3E1DC', borderBottomWidth: 1, paddingBottom: 4 },
-  ccProgressRow: { alignItems: 'center', flexDirection: 'row', minHeight: 21 }, ccProgressLabel: { color: '#403E38', fontSize: 10, width: 112 },
-  ccProgressTrack: { backgroundColor: '#E9E4DA', height: 3, flex: 1, overflow: 'hidden' }, ccProgressFill: { backgroundColor: colors.brass, height: '100%' }, ccProgressValue: { color: '#24231F', fontSize: 10, fontWeight: '700', textAlign: 'right', width: 30 },
+  ccPage: { gap: 0, paddingBottom: spacing.lg },
+  ccGreeting: { color: colors.ink, fontFamily: 'serif', fontSize: 18, fontWeight: '700', lineHeight: 24, marginTop: spacing.xs },
+  ccSmall: { color: '#696760', fontSize: 12, lineHeight: 17 },
+  ccTiny: { color: '#77746C', fontSize: 11, lineHeight: 14 },
+  ccGold: { color: colors.brassDark, fontSize: 12, fontWeight: '800', lineHeight: 17 },
+  ccDataRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs, marginTop: spacing.md },
+  ccFilterLine: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  ccLive: { color: colors.moss, fontSize: 12, fontWeight: '800', lineHeight: 17 },
+  ccFilter: { alignItems: 'center', backgroundColor: colors.paper, borderColor: colors.line, borderRadius: radii.sm, borderWidth: 1, flex: 1, flexDirection: 'row', gap: spacing.xs, justifyContent: 'space-between', minHeight: 48, minWidth: 0, paddingHorizontal: spacing.sm },
+  ccFilterText: { color: colors.ink, flex: 1, fontSize: 13, fontWeight: '700' }, ccFilterChevron: { color: colors.brassDark, fontSize: 14 },
+  ccSectionTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 20, fontWeight: '800', lineHeight: 26, marginTop: spacing.lg },
+  ccSnapshot: { backgroundColor: '#151716', borderRadius: radii.md, flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.sm, overflow: 'hidden' },
+  ccMetric: { alignItems: 'center', borderBottomColor: '#393A37', borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 94, padding: spacing.md, width: '50%' }, ccMetricCopy: { flex: 1, minWidth: 0 },
+  ccMetricIcon: { borderColor: '#71500A', borderRadius: 14, borderWidth: 1, color: '#C28A13', fontSize: 15, height: 30, lineHeight: 28, textAlign: 'center', width: 30 },
+  ccMetricValue: { color: '#F5F0E6', fontFamily: 'serif', fontSize: 22, fontWeight: '800', lineHeight: 27 },
+  ccMetricLabel: { color: '#D5D0C7', fontSize: 11, lineHeight: 15 },
+  ccSnapshotFooter: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', minHeight: 52, paddingHorizontal: spacing.md, width: '100%' }, ccSnapshotNote: { color: '#78B987', flex: 1, fontSize: 11, lineHeight: 15, minWidth: 180 }, ccReportButton: { alignItems: 'flex-end', justifyContent: 'center', minHeight: 44, paddingLeft: spacing.sm }, ccSnapshotLink: { color: '#D8A02A', fontSize: 11, fontWeight: '800' },
+  ccHealth: { backgroundColor: colors.secondarySurface, borderColor: colors.line, borderRadius: radii.md, borderWidth: 1, marginTop: spacing.sm, overflow: 'hidden', paddingHorizontal: spacing.md },
+  ccHealthTotal: { alignItems: 'baseline', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.xs, paddingVertical: spacing.sm },
+  ccDonutNum: { color: colors.ink, fontFamily: 'serif', fontSize: 26, fontWeight: '800', lineHeight: 31 },
+  ccHealthRow: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 48 }, ccStatusDot: { borderRadius: 4, height: 8, width: 8 }, ccHealthLabel: { color: colors.ink, flex: 1, fontSize: 13, fontWeight: '700' }, ccHealthN: { color: colors.ink, fontSize: 13, fontWeight: '900', textAlign: 'right', width: 28 }, ccHealthPercent: { color: colors.muted, fontSize: 12, textAlign: 'right', width: 38 },
+  ccPositive: { color: colors.moss, fontSize: 12, fontWeight: '700', lineHeight: 17, marginTop: spacing.xs },
+  ccHeadingRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }, ccLines: { borderBottomColor: colors.line, borderBottomWidth: 1, paddingBottom: spacing.sm },
+  ccProgressRow: { gap: spacing.xs, paddingVertical: spacing.sm }, ccProgressHeader: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }, ccProgressLabel: { color: colors.ink, flex: 1, fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  ccProgressTrack: { backgroundColor: '#E9E4DA', borderRadius: radii.pill, height: 6, overflow: 'hidden', width: '100%' }, ccProgressFill: { backgroundColor: colors.brass, borderRadius: radii.pill, height: '100%' }, ccProgressValue: { color: colors.ink, fontSize: 13, fontWeight: '800', lineHeight: 18, textAlign: 'right' },
   ccCount: { color: '#292721', fontFamily: 'serif', fontSize: 18, fontWeight: '800' },
-  ccRow: { alignItems: 'center', borderBottomColor: '#E5E0D6', borderBottomWidth: 1, flexDirection: 'row', gap: 7, minHeight: 44, paddingVertical: 4 }, ccRowIcon: { alignItems: 'center', width: 18 }, ccRowTitle: { color: '#292721', fontSize: 10, fontWeight: '800', lineHeight: 12 }, ccTrailing: { color: '#4A4841', fontSize: 10 }, ccChevron: { color: '#9A958B', fontSize: 16 }, ccDisclosure: { color: '#A66C00', fontSize: 10, marginTop: 3 },
-  ccBlocker: { alignItems: 'center', borderBottomColor: '#E5E0D6', borderBottomWidth: 1, borderLeftColor: '#D74334', borderLeftWidth: 2, flexDirection: 'row', gap: 5, minHeight: 48, paddingHorizontal: 5 }, ccSeverity: { backgroundColor: '#FBE5DF', color: '#C33B2E', fontSize: 10, fontWeight: '900', padding: 3 }, ccAssign: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 },
-  ccTimeline: { alignItems: 'flex-start', flexDirection: 'row', minHeight: 48, paddingVertical: 5 }, ccTime: { color: '#696760', fontSize: 10, paddingTop: 3, width: 48 }, ccTimelineDot: { color: colors.brass, fontSize: 11, width: 22 },
-  ccTender: { alignItems: 'center', borderBottomColor: '#E5E0D6', borderBottomWidth: 1, flexDirection: 'row', gap: 8, minHeight: 60, paddingVertical: 5 },
-  ccWorkforce: { backgroundColor: '#151716', borderRadius: 5, marginTop: 8, padding: 10 }, ccWorkTitle: { color: '#F4EFE6', fontFamily: 'serif', fontSize: 13, fontWeight: '800' }, ccWorkGrid: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 6 }, ccWorkValue: { color: '#D29A22', fontFamily: 'serif', fontSize: 15, fontWeight: '800' }, ccAttendance: { alignItems: 'center', borderColor: '#389647', borderRadius: 28, borderWidth: 5, height: 56, justifyContent: 'center', marginLeft: 'auto', width: 56 }, ccAttendanceValue: { color: '#EDE9E1', fontSize: 14, fontWeight: '900' }, ccRoles: { flexDirection: 'row', marginTop: 8 }, ccRole: { alignItems: 'center', backgroundColor: '#292B29', flex: 1, justifyContent: 'center', minHeight: 44 },
-  ccProject: { alignItems: 'center', borderBottomColor: '#E3E1DC', borderBottomWidth: 1, flexDirection: 'row', gap: 8, minHeight: 74, paddingVertical: 5 }, ccSelected: { backgroundColor: '#FFF6E4', borderColor: '#C88B18', borderWidth: 1 }, ccProjectImage: { alignItems: 'center', backgroundColor: '#D8D0BF', height: 62, justifyContent: 'center', width: 86 }, ccProjectGlyph: { color: '#8A7449', fontSize: 30 }, ccStatus: { fontSize: 10, fontWeight: '900', textAlign: 'right' },
+  ccRow: { alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 56, paddingVertical: spacing.sm }, ccRowIcon: { alignItems: 'center', width: 20 }, ccRowTitle: { color: colors.ink, fontSize: 13, fontWeight: '800', lineHeight: 18 }, ccTrailing: { color: '#4A4841', fontSize: 11, lineHeight: 15 }, ccChevron: { color: '#9A958B', fontSize: 16 }, ccDisclosure: { color: colors.brassDark, fontSize: 11, lineHeight: 15, marginTop: 3 },
+  ccBlocker: { alignItems: 'center', backgroundColor: colors.paper, borderColor: colors.line, borderLeftColor: colors.danger, borderLeftWidth: 3, borderRadius: radii.sm, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs, minHeight: 86, padding: spacing.sm }, ccSeverity: { backgroundColor: colors.statusBlockedSurface, borderRadius: radii.pill, color: colors.danger, fontSize: 10, fontWeight: '900', paddingHorizontal: 7, paddingVertical: 4 }, ccAssign: { alignItems: 'center', borderColor: colors.line, borderRadius: radii.sm, borderWidth: 1, justifyContent: 'center', minHeight: 44, minWidth: 72, paddingHorizontal: spacing.sm },
+  ccTimeline: { alignItems: 'flex-start', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', minHeight: 62, paddingVertical: spacing.sm }, ccTime: { color: '#696760', fontSize: 11, lineHeight: 15, paddingTop: 3, width: 56 }, ccTimelineDot: { color: colors.brass, fontSize: 11, width: 22 },
+  ccTender: { alignItems: 'center', backgroundColor: colors.paper, borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 80, paddingVertical: spacing.sm },
+  ccWorkforce: { backgroundColor: '#151716', borderRadius: radii.md, marginTop: spacing.lg, padding: spacing.md }, ccWorkTitle: { color: '#F4EFE6', fontFamily: 'serif', fontSize: 18, fontWeight: '800', lineHeight: 23 }, ccWorkGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm }, ccWorkValue: { color: '#D29A22', fontFamily: 'serif', fontSize: 20, fontWeight: '800', lineHeight: 25 }, ccAttendance: { alignItems: 'center', borderColor: '#389647', borderRadius: 28, borderWidth: 5, height: 56, justifyContent: 'center', width: 56 }, ccAttendanceValue: { color: '#EDE9E1', fontSize: 14, fontWeight: '900' }, ccRoles: { flexDirection: 'row', flexWrap: 'wrap', gap: 1, marginTop: spacing.sm }, ccRole: { alignItems: 'center', backgroundColor: '#292B29', flexGrow: 1, flexBasis: '48%', justifyContent: 'center', minHeight: 44 },
+  ccProject: { alignItems: 'center', backgroundColor: colors.paper, borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, minHeight: 96, paddingVertical: spacing.sm }, ccSelected: { backgroundColor: colors.secondarySurface, borderColor: colors.brass, borderRadius: radii.sm, borderWidth: 1, paddingHorizontal: spacing.xs }, ccProjectImage: { alignItems: 'center', backgroundColor: '#E8E1D3', borderRadius: radii.sm, height: 64, justifyContent: 'center', width: 72 }, ccProjectGlyph: { color: '#8A7449', fontSize: 28 }, ccStatus: { fontSize: 11, fontWeight: '900', lineHeight: 15, textAlign: 'right' },
   ccChart: { alignItems: 'flex-end', borderBottomColor: '#C8C2B8', borderBottomWidth: 1, flexDirection: 'row', height: 84, justifyContent: 'space-around' }, ccChartPoint: { alignItems: 'center', borderTopColor: colors.brass, borderTopWidth: 2, justifyContent: 'space-between', minHeight: 44, width: 45 },
   ccBarChart: { alignItems: 'flex-end', flexDirection: 'row', height: 65, justifyContent: 'space-around' }, ccBarSlot: { alignItems: 'center', justifyContent: 'flex-end', minHeight: 44, width: 36 }, ccBar: { backgroundColor: colors.brass, width: 12 },
   ccEmployee: { alignItems: 'center', borderBottomColor: '#E1DCD2', borderBottomWidth: 1, flexDirection: 'row', gap: 7, minHeight: 48 }, ccAvatar: { backgroundColor: '#343531', borderRadius: 16, color: '#F3EEE4', fontSize: 10, height: 30, lineHeight: 30, textAlign: 'center', width: 30 }, ccLocation: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 },
