@@ -138,7 +138,7 @@ export function DemoChatExperience({ onAction, state }: Props) {
             <Pressable accessibilityLabel={`Show supporting note option for ${selectedThread.title}`} accessibilityRole="button" onPress={() => setSupportNoteOpen(true)} style={styles.attach}><Text style={styles.attachText}>＋</Text></Pressable>
             <Pressable accessibilityLabel={`Send message to ${selectedThread.title}`} accessibilityRole="button" onPress={send} style={styles.send}><Text style={styles.sendText}>Send</Text></Pressable>
           </View>
-          {supportNoteOpen ? <Text accessibilityLiveRegion="polite" style={styles.supportNote}>Add supporting note</Text> : null}
+          {supportNoteOpen ? <Text accessibilityLiveRegion="polite" style={styles.supportNote}>Supporting note</Text> : null}
           <Text accessibilityLiveRegion="polite" style={styles.announcement}>{announcement}</Text>
         </View>
       </KeyboardAvoidingView>
@@ -171,7 +171,6 @@ export function DemoChatExperience({ onAction, state }: Props) {
             <View style={styles.queryHeading}>
               <Text style={styles.queryEyebrow}>NEW MANAGEMENT QUERY</Text>
               <Text style={styles.queryTitle}>Start a conversation</Text>
-              <Text style={styles.queryPurpose}>Add a project or tender query to this demo workspace.</Text>
             </View>
             <View accessibilityRole="tablist" style={styles.queryChannelList}>
               {(['project', 'tender'] as const).map((channel) => {

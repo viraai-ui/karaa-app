@@ -33,9 +33,9 @@ describe("signed-in customer portfolio", () => {
   it("opens each quick action's correct panel", () => {
     const ui = render(<CustomerPortfolio onAction={jest.fn()} />);
     const actions = [
-      ["Recent Updates", "Two unread project updates are available in this prototype."],
+      ["Recent Updates", "Two unread project updates"],
       ["My Documents", "11 private project documents are represented locally."],
-      ["Payment Records", "No live payment service is connected; this is a prototype record panel."],
+      ["Payment Records", "No payment records"],
     ] as const;
     for (const [title, body] of actions) {
       fireEvent.press(ui.getByRole("button", { name: title }));

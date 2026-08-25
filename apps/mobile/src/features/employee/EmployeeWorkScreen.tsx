@@ -318,7 +318,6 @@ export function EmployeeWorkScreen({
     return (
       <View style={styles.statePage}>
         <ActivityIndicator color={colors.brass} />
-        <Text style={styles.stateCopy}>Loading assigned work…</Text>
       </View>
     );
   }
@@ -359,7 +358,7 @@ export function EmployeeWorkScreen({
             <Pressable accessibilityRole="button" accessibilityLabel="Add evidence photo" onPress={() => void addPhoto()} style={styles.outlineButton}>
               <Text style={styles.outlineButtonText}>{photo ? 'Replace evidence photo' : 'Add evidence photo'}</Text>
             </Pressable>
-            {photo ? <Text style={styles.selectionText}>{photo.fileName}</Text> : <Text style={styles.helperText}>One JPEG, PNG, or WebP image is required. It is sent only when Karaa accepts this record.</Text>}
+            {photo ? <Text style={styles.selectionText}>{photo.fileName}</Text> : null}
           </View>
 
           <View style={styles.section}>
@@ -375,7 +374,7 @@ export function EmployeeWorkScreen({
 
           {saveCurrentLocation ? <View style={styles.section}>
             <Text style={styles.sectionLabel}>CURRENT FIELD LOCATION</Text>
-            <Text style={styles.helperText}>This is a separate, server-recorded field location for authorized Management only.</Text>
+
             {resolveActiveLocation ? <Pressable accessibilityRole="button" accessibilityLabel="Share device field location" disabled={currentLocationSaving} onPress={() => void shareCurrentFieldLocation(resolveActiveLocation)} style={[styles.outlineButton, currentLocationSaving && styles.disabledButton]}>
               <Text style={styles.outlineButtonText}>Share device field location</Text>
             </Pressable> : null}
@@ -420,8 +419,7 @@ export function EmployeeWorkScreen({
           </Pressable>
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>SUBMITTED FIELD RECORDS</Text>
-            <Text style={styles.helperText}>Saved field records appear here only after Karaa returns the canonical project record.</Text>
-            {loadState.work.updates.length === 0 ? <Text style={styles.helperText}>No field records have been returned for this assignment.</Text> : loadState.work.updates.map((update) => <View key={update.id} style={styles.historyCard}>
+            {loadState.work.updates.length === 0 ? <Text style={styles.helperText}>No field records</Text> : loadState.work.updates.map((update) => <View key={update.id} style={styles.historyCard}>
               <Text style={styles.assignmentLabel}>SAVED {formatSavedRecordTime(update.serverTimestamp)}</Text>
               <Text style={styles.historyTitle}>{update.workDescription}</Text>
               <Text style={styles.historyMeta}>{update.claimedProgress}% claimed progress · {update.media.length} evidence image{update.media.length === 1 ? '' : 's'}</Text>
@@ -435,7 +433,6 @@ export function EmployeeWorkScreen({
             sendMessage={sendMessage}
             title="PROJECT REPLIES"
           /> : null}
-          <Text style={styles.footer}>Project data and actions require a secure connection to Karaa.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

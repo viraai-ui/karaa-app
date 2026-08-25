@@ -15,7 +15,7 @@ export function LiveWorkforceMap({ project, onBack }: { project: LiveMapProject;
   const [notice, setNotice] = useState('');
   const [zoom, setZoom] = useState(14);
   const [selected, setSelected] = useState(person.name);
-  const act = (message: string) => setNotice(`${message} · Prototype preview only — no GPS or live backend is connected.`);
+  const act = (message: string) => setNotice(message);
   const IconButton = ({ name, glyph, onPress }: { name: string; glyph: string; onPress: () => void }) => (
     <Pressable accessibilityRole="button" accessibilityLabel={name} onPress={onPress} style={styles.iconButton}><Text style={styles.iconGlyph}>{glyph}</Text></Pressable>
   );

@@ -60,8 +60,8 @@ function UniversalVerticalPage({ vertical, onAction }: { vertical: VerticalDetai
       </View>
     </View>
     <View style={s.explore}>
-      <Text style={s.eyebrow}>EXPLORE {exploreName}</Text><Text style={s.sectionTitle}>Choose a pathway</Text>
-      <Text style={s.sectionSubtitle}>Select a sub-vertical to view its projects, milestones and latest progress.</Text><View style={s.goldRule} />
+      <Text style={s.eyebrow}>EXPLORE {exploreName}</Text><Text style={s.sectionTitle}>Pathways</Text>
+      <View style={s.goldRule} />
       <View style={s.cards} testID="pathway-list">{vertical.pathways.map((item,index) => <Pressable accessibilityLabel={`Explore ${item.title}`} accessibilityRole="button" key={item.title} onPress={() => openPathway(vertical,item.title,onAction)} style={s.card} testID={`vertical-pathway-${index+1}`}>
         <Image accessibilityLabel={`${item.title} pathway`} resizeMode="cover" source={item.image} style={s.cardImage} />
         <View style={s.cardCopy} testID={`vertical-pathway-copy-${index+1}`}><Text ellipsizeMode="tail" numberOfLines={3} style={s.cardTitle} testID={`vertical-pathway-title-${index+1}`}>{item.title}</Text><Text numberOfLines={1} style={s.cardDescription} testID={`vertical-pathway-description-${index+1}`}>{item.description}</Text><Text style={s.cardArrow}>→</Text></View>

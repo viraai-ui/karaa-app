@@ -50,7 +50,7 @@ describe('canonical role bottom navigation', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Search' }));
     expect(screen.getByLabelText('Search panel')).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText('Search projects and tenders'), 'Aarohan');
-    expect(screen.getByText('No saved demo results for “Aarohan”.')).toBeTruthy();
+    expect(screen.getByText('No results for “Aarohan”.')).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Close search' }));
     fireEvent.press(screen.getByRole('button', { name: 'Notifications, unread' }));
     expect(screen.getByLabelText('Notifications panel')).toBeTruthy();

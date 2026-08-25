@@ -80,11 +80,11 @@ export function ProjectConversation({
 
   if (state.status === 'loading') return <View style={styles.loading}><ActivityIndicator color={colors.brass} /><Text style={styles.loadingText}>Loading saved replies…</Text></View>;
   if (state.status === 'error') return <View style={styles.panel}><Text style={styles.panelTitle}>{title}</Text><Text style={styles.error}>{state.message}</Text><Pressable accessibilityLabel="Retry project replies" accessibilityRole="button" onPress={() => void refresh()} style={styles.outlineButton}><Text style={styles.outlineButtonText}>Retry project replies</Text></Pressable></View>;
-  if (!state.conversation) return <View style={styles.panel}><Text style={styles.panelTitle}>{title}</Text><Text style={styles.empty}>No saved project reply yet. A secure connection is required before Karaa can create one.</Text></View>;
+  if (!state.conversation) return <View style={styles.panel}><Text style={styles.panelTitle}>{title}</Text><Text style={styles.empty}>No saved project reply yet.</Text></View>;
 
   return <View style={styles.panel}>
     <Text style={styles.panelTitle}>{title}</Text>
-    <Text style={styles.helper}>Project-linked messages are saved to Karaa before they appear here.</Text>
+
     <View style={styles.thread}>{state.conversation.messages.map((item) => <View key={item.id} style={[styles.message, item.senderId === currentUserId ? styles.ownMessage : styles.otherMessage]}><Text style={[styles.messageBody, item.senderId === currentUserId ? styles.ownMessageBody : styles.otherMessageBody]}>{item.body}</Text></View>)}</View>
     <TextInput accessibilityLabel="Project reply" multiline onChangeText={(value) => { setBody(value); setSaved(false); }} placeholder="Write a project reply" placeholderTextColor={colors.muted} style={styles.input} value={body} />
     {message ? <Text accessibilityRole="alert" style={styles.error}>{message}</Text> : null}

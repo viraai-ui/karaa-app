@@ -230,7 +230,7 @@ describe('CustomerProjectScreen', () => {
     expect(rendered.getByText('Presentation simulator — not a real location')).toBeTruthy();
     expect(rendered.queryByText('Coordinates recorded')).toBeNull();
     expect(rendered.getByText('16.5062°, 80.6480°')).toBeTruthy();
-    expect(rendered.getByText('Demo visual')).toBeTruthy();
+    expect(rendered.queryByText('Demo visual')).toBeNull();
     expect(rendered.getByTestId('customer-evidence-image').props.source).toEqual({
       uri: 'data:image/png;base64,iVBORw==',
     });

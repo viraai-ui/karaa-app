@@ -546,7 +546,7 @@ export function UniversalProjectTimeline({
       )}
       {selectedTab === "media" && (
         <SimpleTab title="Project Media">
-          <Text style={a.intro}>Eight local prototype site photographs</Text>
+
           <View style={a.modalGrid}>
             {aarohanPhotos.map((p, i) => (
               <Pressable
@@ -985,11 +985,7 @@ function PdfModal({
             </Pressable>
           </View>
           <View style={a.paper}>
-            <Text style={a.nextLabel}>DEMO PROJECT RECORD</Text>
-            <Text style={a.intro}>
-              This is an honest local demo preview for the Karaa prototype. It
-              is not a live project document or delivery record.
-            </Text>
+
           </View>
         </View>
       </View>

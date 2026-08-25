@@ -147,7 +147,7 @@ function CustomerEvidence({
               testID="customer-hero-image"
             />
           </View>
-          <Text style={styles.caption}>Demo visual</Text>
+
         </View>
 
         <View style={styles.section}>
@@ -195,7 +195,7 @@ function CustomerEvidence({
                     style={styles.evidenceImage}
                     testID="customer-evidence-image"
                   />
-                  {evidence.isDemoVisual ? <Text style={styles.caption}>Demo visual</Text> : null}
+
                 </View>
               ) : evidenceUnavailable ? (
                 <Text style={styles.mediaUnavailable}>Evidence preview unavailable</Text>
@@ -206,7 +206,7 @@ function CustomerEvidence({
             <EmptyState
               eyebrow="NO FIELD RECORDS"
               title="No saved evidence yet"
-              copy="Karaa will show a field record here after an authorized project update is saved."
+
             />
           )}
         </View>
@@ -228,7 +228,7 @@ function CustomerEvidence({
             <EmptyState
               eyebrow="NO DOCUMENTS"
               title="No customer documents saved"
-              copy="Authorized project documents will appear here when Karaa records them."
+
             />
           )}
         </View>
@@ -250,7 +250,7 @@ function CustomerEvidence({
             <EmptyState
               eyebrow="NO PAYMENT RECORDS"
               title="No payment records saved"
-              copy="Authorized payment records will appear here when Karaa records them."
+
             />
           )}
         </View>
@@ -281,7 +281,7 @@ function CustomerEvidence({
             <EmptyState
               eyebrow="NO NOTICES"
               title="Nothing needs your attention"
-              copy="Project-specific notices will appear here when Karaa records one for your account."
+
             />
           )}
         </View>

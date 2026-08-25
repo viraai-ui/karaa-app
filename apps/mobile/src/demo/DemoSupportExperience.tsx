@@ -49,7 +49,7 @@ export function DemoSupportExperience({ state, onAction }: Props) {
     </View>
 
     <View style={styles.content}>
-      <View><Text style={styles.sectionTitle}>How can we help?</Text><Text style={styles.sectionIntro}>Choose the fastest way to reach our support team.</Text></View>
+      <View><Text style={styles.sectionTitle}>How can we help?</Text></View>
       <View style={styles.actionStack}>
         <SupportCard eyebrow="AVAILABLE NOW" icon="●" onPress={openLiveChat} subtitle="Message a Karaa support specialist" title="Live Chat" tone="live" />
         <SupportCard eyebrow="WE’LL FOLLOW UP" icon="＋" onPress={openTicketForm} subtitle="Share an issue with project context" title="Raise a Ticket" tone="ticket" />

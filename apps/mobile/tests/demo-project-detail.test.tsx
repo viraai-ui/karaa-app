@@ -119,10 +119,10 @@ describe('Power-of-9 project detail', () => {
     expect(rendered.getByRole('progressbar', { name: 'PROJECT DELIVERY: 68% delivery recorded' })).toBeTruthy();
   });
 
-  it('renders only canonical generated media with visible Demo visual provenance', () => {
+  it('renders only canonical generated media without visible demo captions', () => {
     const { rendered } = renderDetail({ selectedProjectDetailTab: 'media' });
 
-    expect(rendered.getAllByText('Demo visual')).toHaveLength(4);
+    expect(rendered.queryByText('Demo visual')).toBeNull();
     expect(rendered.getAllByRole('image', { name: /Demo visual:/ })).toHaveLength(4);
   });
 
@@ -135,7 +135,8 @@ describe('Power-of-9 project detail', () => {
 
     expect(rendered.getByText('Project media')).toBeTruthy();
     expect(rendered.getByText('No project media listed')).toBeTruthy();
-    expect(rendered.getByText(/Vijayawada Integrated Logistics Hub has no generated project media/)).toBeTruthy();
+    expect(rendered.getAllByText('No project media').length).toBeGreaterThan(0);
+    expect(rendered.queryByText(/has no generated project media/)).toBeNull();
     expect(rendered.queryByRole('image', { name: /Amaravati/ })).toBeNull();
   });
 

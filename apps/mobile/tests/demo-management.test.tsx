@@ -29,7 +29,8 @@ describe('Management Command Centre and Geo Location', () => {
   it('keeps the map tab contract and exact screenshot overview copy', () => {
     expect(offlineRoleTabs.management.find((tab) => tab.key === 'map')).toEqual(expect.objectContaining({ label: 'Track' }));
     const screen = render(<Harness />);
-    ['FIELD OPERATIONS', 'Select a project to view live workforce locations and site activity.', 'Updated 10:42 AM', '08', '3,912', '628', '12', '4,860'].forEach((text) => expect(screen.getAllByText(text).length).toBeGreaterThan(0));
+    ['FIELD OPERATIONS', 'Updated 10:42 AM', '08', '3,912', '628', '12', '4,860'].forEach((text) => expect(screen.getAllByText(text).length).toBeGreaterThan(0));
+    expect(screen.queryByText('Select a project to view live workforce locations and site activity.')).toBeNull();
   });
 
   it('renders all six exact project identities and status details', () => {
@@ -57,7 +58,7 @@ describe('Management Command Centre and Geo Location', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Open Aarohan Medical City' }));
     ['LIVE WORKFORCE MAP','Pune, Maharashtra','Updated just now','Rohan Mehta','Project Manager','EMP-KG-0243','08:12 AM','06:30 PM','10:41 AM','8h 18m','Structural frame inspection','Clinical Block · East Wing','184m travelled today','View all 426 people →'].forEach(text=>expect(screen.getAllByText(new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))).length).toBeGreaterThan(0));
     fireEvent.press(screen.getByRole('button',{name:'Refresh workforce map'}));
-    expect(screen.getByText(/no GPS or live backend/)).toBeTruthy();
+    expect(screen.getByText('Bundled map data refreshed')).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Dismiss map notice'));
     for (const name of ['Map layers','Change map time','Zoom in','Zoom out','Recenter map','Open mini map layers','Select Rohan Mehta','Message Rohan Mehta','View full activity','More employee actions','View all 426 people']) expect(screen.getByRole('button',{name})).toBeTruthy();
     for (const name of ['All Personnel','Field Teams','Managers','Alerts']) expect(StyleSheet.flatten(screen.getByRole('tab',{name}).props.style).minHeight).toBeGreaterThanOrEqual(44);
@@ -78,9 +79,9 @@ describe('Management Command Centre and Geo Location', () => {
   it('exercises refresh, filter, sort, and view controls with local prototype semantics', () => {
     const screen = render(<Harness />);
     fireEvent.press(screen.getByRole('button', { name: 'Refresh location status' }));
-    expect(screen.getByText(/refreshed locally at 10:42 AM/)).toBeTruthy();
+    expect(screen.getAllByText('Updated 10:42 AM').length).toBeGreaterThan(0);
     fireEvent.press(screen.getByRole('button', { name: 'Refresh data' }));
-    expect(screen.getByText(/bundled prototype data/)).toBeTruthy();
+    expect(screen.queryByText(/prototype/i)).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Filter projects' }));
     expect(screen.getByRole('tab', { name: 'Location Alerts' }).props.accessibilityState.selected).toBe(true);
     fireEvent.press(screen.getByRole('button', { name: 'Sort projects' }));
@@ -92,7 +93,7 @@ describe('Management Command Centre and Geo Location', () => {
     const screen = render(<Harness />);
     for (const title of ['3 personnel outside geofence', '1 tracking device offline', '2 personnel near site boundary']) {
       fireEvent.press(screen.getByRole('button', { name: `Open alert ${title}` }));
-      expect(screen.getByText(`${title} — prototype alert details only.`)).toBeTruthy();
+      expect(screen.getAllByText(title).length).toBeGreaterThan(0);
     }
     ['8 min ago', '14 min ago', '22 min ago'].forEach((time) => expect(screen.getByText(time)).toBeTruthy());
     fireEvent.press(screen.getByRole('button', { name: 'View all 12 alerts' }));
@@ -119,7 +120,7 @@ describe('Management Command Centre and Geo Location', () => {
     for (const name of ['Select map marker 24', 'Select map marker 12', 'Select map marker 38', 'Select map marker !', 'Select Rohan Mehta']) fireEvent.press(screen.getByRole('button', { name }));
     for (const name of ['Map layers', 'Change map time', 'Zoom in', 'Zoom out', 'Recenter map', 'Open mini map layers', 'Message Rohan Mehta', 'Open movement 08:12 Check in', 'Open movement 09:05 Gate A', 'Open movement 10:18 Clinical Block', 'Open movement 10:41 East Wing', 'View full activity', 'Send message to Rohan Mehta', 'More employee actions', 'View all 426 people']) {
       fireEvent.press(screen.getByRole('button', { name }));
-      expect(screen.getByText(/Prototype preview only/)).toBeTruthy();
+      expect(screen.queryByText(/Prototype preview only/)).toBeNull();
     }
   });
 
@@ -138,6 +139,6 @@ describe('Management Command Centre and Geo Location', () => {
     expect(screen.getByText('Authorised tracking only')).toBeTruthy();
     expect(screen.getByText('Live location is visible only during assigned work hours.')).toBeTruthy();
     fireEvent.press(screen.getByRole('link', { name: 'Tracking policy' }));
-    expect(screen.getByText(/does not collect or transmit location data/)).toBeTruthy();
+    expect(screen.getAllByText('Authorised tracking only').length).toBeGreaterThan(0);
   });
 });

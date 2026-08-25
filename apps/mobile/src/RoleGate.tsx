@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { loadSession as defaultLoadSession, selectRoleRoute, type Role, type Session } from './lib/session';
 import { KaraaBrand } from './components/KaraaBrand';
@@ -30,7 +30,6 @@ export function RoleGate({
       <View style={styles.loading}>
         <KaraaBrand height={54} variant="crown" />
         <ActivityIndicator />
-        <Text>Opening your workspace…</Text>
       </View>
     );
   }

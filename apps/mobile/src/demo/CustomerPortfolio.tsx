@@ -181,7 +181,7 @@ export function CustomerPortfolio({ onAction }: Props) {
     [
       "clock",
       "Recent Updates",
-      "Two unread project updates are available in this prototype.",
+      "Two unread project updates",
     ],
     [
       "file",
@@ -191,7 +191,7 @@ export function CustomerPortfolio({ onAction }: Props) {
     [
       "wallet",
       "Payment Records",
-      "No live payment service is connected; this is a prototype record panel.",
+      "No payment records",
     ],
   ];
   return (
@@ -273,7 +273,7 @@ export function CustomerPortfolio({ onAction }: Props) {
             onPress={() =>
               open(
                 "Manage access",
-                "Access is limited to verified account KG-INV-••4821. No permissions are changed in this local prototype.",
+                "Access is limited to verified account KG-INV-••4821.",
               )
             }
             style={s.manage}

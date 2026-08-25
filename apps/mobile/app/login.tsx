@@ -39,10 +39,10 @@ function OfflineAccountSelector({ onSelect }: { onSelect: (account: OfflineDemoA
         <Image accessibilityLabel="Demo visual: Amaravati solar campus" resizeMode="cover" source={demoVisualAssets.hero.source} style={styles.demoImage} />
         <View style={styles.demoImageScrim} />
         <View style={styles.demoImageCopy}><Text style={styles.demoImageLabel}>AMARAVATI SOLAR COMMONS</Text><Text style={styles.demoImageDetail}>Energy & Utilities · commissioning review</Text></View>
-        <Text style={styles.demoVisualCaption}>Demo visual</Text>
+
       </View>
       <View style={styles.accountSection}>
-        <View style={styles.accountSectionHeading}><Text style={styles.accountSectionLabel}>PRESENTATION ACCESS</Text><Text style={styles.accountSectionTitle}>Choose a workspace</Text></View>
+        <View style={styles.accountSectionHeading}><Text style={styles.accountSectionLabel}>PRESENTATION ACCESS</Text><Text style={styles.accountSectionTitle}>Workspaces</Text></View>
         <Pressable accessibilityLabel="Open Field Employee workspace" accessibilityRole="button" onPress={() => onSelect(employee)} style={styles.primaryWorkspace}>
           <View style={styles.primaryWorkspaceCopy}><Text style={styles.primaryWorkspaceLabel}>START GUIDED WORKSPACE</Text><Text style={styles.primaryWorkspaceTitle}>Continue as Field Employee</Text><Text style={styles.primaryWorkspaceDetail}>Amaravati commissioning review</Text></View>
           <View style={styles.primaryWorkspaceBadge}><Text style={styles.primaryWorkspaceBadgeText}>{employee.initials}</Text></View>
@@ -94,7 +94,7 @@ function ServerLoginForm({ onRoute }: { onRoute: (pathname: string) => void }) {
     <View style={styles.page}>
       <KaraaBrand height={24} variant="wordmark" />
       <Text style={styles.title}>Sign in to your workspace</Text>
-      <Text style={styles.copy}>Your role is assigned by the server. There is no role selector here.</Text>
+
       <View style={styles.field}>
         <Text nativeID="email-label" style={styles.label}>Email</Text>
         <TextInput accessibilityLabel="Email address" accessibilityLabelledBy="email-label" autoCapitalize="none" autoComplete="email" keyboardType="email-address" onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.muted} style={styles.input} value={email} />
@@ -107,7 +107,6 @@ function ServerLoginForm({ onRoute }: { onRoute: (pathname: string) => void }) {
       <Pressable accessibilityRole="button" disabled={submitting} onPress={() => void signIn()} style={[styles.button, submitting && styles.disabled]}>
         {submitting ? <ActivityIndicator color={colors.paper} /> : <Text style={styles.buttonText}>Continue</Text>}
       </Pressable>
-      <Text style={styles.hint}>Karaa is online-only. Project data and actions require a secure connection to Karaa. This device stores only an encrypted sign-in session.</Text>
     </View>
   );
 }

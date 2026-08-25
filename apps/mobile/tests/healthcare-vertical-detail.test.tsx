@@ -19,7 +19,8 @@ describe.each(verticalDetails)('$title universal vertical detail', (vertical) =>
     expect(StyleSheet.flatten(screen.getByTestId('vertical-hero').props.style)).toMatchObject({height:202});
     expect(StyleSheet.flatten(screen.getByTestId('vertical-hero-title').props.style)).toMatchObject({fontSize:['ports-airports-logistics','manufacturing-industrial-solutions'].includes(vertical.id)?22:25,lineHeight:['ports-airports-logistics','manufacturing-industrial-solutions'].includes(vertical.id)?22:24});
     expect(screen.getByTestId('vertical-hero-title').props).toMatchObject({adjustsFontSizeToFit:true,minimumFontScale:.72,numberOfLines:3});
-    expect(StyleSheet.flatten(screen.getByText('Choose a pathway').props.style)).toMatchObject({fontSize:22,lineHeight:25});
+    expect(StyleSheet.flatten(screen.getByText('Pathways').props.style)).toMatchObject({fontSize:22,lineHeight:25});
+    expect(screen.queryByText('Select a sub-vertical to view its projects, milestones and latest progress.')).toBeNull();
     vertical.pathways.forEach((pathway,index) => {
       expect(pathway.description.length).toBeLessThanOrEqual(56);
       expect(screen.getByText(pathway.title)).toBeTruthy();

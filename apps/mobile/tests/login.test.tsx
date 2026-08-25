@@ -67,11 +67,11 @@ describe('LoginScreen', () => {
     expect(passwordField.props.value).toBe('');
   });
 
-  it('explains that project access requires a secure connection without offline wording', () => {
+  it('keeps the sign-in form concise without helper copy', () => {
     mockLoadSession.mockResolvedValue(undefined);
     const rendered = render(<LoginScreen />);
 
-    expect(rendered.getByText('Karaa is online-only. Project data and actions require a secure connection to Karaa. This device stores only an encrypted sign-in session.')).toBeTruthy();
+    expect(rendered.queryByText(/requires a secure connection/)).toBeNull();
     expect(rendered.queryByText(/Karaa is offline/)).toBeNull();
   });
 
@@ -95,7 +95,8 @@ describe('LoginScreen', () => {
     expect(rendered.getAllByLabelText('Karaa Global').length).toBeGreaterThan(0);
     expect(rendered.getByText('SECURE PROJECT ACCESS')).toBeTruthy();
     expect(rendered.getByText('Welcome back.')).toBeTruthy();
-    expect(rendered.getByText('Choose a workspace')).toBeTruthy();
+    expect(rendered.getByText('Workspaces')).toBeTruthy();
+    expect(rendered.queryByText('Choose a workspace')).toBeNull();
     expect(rendered.getByText('START GUIDED WORKSPACE')).toBeTruthy();
     expect(rendered.getByText('Continue as Field Employee')).toBeTruthy();
     expect(rendered.getByRole('button', { name: 'Open Field Employee workspace' })).toBeTruthy();

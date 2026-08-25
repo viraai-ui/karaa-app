@@ -70,7 +70,6 @@ export function LegacySupportExperience({ onAction, state, initialFormOpen = fal
         <View style={styles.headingBlock}>
           <Text style={styles.eyebrow}>CUSTOMER SUPPORT</Text>
           <Text style={styles.title}>Create support ticket</Text>
-          <Text style={styles.context}>Add the project context and question for a shared customer and management conversation.</Text>
         </View>
 
         <View style={styles.form}>
@@ -134,7 +133,7 @@ export function LegacySupportExperience({ onAction, state, initialFormOpen = fal
               <Text style={styles.noteGlyph}>＋</Text>
               <Text style={styles.noteActionText}>Supporting note</Text>
             </Pressable>
-            {supportingNoteOpen ? <Text style={styles.noteText}>Add supporting note</Text> : null}
+            {supportingNoteOpen ? <Text style={styles.noteText}>Supporting note</Text> : null}
           </View>
 
           <Pressable accessibilityLabel="Add support ticket" accessibilityRole="button" onPress={submit} style={styles.submit}>

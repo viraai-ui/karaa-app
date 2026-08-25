@@ -74,7 +74,7 @@ export function KaraaScreen() {
               testID="tour-hero-image"
             />
           </View>
-          <Text style={styles.caption}>Demo visual · fictional Amaravati Solar Commons</Text>
+
         </View>
       </View>
 

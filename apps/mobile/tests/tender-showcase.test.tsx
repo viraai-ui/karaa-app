@@ -23,7 +23,7 @@ describe('reusable tender showcase', () => {
   it('supports document/company previews and local detail panels', () => {
     const ui=setup(); fireEvent.press(ui.getByRole('button',{name:'View latest applied 400kV Substation at Bhopal'}));
     fireEvent.press(ui.getByRole('tab',{name:'Documents'})); fireEvent.press(ui.getByRole('button',{name:'Preview Technical Bid Package'})); expect(ui.getByText('Document preview')).toBeTruthy(); fireEvent.press(ui.getByRole('button',{name:'Close Document preview'}));
-    fireEvent.press(ui.getByRole('tab',{name:'Companies'})); fireEvent.press(ui.getByRole('button',{name:'View Meridian Grid Systems (demo)'})); expect(ui.getByText('Company preview')).toBeTruthy(); fireEvent.press(ui.getByRole('button',{name:'Close Company preview'}));
+    fireEvent.press(ui.getByRole('tab',{name:'Companies'})); fireEvent.press(ui.getByRole('button',{name:'View Meridian Grid Systems'})); expect(ui.getByText('Company preview')).toBeTruthy(); fireEvent.press(ui.getByRole('button',{name:'Close Company preview'}));
     for(const [button,title] of [['Share tender','Share tender'],['Tender notifications','Notification preferences'],['Next update details','Next update']] as const){fireEvent.press(ui.getByRole('button',{name:button}));expect(ui.getByText(title)).toBeTruthy();fireEvent.press(ui.getByRole('button',{name:`Close ${title}`}));}
   });
 

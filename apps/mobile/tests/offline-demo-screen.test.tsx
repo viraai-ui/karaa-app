@@ -128,7 +128,7 @@ describe('Karaa Global role demo surfaces', () => {
 
     fireEvent.press(rendered.getByRole('button', { name: 'Record progress update' }));
     expect(rendered.getByText('Review field update')).toBeTruthy();
-    expect(rendered.getByText('Demo visual')).toBeTruthy();
+    expect(rendered.queryByText('Demo visual')).toBeNull();
 
     fireEvent.press(rendered.getByRole('button', { name: 'Add update to project timeline' }));
     expect(rendered.getByText('Update added to project activity')).toBeTruthy();

@@ -116,7 +116,6 @@ export function DemoProjectDetail({
           {isSharedAmaravatiProject ? (
             <DemoImageFrame
               accessibilityLabel={visual.accessibilityLabel}
-              caption={visual.label}
               height={112}
               source={visual.source}
             />
@@ -276,18 +275,13 @@ function MediaTab({ project }: { project: DemoProject }) {
     <View style={styles.section}>
       <View style={styles.sectionHeading}>
         <Text style={styles.sectionTitle}>Project media</Text>
-        <Text style={styles.sectionIntro}>
-          {isSharedAmaravatiProject
-            ? 'Generated scenario imagery used to support project review.'
-            : `${project.name} has no generated project media in this demo record.`}
-        </Text>
+        {!isSharedAmaravatiProject ? <Text style={styles.sectionIntro}>No project media</Text> : null}
       </View>
       {isSharedAmaravatiProject ? (
         <View style={styles.mediaList}>
           {Object.values(demoVisualAssets).map((asset) => (
             <DemoImageFrame
               accessibilityLabel={asset.accessibilityLabel}
-              caption={asset.label}
               height={144}
               key={asset.accessibilityLabel}
               source={asset.source}

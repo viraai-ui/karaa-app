@@ -6,7 +6,7 @@ import { colors, radii, spacing } from '../theme/tokens';
 type EmptyStateProps = {
   eyebrow?: string;
   title: string;
-  copy: string;
+  copy?: string;
   children?: ReactNode;
 };
 
@@ -15,7 +15,7 @@ export function EmptyState({ eyebrow, title, copy, children }: EmptyStateProps) 
     <View style={styles.container}>
       {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.copy}>{copy}</Text>
+      {copy ? <Text style={styles.copy}>{copy}</Text> : null}
       {children ? <View style={styles.action}>{children}</View> : null}
     </View>
   );
