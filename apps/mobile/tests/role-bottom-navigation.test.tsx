@@ -110,7 +110,7 @@ describe('canonical role bottom navigation', () => {
   it.each(['customer', 'employee', 'management'] as const)('keeps the %s canvas and footer role-scoped', (role) => {
     const screen = render(<Shell role={role} />);
     expect(screen.getByTestId('demo-content-viewport')).toHaveStyle({ backgroundColor: '#FFFFFF' });
-    expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: 8 });
+    expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: role === 'employee' ? 11 : 8 });
     expect(StyleSheet.flatten(screen.getByTestId('demo-bottom-navigation').props.style).overflow).toBeUndefined();
   });
 

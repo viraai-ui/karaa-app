@@ -68,8 +68,8 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
               role === 'employee' && styles.employeeContent,
               {
                 paddingBottom: PAGE_END_CLEARANCE,
-                paddingLeft: spacing.md + insets.left,
-                paddingRight: spacing.md + insets.right,
+                paddingLeft: (role === 'employee' ? 23 : spacing.md) + insets.left,
+                paddingRight: (role === 'employee' ? 23 : spacing.md) + insets.right,
               },
             ]}
             showsVerticalScrollIndicator={false}
