@@ -206,10 +206,15 @@ export function CustomerPortfolio({ onAction }: Props) {
           style={s.heroImage}
           accessibilityLabel="Construction site"
         />
-        <View style={s.heroFade} />
+        <View style={s.heroFadeSolid} />
+        <View style={s.heroFadeStrong} />
+        <View style={s.heroFadeMedium} />
+        <View style={s.heroFadeSoft} />
+        <View style={s.heroFadeEdge} />
         <View style={s.heroCopy}>
-          <Text style={s.eyebrow}>PERSONALISED ACCESS</Text>
-          <Text style={s.title}>My Portfolio</Text>
+          <Text numberOfLines={1} style={s.title}>
+            My Portfolio
+          </Text>
           <Text style={s.subtitle}>
             Your projects, progress and private records—{`\n`}all in one place.
           </Text>
@@ -599,54 +604,84 @@ const s = StyleSheet.create({
   page: {
     backgroundColor: "#fff",
     marginHorizontal: -16,
-    marginTop: -16,
+    marginTop: -17,
     paddingBottom: 24,
   },
   hero: {
-    backgroundColor: "#f6f0e5",
-    height: 210,
+    backgroundColor: "#fff",
+    height: 178,
     overflow: "hidden",
     position: "relative",
   },
   heroImage: {
     bottom: 0,
-    height: 148,
+    height: 178,
     position: "absolute",
     right: 0,
-    width: "55%",
+    width: "64%",
   },
-  heroFade: {
-    backgroundColor: "rgba(246,240,229,.42)",
+  heroFadeSolid: {
+    backgroundColor: "#fff",
     bottom: 0,
-    height: 148,
+    height: 178,
+    left: "32%",
     position: "absolute",
-    right: "45%",
-    width: "18%",
+    width: "12%",
+  },
+  heroFadeStrong: {
+    backgroundColor: "rgba(255,255,255,.92)",
+    bottom: 0,
+    height: 178,
+    left: "44%",
+    position: "absolute",
+    width: "6%",
+  },
+  heroFadeMedium: {
+    backgroundColor: "rgba(255,255,255,.72)",
+    bottom: 0,
+    height: 178,
+    left: "50%",
+    position: "absolute",
+    width: "6%",
+  },
+  heroFadeSoft: {
+    backgroundColor: "rgba(255,255,255,.45)",
+    bottom: 0,
+    height: 178,
+    left: "56%",
+    position: "absolute",
+    width: "6%",
+  },
+  heroFadeEdge: {
+    backgroundColor: "rgba(255,255,255,.2)",
+    bottom: 0,
+    height: 178,
+    left: "62%",
+    position: "absolute",
+    width: "6%",
   },
   heroCopy: {
     left: 20,
     position: "absolute",
-    top: 30,
-    width: "58%",
+    top: 22,
+    width: "64%",
     zIndex: 2,
   },
   identity: {
     backgroundColor: "rgba(255,255,255,.9)",
     borderRadius: 18,
-    bottom: 18,
+    bottom: 16,
     left: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
     position: "absolute",
     zIndex: 3,
   },
-  eyebrow: { color: gold, fontSize: 9, fontWeight: "800", letterSpacing: 1.2 },
   title: {
     color: ink,
     fontFamily: "serif",
     fontSize: 31,
     lineHeight: 37,
-    marginTop: 7,
   },
   subtitle: { color: "#4f4d49", fontSize: 10, lineHeight: 15, marginTop: 8 },
   welcome: { color: ink, fontSize: 9, fontWeight: "700" },
