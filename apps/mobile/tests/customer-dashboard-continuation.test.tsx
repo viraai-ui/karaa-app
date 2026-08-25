@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { DemoExplorer, selectWatchProjects } from '../src/demo/DemoExplorer';
+import { DemoExplorer, selectLatestProgressProject, selectWatchProjects } from '../src/demo/DemoExplorer';
 import { portfolioForProjectId } from '../src/demo/subvertical-projects';
 import { createOfflineDemoState, offlineDemoReducer } from '../src/demo/offline-demo';
 
@@ -17,28 +17,28 @@ describe('customer dashboard continuation', () => {
     const onAction = jest.fn();
     const random = () => 0;
     const selected = selectWatchProjects(random);
+    const latest = selectLatestProgressProject(random, new Set(selected.map(project => project.id)));
     const screen = render(<DemoExplorer onAction={onAction} random={random} state={createOfflineDemoState('customer')} />);
 
     selected.forEach(project => fireEvent.press(screen.getByRole('button', { name: `Open ${project.name} project` })));
     fireEvent.press(screen.getByRole('button', { name: 'Open My Portfolio' }));
     expect(screen.queryByRole('button', { name: 'View all Projects to watch' })).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'Open Amaravati Smart Mobility Corridor latest progress' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Open Amaravati Smart Mobility Corridor important notice' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Open Track Progress for Amaravati Smart Mobility Corridor' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Open Milestones for Amaravati Smart Mobility Corridor' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Open Media Gallery for Amaravati Smart Mobility Corridor' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Open Notices for Amaravati Smart Mobility Corridor' }));
+    fireEvent.press(screen.getByRole('button', { name: `Open ${latest.name} latest progress` }));
+    fireEvent.press(screen.getByRole('button', { name: 'View all Latest Progress' }));
+    fireEvent.press(screen.getByRole('button', { name: `Open Track Progress for ${latest.name}` }));
+    fireEvent.press(screen.getByRole('button', { name: `Open Milestones for ${latest.name}` }));
+    fireEvent.press(screen.getByRole('button', { name: `Open Media Gallery for ${latest.name}` }));
+    fireEvent.press(screen.getByRole('button', { name: `Open Notices for ${latest.name}` }));
 
     expect(onAction.mock.calls.map(([action]) => action)).toEqual([
       ...selected.map(project => ({ type: 'open-dashboard-project', projectId: project.id, tab: 'timeline' })),
       { type: 'select-tab', tab: 'portfolio' },
-
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'timeline' },
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'documents' },
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'timeline' },
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'timeline' },
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'media' },
-      { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'documents' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'timeline' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'timeline' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'timeline' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'timeline' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'media' },
+      { type: 'open-dashboard-project', projectId: latest.id, tab: 'documents' },
     ]);
     expect(screen.getAllByRole('button', { name: /Open .* project$/ })).toHaveLength(4);
     expect(screen.getByRole('progressbar', { name: `${selected[0].name} progress: ${selected[0].progress}%` }).props.accessibilityValue).toEqual({ min: 0, max: 100, now: selected[0].progress });
@@ -53,6 +53,13 @@ describe('customer dashboard continuation', () => {
     expect(new Set(first.map(project => project.verticalId)).size).toBe(4);
     expect(new Set(first.map(project => project.subverticalId)).size).toBe(4);
     first.forEach(project => expect(portfolioForProjectId(project.id).projects).toContainEqual(expect.objectContaining({ id: project.id })));
+  });
+
+  it('selects Latest Progress from a real project outside the watch carousel', () => {
+    const watched = selectWatchProjects(() => 0);
+    const latest = selectLatestProgressProject(() => 0, new Set(watched.map(project => project.id)));
+    expect(watched.map(project => project.id)).not.toContain(latest.id);
+    expect(portfolioForProjectId(latest.id).projects).toContainEqual(expect.objectContaining({ id: latest.id }));
   });
 
   it('keeps its random selection stable across rerenders', () => {
