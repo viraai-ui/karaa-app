@@ -60,10 +60,11 @@ describe("signed-in customer portfolio", () => {
       const actionStyle = StyleSheet.flatten(action.props.style);
       expect(actionStyle.minHeight).toBeGreaterThanOrEqual(44);
       expect(actionStyle.alignSelf).toBe("flex-end");
-      expect(actionStyle.backgroundColor).toBeUndefined();
-      expect(actionStyle.borderWidth).toBeUndefined();
+      expect(actionStyle.backgroundColor).toBe("#F7F2E8");
+      expect(actionStyle.borderWidth).toBe(1);
+      expect(actionStyle.borderRadius).toBe(10);
       expect(action.findAllByType(ReactNative.Text)).toHaveLength(1);
-      expect(action.findByType(ReactNative.Text).props.style).toEqual(expect.objectContaining({ color: "#000" }));
+      expect(action.findByType(ReactNative.Text).props.style).toEqual(expect.objectContaining({ color: "#8A681D" }));
     }
     dimensions.mockRestore();
   });
