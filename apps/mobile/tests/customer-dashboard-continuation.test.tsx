@@ -20,12 +20,18 @@ describe('customer dashboard continuation', () => {
     expect(onAction.mock.calls.map(([action]) => action)).toEqual(customerPortfolioProjects.map(customerPortfolioProjectAction));
   });
 
-  it('is customer Dashboard-root only', () => {
+  it('renders shared Dashboard sections for customer and management while keeping My Portfolio customer-only', () => {
     const customer = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState('customer')} />);
-    expect(customer.getByTestId('customer-dashboard-continuation')).toBeTruthy();
+    expect(customer.getByTestId('dashboard-continuation')).toBeTruthy();
+    expect(customer.getByText('My Portfolio')).toBeTruthy();
 
     const management = render(<DemoExplorer onAction={jest.fn()} state={createOfflineDemoState('management')} />);
-    expect(management.queryByTestId('customer-dashboard-continuation')).toBeNull();
+    expect(management.getByTestId('dashboard-continuation')).toBeTruthy();
+    expect(management.getByText('Projects to watch')).toBeTruthy();
+    expect(management.getByText('Latest Progress')).toBeTruthy();
+    expect(management.getByText('Quick Access')).toBeTruthy();
+    expect(management.queryByText('My Portfolio')).toBeNull();
+    expect(management.queryByRole('button', { name: 'Open My Portfolio' })).toBeNull();
   });
 
   it('wires cards, aggregate links, notices, and quick access to identified destinations', () => {
@@ -115,9 +121,12 @@ describe('customer dashboard continuation', () => {
     expect(offlineDemoReducer(project, { type: 'return-to-subvertical' })).toMatchObject({ selectedTab: 'power', surface: 'root', selectedProjectId: null, projectReturnTarget: 'subvertical' });
   });
 
-  it('rejects dashboard deep links outside the customer Dashboard root', () => {
-    expect(() => offlineDemoReducer(createOfflineDemoState('management'), { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor' })).toThrow('Customer Dashboard root');
+  it('allows management Dashboard projects and rejects unsupported or non-root deep links', () => {
+    const managementProject = offlineDemoReducer(createOfflineDemoState('management'), { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor', tab: 'overview' });
+    expect(managementProject).toMatchObject({ activeRole: 'management', surface: 'project', selectedProjectDetailTab: 'overview', projectReturnTarget: 'dashboard' });
+    expect(offlineDemoReducer(managementProject, { type: 'return-to-subvertical' })).toMatchObject({ activeRole: 'management', selectedTab: 'power', surface: 'root' });
+    expect(() => offlineDemoReducer(createOfflineDemoState('employee'), { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor' })).toThrow('supported Dashboard root');
     const portfolio = offlineDemoReducer(createOfflineDemoState('customer'), { type: 'select-tab', tab: 'portfolio' });
-    expect(() => offlineDemoReducer(portfolio, { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor' })).toThrow('Customer Dashboard root');
+    expect(() => offlineDemoReducer(portfolio, { type: 'open-dashboard-project', projectId: 'amaravati-smart-mobility-corridor' })).toThrow('supported Dashboard root');
   });
 });

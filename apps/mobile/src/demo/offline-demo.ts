@@ -738,7 +738,7 @@ export function offlineDemoReducer(state: Readonly<OfflineDemoState>, action: Of
       return { ...state, selectedTab: 'portfolio', surface: 'project', selectedVerticalId: page.verticalId, selectedSubverticalId: page.id, selectedProjectId: action.projectId, selectedProjectDetailTab: 'timeline', projectReturnTarget: 'portfolio' };
     }
     case 'open-dashboard-project': {
-      if (state.activeRole !== 'customer' || state.selectedTab !== 'power' || state.surface !== 'root') throw new Error('Dashboard projects require the Customer Dashboard root');
+      if ((state.activeRole !== 'customer' && state.activeRole !== 'management') || state.selectedTab !== 'power' || state.surface !== 'root') throw new Error('Dashboard projects require a supported Dashboard root');
       let project: { id: string; verticalId: string; subverticalId: string };
       try { project = projectForId(action.projectId); }
       catch (catalogError) {

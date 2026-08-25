@@ -58,16 +58,17 @@ export function DemoExplorer({ state, onAction, random }: {
     return <DemoProjectDetail backLabel={state.projectReturnTarget === 'dashboard' ? 'Back to Dashboard' : undefined} onAction={onAction} project={projectForId(state.selectedProjectId)} state={state} />;
   }
 
-  return <RootExplorer onAction={onAction} random={random} showContinuation={state.activeRole === 'customer' && state.selectedTab === 'power'} />;
+  const supportsDashboardContinuation = (state.activeRole === 'customer' || state.activeRole === 'management') && state.selectedTab === 'power';
+  return <RootExplorer includePortfolio={state.activeRole === 'customer'} onAction={onAction} random={random} showContinuation={supportsDashboardContinuation} />;
 }
 
-function RootExplorer({ onAction, random, showContinuation }: { onAction: (action: OfflineDemoAction) => void; random?: () => number; showContinuation: boolean }) {
+function RootExplorer({ includePortfolio, onAction, random, showContinuation }: { includePortfolio: boolean; onAction: (action: OfflineDemoAction) => void; random?: () => number; showContinuation: boolean }) {
   return <View style={styles.dashboard} testID="karaa-home-dashboard">
     <DashboardReveal index={0}><View style={styles.headingBlock}><Text style={styles.eyebrow}>EXPLORE KARAA</Text><Text style={styles.powerTitle}>The Power of 9</Text><Text style={styles.powerSubtitle}>One ecosystem. Nine worlds. Infinite possibilities.</Text><View style={styles.goldRule} /></View></DashboardReveal>
     <DashboardReveal index={1}><View style={styles.rootGrid}>{demoVerticals.map((vertical) => <Pressable accessibilityHint={`Power of 9 number ${vertical.number}`} accessibilityLabel={`Open ${vertical.title} vertical`} accessibilityRole="button" key={vertical.id} onPress={() => onAction({ type: 'select-vertical', verticalId: vertical.id })} style={({pressed}) => [styles.verticalCard, pressed && styles.pressed]}>
       <View style={styles.photoFrame}><Image accessibilityLabel={`Demo visual: ${vertical.title}`} resizeMode="cover" source={dashboardAssets[vertical.id]} style={styles.verticalPhoto} /><Text style={styles.verticalNumber}>{vertical.number}</Text><View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.arrowButton}><View style={styles.cardArrowShaft} /><View style={styles.cardArrowHead} /></View></View><View style={styles.verticalFooter}><Text numberOfLines={2} style={styles.verticalTitle}>{dashboardDisplayTitles[vertical.id] ?? vertical.title}</Text></View>
     </Pressable>)}</View></DashboardReveal>
-    {showContinuation ? <DashboardContinuation onAction={onAction} random={random} /> : null}
+    {showContinuation ? <DashboardContinuation includePortfolio={includePortfolio} onAction={onAction} random={random} /> : null}
   </View>;
 }
 
@@ -128,7 +129,7 @@ export function selectLatestProgressProject(random: () => number = Math.random, 
 }
 
 function GoldArrow() { return <Text style={styles.goldArrow}>→</Text>; }
-function DashboardContinuation({ onAction, random = Math.random }: { onAction: (action: OfflineDemoAction) => void; random?: () => number }) {
+function DashboardContinuation({ includePortfolio, onAction, random = Math.random }: { includePortfolio: boolean; onAction: (action: OfflineDemoAction) => void; random?: () => number }) {
   const { width } = useWindowDimensions();
   const watchCardWidth = (width - 42) / 2;
   const [{ latestProject, watchProjects }] = useState(() => {
@@ -139,19 +140,19 @@ function DashboardContinuation({ onAction, random = Math.random }: { onAction: (
     };
   });
   const openProject = (projectId: string, tab: OfflineDemoState['selectedProjectDetailTab'] = 'timeline') => onAction({ type: 'open-dashboard-project', projectId, tab });
-  return <View style={styles.continuation} testID="customer-dashboard-continuation">
+  return <View style={styles.continuation} testID="dashboard-continuation">
     <SectionHeading title="Projects to watch" />
     <ScrollView accessibilityLabel="Projects to watch carousel" decelerationRate="fast" directionalLockEnabled horizontal showsHorizontalScrollIndicator={false} snapToAlignment="start" snapToInterval={watchCardWidth + 10} contentContainerStyle={styles.watchGrid}>{watchProjects.map((project) => <Pressable accessibilityLabel={`Open ${project.name} project`} accessibilityRole="button" key={project.id} onPress={() => openProject(project.id)} style={({pressed}) => [styles.watchTile, { width: watchCardWidth }, pressed && styles.pressed]}>
       <Image accessibilityLabel={`${project.name} project view`} source={project.image} style={styles.watchTileImage} />
       <View style={styles.watchTileBody}><Text numberOfLines={2} style={styles.watchTileTitle}>{project.name}</Text><Text numberOfLines={1} style={styles.watchTileCategory}>{project.category}</Text><View style={styles.watchTileBottom}><View style={styles.watchStatusRow}><Text style={styles.watchTilePercent}>{project.progress}%</Text><Text style={styles.statusDot}>●</Text><Text style={styles.watchOnTrack}>{project.status}</Text></View><View accessible accessibilityLabel={`${project.name} progress: ${project.progress}%`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: project.progress }} style={styles.watchRail}><View style={[styles.watchRailFill, { width: `${project.progress}%` }]} /></View><Text numberOfLines={1} style={styles.watchTileMeta}>◷  {project.meta}</Text></View></View>
     </Pressable>)}</ScrollView>
-    <SectionHeading action="Portfolio" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} title="My Portfolio" />
-    <View accessibilityLabel="My Portfolio projects" style={styles.portfolioPanel}>
+    {includePortfolio ? <SectionHeading action="Portfolio" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} title="My Portfolio" /> : null}
+    {includePortfolio && <View accessibilityLabel="My Portfolio projects" style={styles.portfolioPanel}>
       <Pressable accessibilityLabel="Open My Portfolio" accessibilityRole="button" onPress={() => onAction({ type: 'select-tab', tab: 'portfolio' })} style={({pressed}) => [styles.portfolioSummary, pressed && styles.pressed]}>
         <View style={styles.summaryCell}><Text style={styles.summaryValue}>{String(customerPortfolioProjects.length).padStart(2, '0')}</Text><Text style={styles.summaryLabel}>Projects</Text></View><View style={styles.summaryDivider} /><View style={styles.summaryCell}><Text style={styles.summaryValue}>{Math.round(customerPortfolioProjects.reduce((total, project) => total + project.progress, 0) / customerPortfolioProjects.length)}%</Text><Text style={styles.summaryLabel}>Avg. progress</Text></View><View style={styles.summaryDivider} /><View style={styles.summaryCell}><Text style={styles.summaryValue}>{String(customerPortfolioProjects.filter(project => project.fresh).length).padStart(2, '0')}</Text><Text style={styles.summaryLabel}>Updates</Text></View>
       </Pressable>
       {customerPortfolioProjects.map(project => <Pressable accessibilityHint={project.id === 'aarohan-medical-city-pune' ? 'Opens the project timeline' : 'Opens My Portfolio'} accessibilityLabel={`Open ${project.name}, ${project.progress} percent complete, ${project.status.toLowerCase()}`} accessibilityRole="button" key={project.id} onPress={() => onAction(customerPortfolioProjectAction(project))} style={({pressed}) => [styles.portfolioProject, pressed && styles.pressed]}><Image accessibilityElementsHidden importantForAccessibility="no-hide-descendants" resizeMode="cover" source={project.image} style={styles.portfolioProjectImage} /><View style={styles.portfolioProjectCopy}><View style={styles.portfolioProjectTitleRow}><Text numberOfLines={2} style={styles.portfolioProjectTitle}>{project.name}</Text>{project.fresh ? <View accessibilityLabel="New update" style={styles.portfolioFreshDot} /> : null}</View><Text numberOfLines={1} style={styles.portfolioProjectLocation}>{project.location}</Text><View style={styles.portfolioStatusRow}><Text style={styles.portfolioProgressValue}>{project.progress}%</Text><Text style={styles.portfolioStatusDot}>●</Text><Text style={styles.portfolioStatus}>{project.status}</Text></View><View accessible accessibilityLabel={`${project.name} progress: ${project.progress}%`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: project.progress }} style={styles.portfolioProgressRail}><View style={[styles.portfolioProgressFill, { width: `${project.progress}%` }]} /></View></View><GoldArrow /></Pressable>)}
-    </View>
+    </View>}
     <SectionHeading action="View all" onPress={() => openProject(latestProject.id)} title="Latest Progress" />
     <Pressable accessibilityLabel={`Open ${latestProject.name} latest progress`} accessibilityRole="button" onPress={() => openProject(latestProject.id)} style={({pressed}) => [styles.progressCard, pressed && styles.pressed]}>
       <View style={styles.progressTop}><Image accessibilityLabel={`${latestProject.name} project progress`} resizeMode="cover" source={latestProject.image} style={styles.progressPhoto} /><View style={styles.progressCopy}><Text style={styles.progressEyebrow}>LIVE SITE UPDATE</Text><Text numberOfLines={3} style={styles.progressHeadline}>{latestProject.meta}</Text><Text numberOfLines={2} style={styles.progressProject}>{latestProject.name}</Text><Text style={styles.progressTimestamp}>◷  Today  ·  10:42 AM  ·  ✓ Verified on site</Text><View style={styles.fieldRow}><Text style={styles.fieldTeam}>Field Team</Text><Text style={styles.updateLink}>View timeline  →</Text></View></View></View>
