@@ -212,6 +212,7 @@ export function CustomerPortfolio({ onAction }: Props) {
         <View style={s.heroFadeSoft} />
         <View style={s.heroFadeEdge} />
         <View style={s.heroCopy}>
+          <Text style={s.heroEyebrow}>PERSONALISED ACCESS</Text>
           <Text numberOfLines={1} style={s.title}>
             My Portfolio
           </Text>
@@ -220,8 +221,11 @@ export function CustomerPortfolio({ onAction }: Props) {
           </Text>
         </View>
         <View style={s.identity}>
-          <Text style={s.welcome}>Welcome, Arjun</Text>
-          <Text style={s.member}>KG-INV-••4821</Text>
+          <View style={s.identityIcon}><LineIcon name="pin" color={gold} size={14} /></View>
+          <View>
+            <Text style={s.welcome}>Welcome, Arjun</Text>
+            <Text style={s.member}>KG-INV-4821</Text>
+          </View>
         </View>
       </View>
       <View style={s.content}>
@@ -269,6 +273,7 @@ export function CustomerPortfolio({ onAction }: Props) {
               <Text numberOfLines={1} style={s.quickText}>
                 {title}
               </Text>
+              <LineIcon name="arrow" color={gold} size={14} />
             </Pressable>
           ))}
         </View>
@@ -410,8 +415,8 @@ function ProjectCard({
         />
         <View style={s.cardSummary}>
           <View style={s.statusRow}>
+            <View style={s.newDot} />
             <Text style={s.status}>{p.status}</Text>
-            {p.fresh ? <View style={s.newDot} /> : null}
           </View>
           <Text numberOfLines={2} style={s.cardTitle}>
             {p.name}
@@ -422,57 +427,19 @@ function ProjectCard({
               {p.location}
             </Text>
           </View>
-          <Text numberOfLines={1} style={s.update}>
-            {p.update}
-          </Text>
+          <Text numberOfLines={1} style={s.update}>{p.update}</Text>
+          <View style={s.progressTop}>
+            <Text style={s.progress}>{p.progress}%</Text><Text style={s.complete}>complete</Text><Text style={s.percent}>{p.progress}%</Text>
+          </View>
+          <View accessible accessibilityLabel={`${p.name} completion`} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: p.progress, text: `${p.progress}% complete` }} style={s.progressRow}>
+            <View style={s.rail}><View style={[s.fill, { width: `${p.progress}%` }]} /></View>
+          </View>
+          <View style={s.milestone}>
+            <View style={s.milestoneIcon}><LineIcon name="calendar" size={13} color={gold} /></View>
+            <View style={s.flex}><Text style={s.factLabel}>NEXT MILESTONE</Text><Text numberOfLines={1} style={s.factValue}>{p.next}</Text></View>
+            {p.fresh ? <Pressable accessibilityRole="button" accessibilityLabel={`Open new update for ${p.name}`} hitSlop={10} onPress={() => open("New project update", `${p.update} — unread local prototype update.`)} style={s.updateButton}><LineIcon name="bell" size={13} color={gold} /></Pressable> : null}
+          </View>
         </View>
-      </View>
-      <View style={s.progressTop}>
-        <Text style={s.progress}>{p.progress}%</Text>
-        <Text style={s.complete}>complete</Text>
-        <Text style={s.percent}>{p.progress}%</Text>
-      </View>
-      <View
-        accessible
-        accessibilityLabel={`${p.name} completion`}
-        accessibilityRole="progressbar"
-        accessibilityValue={{
-          min: 0,
-          max: 100,
-          now: p.progress,
-          text: `${p.progress}% complete`,
-        }}
-        style={s.progressRow}
-      >
-        <View style={s.rail}>
-          <View style={[s.fill, { width: `${p.progress}%` }]} />
-        </View>
-      </View>
-      <View style={s.milestone}>
-        <View style={s.milestoneIcon}>
-          <LineIcon name="calendar" size={15} color={gold} />
-        </View>
-        <View style={s.flex}>
-          <Text style={s.factLabel}>NEXT MILESTONE</Text>
-          <Text numberOfLines={1} style={s.factValue}>
-            {p.next}
-          </Text>
-        </View>
-        {p.fresh ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Open new update for ${p.name}`}
-            onPress={() =>
-              open(
-                "New project update",
-                `${p.update} — unread local prototype update.`,
-              )
-            }
-            style={s.updateButton}
-          >
-            <LineIcon name="bell" size={16} color={gold} />
-          </Pressable>
-        ) : null}
       </View>
       <View style={s.actions}>
         <Pressable
@@ -609,13 +576,13 @@ const s = StyleSheet.create({
   },
   hero: {
     backgroundColor: "#fff",
-    height: 178,
+    height: 192,
     overflow: "hidden",
     position: "relative",
   },
   heroImage: {
     bottom: 0,
-    height: 178,
+    height: 192,
     position: "absolute",
     right: 0,
     width: "64%",
@@ -668,15 +635,19 @@ const s = StyleSheet.create({
     zIndex: 2,
   },
   identity: {
+    alignItems: "center",
     backgroundColor: "rgba(255,255,255,.9)",
     borderRadius: 18,
-    bottom: 16,
+    bottom: 20,
+    flexDirection: "row",
     left: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
     position: "absolute",
     zIndex: 3,
   },
+  heroEyebrow: { color: gold, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, marginBottom: 5 },
+  identityIcon: { alignItems: "center", borderColor: "#d7b976", borderRadius: 18, borderWidth: 1, height: 30, justifyContent: "center", marginRight: 8, width: 30 },
   title: {
     color: ink,
     fontFamily: "serif",
@@ -686,13 +657,13 @@ const s = StyleSheet.create({
   subtitle: { color: "#4f4d49", fontSize: 10, lineHeight: 15, marginTop: 8 },
   welcome: { color: ink, fontSize: 9, fontWeight: "700" },
   member: { color: muted, fontSize: 8, marginTop: 2 },
-  content: { gap: 16, paddingHorizontal: 16 },
+  content: { gap: 10, paddingHorizontal: 16 },
   overview: {
     backgroundColor: "#fff",
     borderColor: line,
     borderRadius: 12,
     borderWidth: 1,
-    marginTop: -1,
+    marginTop: -22,
     paddingHorizontal: 14,
     paddingTop: 15,
     shadowColor: "#000",
@@ -732,7 +703,7 @@ const s = StyleSheet.create({
     minWidth: 72,
   },
   refreshText: { color: gold, fontSize: 9, fontWeight: "700" },
-  quick: { flexDirection: "row", gap: 8 },
+  quick: { flexDirection: "row", gap: 6 },
   quickButton: {
     alignItems: "center",
     backgroundColor: "#fbf8f2",
@@ -740,9 +711,10 @@ const s = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     flex: 1,
-    gap: 7,
+    flexDirection: "row",
+    gap: 5,
     justifyContent: "center",
-    minHeight: 62,
+    minHeight: 46,
     paddingHorizontal: 5,
   },
   quickText: { color: ink, fontSize: 8, fontWeight: "600" },
@@ -769,7 +741,7 @@ const s = StyleSheet.create({
     minHeight: 44,
     minWidth: 44,
   },
-  cards: { gap: 14 },
+  cards: { gap: 7 },
   card: {
     backgroundColor: "#fff",
     borderColor: line,
@@ -784,43 +756,43 @@ const s = StyleSheet.create({
   },
   cardNarrow: { padding: 10 },
   cardLead: { flexDirection: "row", minWidth: 0 },
-  cardImage: { borderRadius: 9, height: 102, width: "35%" },
+  cardImage: { borderRadius: 7, height: 105, width: "38%" },
   cardImageNarrow: { width: "32%" },
-  cardSummary: { flex: 1, minWidth: 0, paddingLeft: 12 },
+  cardSummary: { flex: 1, minWidth: 0, paddingLeft: 10 },
   statusRow: { alignItems: "center", flexDirection: "row", gap: 6 },
   status: { color: gold, fontSize: 7, fontWeight: "800", letterSpacing: 0.7 },
   newDot: { backgroundColor: gold, borderRadius: 3, height: 5, width: 5 },
   cardTitle: {
     color: ink,
     fontFamily: "serif",
-    fontSize: 17,
-    lineHeight: 21,
-    marginBottom: 5,
-    marginTop: 5,
+    fontSize: 14,
+    lineHeight: 17,
+    marginBottom: 2,
+    marginTop: 2,
   },
   location: { color: muted, flex: 1, fontSize: 8 },
-  update: { color: "#484641", fontSize: 8, marginTop: 11 },
-  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 14 },
-  progress: { color: ink, fontFamily: "serif", fontSize: 18 },
+  update: { color: "#484641", fontSize: 7, marginTop: 4 },
+  progressTop: { alignItems: "baseline", flexDirection: "row", marginTop: 5 },
+  progress: { color: ink, fontFamily: "serif", fontSize: 14 },
   complete: { color: muted, fontSize: 8, marginLeft: 4 },
   percent: { color: muted, fontSize: 8, marginLeft: "auto" },
-  progressRow: { marginTop: 6 },
+  progressRow: { marginTop: 2 },
   rail: {
     backgroundColor: "#ece9e3",
     borderRadius: 4,
-    height: 5,
+    height: 3,
     overflow: "hidden",
     width: "100%",
   },
-  fill: { backgroundColor: orange, borderRadius: 4, height: 5 },
+  fill: { backgroundColor: orange, borderRadius: 4, height: 3 },
   milestone: {
     alignItems: "center",
     backgroundColor: "#fbf8f2",
     borderRadius: 9,
     flexDirection: "row",
-    marginTop: 13,
-    minHeight: 52,
-    paddingHorizontal: 10,
+    marginTop: 5,
+    minHeight: 27,
+    paddingHorizontal: 4,
   },
   milestoneIcon: {
     alignItems: "center",
@@ -837,8 +809,8 @@ const s = StyleSheet.create({
   updateButton: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: 24,
+    minWidth: 24,
   },
   actions: {
     alignItems: "center",
