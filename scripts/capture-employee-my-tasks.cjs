@@ -4,7 +4,7 @@ const path = require('path');
 (async () => {
   const browser = await chromium.launch({ headless: true });
   for (const width of [480, 390, 320]) {
-    const page = await browser.newPage({ viewport: { width, height: 1280 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width, height: 1238 }, deviceScaleFactor: 1 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('http://127.0.0.1:8087/demo/employee', { waitUntil: 'networkidle' });
     await page.getByRole('tab', { name: 'My Tasks' }).click();

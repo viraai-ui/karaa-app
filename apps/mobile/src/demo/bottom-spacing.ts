@@ -4,7 +4,7 @@
  * small visual breathing space here. The navigation owns safe-area padding.
  */
 export const PAGE_END_CLEARANCE = 12;
-export const NAVIGATION_BASE_HEIGHT = 58;
+export const NAVIGATION_BASE_HEIGHT = 89;
 export const NAVIGATION_SAFE_GUTTER = 5;
 
 export function navigationBottomPadding(bottomSafeArea: number) {

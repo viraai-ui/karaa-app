@@ -68,8 +68,8 @@ export function OfflineAppShell({ role, onSwitchRole }: { role: OfflineDemoRole;
               role === 'employee' && styles.employeeContent,
               {
                 paddingBottom: PAGE_END_CLEARANCE,
-                paddingLeft: (role === 'employee' ? 23 : spacing.md) + insets.left,
-                paddingRight: (role === 'employee' ? 23 : spacing.md) + insets.right,
+                paddingLeft: (role === 'employee' ? 21 : spacing.md) + insets.left,
+                paddingRight: (role === 'employee' ? 21 : spacing.md) + insets.right,
               },
             ]}
             showsVerticalScrollIndicator={false}
@@ -100,6 +100,6 @@ const styles = StyleSheet.create({
   chatMotionSurface: { flex: 1 },
   scrollView: { flex: 1 },
   content: { gap: spacing.md, padding: spacing.md },
-  employeeContent: { paddingTop: 28 },
+  employeeContent: { paddingTop: 26 },
   floatingOverlay: { bottom: 82, position: 'absolute', right: 18, zIndex: 10 },
 });

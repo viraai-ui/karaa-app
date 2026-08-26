@@ -21,7 +21,7 @@ describe('Employee My Tasks mock surface', () => {
     expect(screen.getByText('22 Aug')).toBeTruthy();
     expect(screen.getByText('65%')).toBeTruthy();
     titles.forEach(title => expect(screen.getByText(title)).toBeTruthy());
-    expect(EMPLOYEE_TASK_VISUAL_METRICS).toMatchObject({ minimumTarget: 44, packageHeight: 203, taskCount: 7 });
+    expect(EMPLOYEE_TASK_VISUAL_METRICS).toMatchObject({ minimumTarget: 44, pageGutter: 21, packageHeight: 203, filterWidths: [52, 78, 72, 95], taskRowHeight: 62, taskCount: 7, footerHeight: 89 });
   });
 
   it('filters pending, upload, and completed tasks', () => {

@@ -22,7 +22,7 @@ export interface OfflineDemoAccount {
 
 export const demoAccounts: readonly OfflineDemoAccount[] = [
   { role: 'customer', email: 'anika.customer@karaa.demo', displayName: 'Anika Customer', roleLabel: 'CUSTOMER / INVESTOR', initials: 'AC' },
-  { role: 'employee', email: 'dev.employee@karaa.demo', displayName: 'Dev Employee', roleLabel: 'FIELD EMPLOYEE', initials: 'DE' },
+  { role: 'employee', email: 'dev.employee@karaa.demo', displayName: 'Dev Employee', roleLabel: 'FIELD EMPLOYEE', initials: 'AC' },
   { role: 'management', email: 'mira.management@karaa.demo', displayName: 'Mira Management', roleLabel: 'SENIOR MANAGEMENT', initials: 'MM' },
 ] as const;
 
