@@ -30,17 +30,27 @@ describe('Employee attendance screenshot surface', () => {
     expect(rendered.getByTestId('demo-bottom-navigation')).toBeTruthy();
   });
 
-  it('requires a long press and transitions to an accessible checked-in state', () => {
-    const rendered = render(<AttendanceView />);
+  it('cancels an early release, then completes a long press exactly once at the injected time', () => {
+    const clock = jest.fn(() => new Date(2026, 7, 26, 9, 7));
+    const rendered = render(<AttendanceView now={clock} />);
     const control = rendered.getByRole('button', { name: 'Long press to check in' });
     expect(StyleSheet.flatten(control.props.style).height).toBeGreaterThanOrEqual(44);
     fireEvent.press(control);
     expect(rendered.getByText('Ready to check in')).toBeTruthy();
+    fireEvent(control, 'pressIn');
+    expect(rendered.getByTestId('attendance-progress-ring')).toBeTruthy();
+    expect(rendered.getByText('Hold to check in…')).toBeTruthy();
+    fireEvent(control, 'pressOut');
+    expect(rendered.queryByTestId('attendance-progress-ring')).toBeNull();
+    expect(rendered.getByText('Ready to check in')).toBeTruthy();
     fireEvent(control, 'longPress');
     expect(rendered.getAllByText('Checked in').length).toBeGreaterThanOrEqual(1);
-    expect(rendered.getByText('Checked in successfully')).toBeTruthy();
     expect(rendered.getByTestId('attendance-feedback').props.children).toContain('Checked in successfully');
-    expect(rendered.getByLabelText('Checked in at Amaravati Solar Commons').props.accessibilityState).toEqual({ disabled: true });
+    expect(rendered.getAllByText('09:07 AM IST').length).toBeGreaterThanOrEqual(1);
+    expect(rendered.getByLabelText('Today, Checked in, 09:07 AM IST')).toBeTruthy();
+    expect(rendered.getByRole('button', { name: 'Long press to check out' })).toBeTruthy();
+    expect(rendered.getAllByLabelText(/Today, Checked in/)).toHaveLength(1);
+    expect(clock).toHaveBeenCalledTimes(1);
   });
 
   it('offers an assistive-technology activation path without weakening long-press touch behavior', () => {
@@ -48,7 +58,23 @@ describe('Employee attendance screenshot surface', () => {
     const control = rendered.getByRole('button', { name: 'Long press to check in' });
     expect(control.props.accessibilityActions).toEqual([{ name: 'activate', label: 'Check in' }]);
     fireEvent(control, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
-    expect(rendered.getByLabelText('Checked in at Amaravati Solar Commons')).toBeDisabled();
+    expect(rendered.getByRole('button', { name: 'Long press to check out' })).toBeTruthy();
+  });
+
+  it('checks in then out, ticks today, computes worked time, and prepends activity in order', () => {
+    const times = [new Date(2026, 7, 26, 9, 0), new Date(2026, 7, 26, 17, 31)];
+    const rendered = render(<AttendanceView now={() => times.shift() ?? new Date(2026, 7, 26, 17, 31)} />);
+    fireEvent(rendered.getByTestId('attendance-check-in-control'), 'longPress');
+    expect(rendered.getByTestId('attendance-weekly-summary')).toBeTruthy();
+    expect(rendered.getAllByText('✓').length).toBeGreaterThanOrEqual(4);
+    fireEvent(rendered.getByTestId('attendance-check-in-control'), 'longPress');
+    expect(rendered.getByText('Ready to check in')).toBeTruthy();
+    expect(rendered.getByText('08h 31m')).toBeTruthy();
+    const activity = rendered.getByTestId('attendance-recent-activity');
+    const labels = activity.findAll(node => typeof node.props.accessibilityLabel === 'string').map(node => node.props.accessibilityLabel as string);
+    const todayLabels = [...new Set(labels.filter(label => label.startsWith('Today,')))];
+    expect(todayLabels).toEqual(['Today, Checked out, 05:31 PM IST', 'Today, Checked in, 09:00 AM IST']);
+    expect(rendered.getByLabelText('Yesterday, Checked out, 06:14 PM')).toBeTruthy();
   });
 
   it('does not expose non-interactive activity history as dead buttons', () => {

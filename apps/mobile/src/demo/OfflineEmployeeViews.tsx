@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { colors, radii, spacing } from '../theme/tokens';
 import { DemoAction, DemoImageFrame, DemoListRow, DemoProgressRail, DemoSectionTitle } from './OfflineDemoPrimitives';
@@ -30,40 +30,109 @@ function ProjectsView({ state, onAction }: Pick<Props, 'state' | 'onAction'>) {
 
 export const EMPLOYEE_ATTENDANCE_VISUAL_METRICS = { supportedWidths: [320, 360, 390, 480] as const, minimumTarget: 44, cardRadius: 14, pageGutter: 23, checkControlDiameter: 126 };
 
-export function AttendanceView() {
-  const [checkedIn, setCheckedIn] = useState(false);
+type AttendancePhase = 'checked-out' | 'holding-check-in' | 'checked-in' | 'holding-check-out';
+type AttendanceActivity = { id: string; date: string; detail: 'Checked in' | 'Checked out'; time: string; tone: 'green' | 'gold' };
+type AttendanceViewProps = { now?: () => Date; holdDurationMs?: number };
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const HOLD_RING_SEGMENTS = Array.from({ length: 24 }, (_, index) => {
+  const angle = (index / 24) * Math.PI * 2 - Math.PI / 2;
+  return { index, left: 60 + Math.cos(angle) * 59, top: 60 + Math.sin(angle) * 59, rotation: `${index * 15}deg` };
+});
+const INITIAL_ACTIVITY: AttendanceActivity[] = [
+  { id: 'prior-1', date: 'Yesterday', detail: 'Checked out', time: '06:14 PM', tone: 'green' },
+  { id: 'prior-2', date: '16 Aug 2025', detail: 'Checked in', time: '08:39 AM', tone: 'green' },
+  { id: 'prior-3', date: '15 Aug 2025', detail: 'Checked out', time: '06:07 PM', tone: 'gold' },
+];
+function formatISTTime(date: Date) {
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${String(hours % 12 || 12).padStart(2, '0')}:${minutes} ${hours >= 12 ? 'PM' : 'AM'} IST`;
+}
+function formatDuration(milliseconds: number) {
+  const totalMinutes = Math.max(0, Math.floor(milliseconds / 60000));
+  return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}h ${String(totalMinutes % 60).padStart(2, '0')}m`;
+}
+
+export function AttendanceView({ now = () => new Date(), holdDurationMs = 800 }: AttendanceViewProps = {}) {
+  const { width } = useWindowDimensions();
+  const narrow = width <= 360;
+  const compact = width <= 340;
+  const [phase, setPhase] = useState<AttendancePhase>('checked-out');
   const [feedback, setFeedback] = useState('');
-  const announce = (message: string) => setFeedback(message);
-  const completeCheckIn = () => {
-    if (checkedIn) return;
-    setCheckedIn(true);
-    announce('Checked in successfully at Amaravati Solar Commons, 08:43 IST.');
+  const [displayTime, setDisplayTime] = useState('08:42 IST');
+  const [checkInAt, setCheckInAt] = useState<Date | null>(null);
+  const [workedMs, setWorkedMs] = useState(0);
+  const [presentDay, setPresentDay] = useState<string | null>(null);
+  const [activities, setActivities] = useState(INITIAL_ACTIVITY);
+  const progress = useRef(new Animated.Value(0)).current;
+  const phaseRef = useRef(phase);
+  const completedRef = useRef(false);
+  phaseRef.current = phase;
+  useEffect(() => () => progress.stopAnimation(), [progress]);
+  const checkedIn = phase === 'checked-in' || phase === 'holding-check-out';
+  const holding = phase === 'holding-check-in' || phase === 'holding-check-out';
+  const announce = (message: string) => { setFeedback(message); AccessibilityInfo.announceForAccessibility?.(message); };
+  const complete = () => {
+    if (completedRef.current || !phaseRef.current.startsWith('holding-')) return;
+    completedRef.current = true;
+    const completedAt = now();
+    const time = formatISTTime(completedAt);
+    if (phaseRef.current === 'holding-check-in') {
+      setPhase('checked-in'); setCheckInAt(completedAt); setPresentDay(WEEKDAYS[completedAt.getDay()]); setDisplayTime(time);
+      setActivities(items => [{ id: `in-${completedAt.getTime()}`, date: 'Today', detail: 'Checked in', time, tone: 'green' }, ...items]);
+      announce(`Checked in successfully at Amaravati Solar Commons, ${time}.`);
+    } else {
+      setPhase('checked-out'); setDisplayTime(time);
+      if (checkInAt) setWorkedMs(value => value + Math.max(0, completedAt.getTime() - checkInAt.getTime()));
+      setCheckInAt(null);
+      setActivities(items => [{ id: `out-${completedAt.getTime()}`, date: 'Today', detail: 'Checked out', time, tone: 'gold' }, ...items]);
+      announce(`Checked out successfully at Amaravati Solar Commons, ${time}.`);
+    }
+    progress.setValue(0);
   };
+  const startHold = () => {
+    if (holding) return;
+    completedRef.current = false;
+    const next: AttendancePhase = checkedIn ? 'holding-check-out' : 'holding-check-in';
+    phaseRef.current = next; setPhase(next); progress.setValue(0);
+    Animated.timing(progress, { duration: holdDurationMs, toValue: 1, useNativeDriver: true }).start(({ finished }) => { if (finished) complete(); });
+  };
+  const cancelHold = () => {
+    if (!phaseRef.current.startsWith('holding-') || completedRef.current) return;
+    progress.stopAnimation(); progress.setValue(0);
+    const idle = phaseRef.current === 'holding-check-out' ? 'checked-in' : 'checked-out';
+    phaseRef.current = idle; setPhase(idle);
+  };
+  const finishHold = () => { if (!phaseRef.current.startsWith('holding-')) startHold(); complete(); };
+  const today = presentDay ?? WEEKDAYS[new Date().getDay()];
+  const presentDays = presentDay ? 4 : 3;
+  const displayedWorkedMs = workedMs;
+  const action = checkedIn ? 'Check out' : 'Check in';
+  const stateTitle = holding ? `Hold to ${checkedIn ? 'check out' : 'check in'}…` : checkedIn ? 'Checked in' : 'Ready to check in';
   return <View style={styles.attendancePage} testID="employee-attendance-page">
     <View style={styles.headingBlock}><Text style={styles.eyebrow}>FIELD EMPLOYEE</Text><Text style={styles.attendanceTitle}>Attendance</Text><Text style={styles.attendanceSubtitle}>Check in, verify your location and manage your day on site.</Text></View>
-    <View style={styles.checkCard}>
+    <View style={[styles.checkCard, narrow && styles.checkCardNarrow, compact && styles.checkCardCompact]}>
       <Text style={styles.category}>TODAY · ON SITE</Text>
-      <Text accessibilityLiveRegion="polite" style={styles.checkTitle}>{checkedIn ? 'Checked in' : 'Ready to check in'}</Text>
-      <View style={styles.siteLine}><LineIcon name="pin" /><Text style={styles.siteName}>Amaravati Solar Commons</Text><View style={styles.dividerVertical} /><Text style={styles.time}>{checkedIn ? '08:43 IST' : '08:42 IST'}</Text></View>
+      <Text accessibilityLiveRegion="polite" style={styles.checkTitle} testID="attendance-state">{stateTitle}</Text>
+      <View style={styles.siteLine}><LineIcon name="pin" /><Text style={styles.siteName}>Amaravati Solar Commons</Text><View style={styles.dividerVertical} /><Text style={styles.time}>{displayTime}</Text></View>
       <View style={styles.verifiedRow}><View style={styles.checkDot}><Text style={styles.checkDotText}>✓</Text></View><Text style={styles.verified}>Location verified</Text></View>
       <View style={styles.rule} />
-      <View style={styles.checkControlRow}><ArrowSet reverse={false} /><Pressable accessibilityActions={[{ name: 'activate', label: 'Check in' }]} accessibilityHint={checkedIn ? undefined : 'Hold for one second to confirm your location and check in'} accessibilityLabel={checkedIn ? 'Checked in at Amaravati Solar Commons' : 'Long press to check in'} accessibilityRole="button" accessibilityState={{ disabled: checkedIn }} delayLongPress={800} disabled={checkedIn} onAccessibilityAction={({ nativeEvent }) => { if (nativeEvent.actionName === 'activate') completeCheckIn(); }} onLongPress={completeCheckIn} style={[styles.checkControl, checkedIn && styles.checkControlDone]} testID="attendance-check-in-control"><View style={styles.checkRing}>{checkedIn ? <Text style={styles.doneMark}>✓</Text> : <HandIcon />}</View></Pressable><ArrowSet reverse /></View>
-      <Text style={styles.longPressLabel}>{checkedIn ? 'Checked in successfully' : 'Long press to check in'}</Text>
-      <View style={styles.noteRow}><LineIcon name="shield" /><Text style={styles.verificationNote}>Photo verification and live location will be confirmed after check-in.</Text></View>
+      <View style={styles.checkControlRow}><ArrowSet reverse={false} /><Pressable accessibilityActions={[{ name: 'activate', label: action }]} accessibilityHint={`Hold for ${holdDurationMs} milliseconds to ${action.toLowerCase()}`} accessibilityLabel={`Long press to ${action.toLowerCase()}`} accessibilityRole="button" delayLongPress={holdDurationMs} onAccessibilityAction={({ nativeEvent }) => { if (nativeEvent.actionName === 'activate') finishHold(); }} onLongPress={finishHold} onPressIn={startHold} onPressOut={cancelHold} style={[styles.checkControl, checkedIn && styles.checkControlDone]} testID="attendance-check-in-control"><View style={styles.checkRing}>{checkedIn ? <Text style={styles.doneMark}>✓</Text> : <HandIcon />}</View>{holding ? <View pointerEvents="none" style={styles.progressSweep} testID="attendance-progress-ring">{HOLD_RING_SEGMENTS.map(({ index, left, top, rotation }) => <Animated.View key={index} style={[styles.progressSegment, { left, opacity: progress.interpolate({ inputRange: [index / 24, Math.min(1, (index + 1) / 24)], outputRange: [.14, 1], extrapolate: 'clamp' }), top, transform: [{ rotate: rotation }] }]} />)}<Animated.View style={[styles.progressCapOrbit, { transform: [{ rotate: progress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }]}><View style={styles.progressCap} /></Animated.View></View> : null}</Pressable><ArrowSet reverse /></View>
+      <Text style={[styles.longPressLabel, checkedIn && styles.checkedInLabel]}>{holding ? 'Keep holding…' : `Long press to ${action.toLowerCase()}`}</Text>
+      <View style={[styles.noteRow, feedback ? styles.successNoteRow : null]}><LineIcon name="shield" /><Text accessibilityLiveRegion="polite" style={[styles.verificationNote, feedback ? styles.successNote : null]} testID={feedback ? 'attendance-feedback' : undefined}>{feedback || 'Photo verification and live location will be confirmed after check-in.'}</Text></View>
     </View>
     <View style={styles.twoColumn}>
-      <Pressable accessibilityLabel="Detected location details" accessibilityRole="button" onPress={() => announce('You are within the allowed Amaravati Solar Commons site area.')} style={styles.halfCard}>
+      <Pressable accessibilityLabel="Detected location details" accessibilityRole="button" onPress={() => announce('You are within the allowed Amaravati Solar Commons site area.')} style={[styles.halfCard, narrow && styles.halfCardNarrow, compact && styles.halfCardCompact]}>
         <View style={styles.headingRow}><LineIcon name="pin" /><Text style={styles.cardHeading}>Detected location</Text></View><Text style={styles.locationName}>Amaravati Solar Commons</Text><View style={styles.geofence}><LineIcon name="shield" /><Text style={styles.geofenceText}>Geofence active</Text></View><Text style={styles.smallMuted}>You are within the allowed site area.</Text>
       </Pressable>
-      <Pressable accessibilityLabel="Today’s attendance details" accessibilityRole="button" onPress={() => announce('Today’s shift is 09:00 to 18:00, reporting to Arjun Mehta.')} style={styles.halfCard}>
+      <Pressable accessibilityLabel="Today’s attendance details" accessibilityRole="button" onPress={() => announce('Today’s shift is 09:00 to 18:00, reporting to Arjun Mehta.')} style={[styles.halfCard, narrow && styles.halfCardNarrow, compact && styles.halfCardCompact]}>
         <View style={styles.headingRow}><LineIcon name="calendar" /><Text style={styles.cardHeading}>Today’s details</Text></View><DetailRow icon="clock" label="Shift" value="09:00 – 18:00" /><DetailRow icon="user" label="Reporting manager" value="Arjun Mehta" /><DetailRow icon="shield" label="Attendance mode" value="Selfie + GPS" />
       </Pressable>
     </View>
-    <Pressable accessibilityLabel="This week attendance summary" accessibilityRole="button" onPress={() => announce('This week: 3 of 5 present days and 100 percent on-time.')} style={styles.weekCard}>
-      <View style={styles.headingRow}><LineIcon name="bars" /><Text style={styles.cardHeading}>This week</Text></View><View style={styles.days}>{[['Mon','✓'],['Tue','✓'],['Wed','✓'],['Thu','•'],['Fri','–'],['Sat','–'],['Sun','–']].map(([day,status]) => <View key={day} style={styles.day}><Text style={styles.dayLabel}>{day}</Text><View style={[styles.dayStatus, day === 'Thu' && styles.todayStatus]}><Text style={[styles.dayMark, status === '✓' && styles.green]}>{status}</Text></View></View>)}</View><View style={styles.weekMetrics}><Metric label="Present days" value="3" suffix=" / 5" /><Metric label="On-time rate" value="100" suffix="%" gold /><Metric label="Hours today" value="00h 00m" /></View>
+    <Pressable accessibilityLabel="This week attendance summary" accessibilityRole="button" onPress={() => announce(`This week: ${presentDays} of 5 present days and ${formatDuration(displayedWorkedMs)} worked today.`)} style={styles.weekCard} testID="attendance-weekly-summary">
+      <View style={styles.headingRow}><LineIcon name="bars" /><Text style={styles.cardHeading}>This week</Text></View><View style={styles.days}>{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((day) => { const status = day === presentDay || ['Mon','Tue','Wed'].includes(day) ? '✓' : day === today ? '•' : '–'; return <View key={day} style={styles.day}><Text style={styles.dayLabel}>{day}</Text><View style={[styles.dayStatus, day === today && styles.todayStatus]}><Text style={[styles.dayMark, status === '✓' && styles.green]}>{status}</Text></View></View>; })}</View><View style={styles.weekMetrics}><Metric label="Present days" value={String(presentDays)} suffix=" / 5" /><Metric label="On-time rate" value="100" suffix="%" gold /><Metric label="Hours today" value={formatDuration(displayedWorkedMs)} /></View>
     </Pressable>
-    <View style={styles.activityCard}><View style={styles.activityHeader}><View style={styles.headingRow}><LineIcon name="clock" /><Text style={styles.cardHeading}>Recent activity</Text></View><Pressable accessibilityLabel="View all recent activity" accessibilityRole="button" onPress={() => announce('All recent attendance activity is shown.')} style={styles.compactTarget}><Text style={styles.viewAll}>View all</Text><LineIcon name="chevron" /></Pressable></View><ActivityRow date="Yesterday" detail="Checked out" time="06:14 PM" tone="green" /><ActivityRow date="16 Aug 2025" detail="Checked in" time="08:39 AM" tone="green" /><ActivityRow date="15 Aug 2025" detail="Checked out" time="06:07 PM" tone="gold" /></View>
-    {feedback ? <Text accessibilityLiveRegion="polite" style={styles.feedback} testID="attendance-feedback">{feedback}</Text> : null}
+    <View style={styles.activityCard} testID="attendance-recent-activity"><View style={styles.activityHeader}><View style={styles.headingRow}><LineIcon name="clock" /><Text style={styles.cardHeading}>Recent activity</Text></View><Pressable accessibilityLabel="View all recent activity" accessibilityRole="button" onPress={() => announce('All recent attendance activity is shown.')} style={styles.compactTarget}><Text style={styles.viewAll}>View all</Text><LineIcon name="chevron" /></Pressable></View>{activities.map(item => <ActivityRow key={item.id} {...item} />)}</View>
   </View>;
 }
 
@@ -100,6 +169,7 @@ const styles = StyleSheet.create({
   attendanceTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 38, fontWeight: '500', lineHeight: 44, marginTop: 7 },
   attendanceSubtitle: { color: '#66635E', fontSize: 14, lineHeight: 20, marginTop: 5 },
   checkCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 14, borderWidth: 1, height: 362, paddingHorizontal: 16, paddingTop: 20 },
+  checkCardNarrow: { height: 376 }, checkCardCompact: { height: 392 },
   checkTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 27, fontWeight: '500', lineHeight: 32, marginTop: 11 },
   siteLine: { alignItems: 'center', flexDirection: 'row', marginTop: 7, minWidth: 0 },
   siteName: { color: colors.ink, flexShrink: 1, fontSize: 14, marginLeft: 9 },
@@ -110,12 +180,14 @@ const styles = StyleSheet.create({
   checkControlRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 15 },
   checkControl: { alignItems: 'center', backgroundColor: '#FCFAF5', borderColor: '#A9853F', borderRadius: 63, borderWidth: 1.2, height: 126, justifyContent: 'center', marginHorizontal: 30, shadowColor: '#8F6E2D', shadowOpacity: .15, shadowRadius: 5, width: 126 },
   checkRing: { alignItems: 'center', borderColor: '#E4DCCB', borderRadius: 58, borderWidth: 3, height: 116, justifyContent: 'center', width: 116 }, checkControlDone: { backgroundColor: '#EDF7EF', borderColor: '#168D4A' }, doneMark: { color: '#168D4A', fontSize: 36 },
+  progressSweep: { height: 126, left: -1, position: 'absolute', top: -1, width: 126 }, progressSegment: { backgroundColor: '#B1842D', borderRadius: 2, height: 3, marginLeft: -4, marginTop: -1.5, position: 'absolute', width: 8 }, progressCapOrbit: { height: 126, left: 0, position: 'absolute', top: 0, width: 126 }, progressCap: { backgroundColor: '#B1842D', borderColor: '#FFFDF8', borderRadius: 5, borderWidth: 1, height: 9, left: 58.5, position: 'absolute', top: -1, width: 9 },
   arrowSet: { flexDirection: 'row', gap: 4, width: 34 }, arrowPrimitive: { borderRightColor: '#C3AA70', borderRightWidth: 1.5, borderTopColor: '#C3AA70', borderTopWidth: 1.5, height: 9, transform: [{ rotate: '45deg' }], width: 9 },
   hand: { height: 48, position: 'relative', width: 40 }, fingerTip: { borderColor: '#A67D25', borderRadius: 10, borderWidth: 1.7, height: 29, left: 16, position: 'absolute', top: 0, width: 12 }, handPalm: { borderBottomLeftRadius: 10, borderBottomRightRadius: 13, borderColor: '#A67D25', borderTopColor: 'transparent', borderWidth: 1.7, height: 28, left: 12, position: 'absolute', top: 19, width: 26 }, handThumb: { borderColor: '#A67D25', borderRadius: 8, borderWidth: 1.7, height: 22, left: 4, position: 'absolute', top: 21, transform: [{ rotate: '-35deg' }], width: 10 }, fingerprint1: { borderColor: '#A67D25', borderRadius: 8, borderWidth: 1.2, height: 15, left: 18, position: 'absolute', top: 5, width: 8 }, fingerprint2: { borderColor: '#A67D25', borderRadius: 5, borderWidth: 1, height: 9, left: 20, position: 'absolute', top: 8, width: 4 },
-  longPressLabel: { color: '#9A741F', fontSize: 13, fontWeight: '700', marginTop: 11, textAlign: 'center' },
-  noteRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 15 }, verificationNote: { color: '#77736D', fontSize: 10, lineHeight: 14, marginLeft: 7, textAlign: 'center' },
+  longPressLabel: { color: '#9A741F', fontSize: 13, fontWeight: '700', marginTop: 11, textAlign: 'center' }, checkedInLabel: { color: '#168D4A' },
+  noteRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 15, minHeight: 28, paddingHorizontal: 4 }, successNoteRow: { backgroundColor: '#F0F8F2', borderRadius: 8, marginTop: 8 }, verificationNote: { color: '#77736D', flexShrink: 1, fontSize: 10, lineHeight: 14, marginLeft: 7, textAlign: 'center' }, successNote: { color: '#257746', fontWeight: '700' },
   twoColumn: { flexDirection: 'row', gap: 10 },
   halfCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 13, borderWidth: 1, flex: 1, height: 170, padding: 14 },
+  halfCardNarrow: { height: 180 }, halfCardCompact: { height: 190 },
   headingRow: { alignItems: 'center', flexDirection: 'row', gap: 9 }, cardHeading: { color: '#25231F', fontFamily: 'serif', fontSize: 14, fontWeight: '500' },
   locationName: { color: '#24221F', fontFamily: 'serif', fontSize: 13, fontWeight: '700', lineHeight: 18, marginTop: 20 },
   geofence: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#EFF8F0', borderRadius: 14, flexDirection: 'row', gap: 6, marginTop: 10, paddingHorizontal: 7, paddingVertical: 5 }, geofenceText: { color: '#24814A', fontSize: 10 },
@@ -126,7 +198,7 @@ const styles = StyleSheet.create({
   days: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14 }, day: { alignItems: 'center', flex: 1, gap: 5 }, dayLabel: { color: '#3F3B36', fontSize: 8 },
   dayStatus: { alignItems: 'center', backgroundColor: '#F5F5F3', borderRadius: 13, height: 25, justifyContent: 'center', width: 25 }, todayStatus: { backgroundColor: '#FFFDF8', borderColor: '#B28A36', borderRadius: 8, borderWidth: 1, height: 40, marginTop: -7, width: 38 }, dayMark: { color: '#98958F', fontSize: 10 }, green: { color: '#29A35C' },
   weekMetrics: { borderTopColor: '#EAE7E2', borderTopWidth: 1, flexDirection: 'row', marginTop: 13, paddingTop: 11 }, metric: { alignItems: 'center', borderRightColor: '#ECE9E4', borderRightWidth: 1, flex: 1 }, metricLabel: { color: '#77736D', fontSize: 9 }, metricValue: { color: '#161512', fontFamily: 'serif', fontSize: 21, marginTop: 4 }, metricSuffix: { color: '#85817A', fontSize: 9 }, goldMetric: { color: '#AD8129' },
-  activityCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 13, borderWidth: 1, height: 198, paddingHorizontal: 13, paddingTop: 7 }, activityHeader: { alignItems: 'center', flexDirection: 'row', height: 42, justifyContent: 'space-between' }, compactTarget: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'center', minHeight: 44, minWidth: 76 }, viewAll: { color: '#A27B29', fontSize: 10 },
+  activityCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 13, borderWidth: 1, minHeight: 198, paddingHorizontal: 13, paddingTop: 7 }, activityHeader: { alignItems: 'center', flexDirection: 'row', height: 42, justifyContent: 'space-between' }, compactTarget: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'center', minHeight: 44, minWidth: 76 }, viewAll: { color: '#A27B29', fontSize: 10 },
   activityRow: { alignItems: 'center', borderTopColor: '#EAE7E2', borderTopWidth: 1, flexDirection: 'row', height: 49 }, activityIcon: { alignItems: 'center', backgroundColor: '#EDF7EF', borderRadius: 16, height: 28, justifyContent: 'center', width: 28 }, activityIconGold: { backgroundColor: '#FBF6E9' }, activityCopy: { flex: 1, gap: 2, marginLeft: 14 }, activityDate: { color: '#2D2A26', fontSize: 10 }, activityTime: { color: '#77736E', fontSize: 9, marginRight: 12 },
   iconPin: { borderColor: '#B08A3D', borderRadius: 8, borderWidth: 1.5, height: 14, transform: [{ rotate: '45deg' }], width: 14 }, iconPinHole: { borderColor: '#B08A3D', borderRadius: 2, borderWidth: 1, height: 4, left: 4, position: 'absolute', top: 4, width: 4 }, iconShield: { borderBottomLeftRadius: 7, borderBottomRightRadius: 7, borderColor: '#9B8A62', borderTopLeftRadius: 4, borderTopRightRadius: 4, borderWidth: 1.2, height: 15, width: 13 }, shieldCheck: { borderBottomColor: '#278B50', borderBottomWidth: 1, borderRightColor: '#278B50', borderRightWidth: 1, height: 5, left: 4, position: 'absolute', top: 3, transform: [{ rotate: '45deg' }], width: 3 }, iconCalendar: { borderColor: '#9B8A62', borderRadius: 2, borderWidth: 1.2, height: 14, width: 15 }, calendarTop: { borderTopColor: '#9B8A62', borderTopWidth: 1, left: 1, position: 'absolute', right: 1, top: 4 }, iconClock: { borderColor: '#9B8A62', borderRadius: 8, borderWidth: 1.2, height: 15, width: 15 }, clockHandV: { backgroundColor: '#9B8A62', height: 5, left: 6, position: 'absolute', top: 3, width: 1 }, clockHandH: { backgroundColor: '#9B8A62', height: 1, left: 6, position: 'absolute', top: 7, transform: [{ rotate: '30deg' }], width: 4 }, iconUser: { height: 15, width: 15 }, userHead: { borderColor: '#9B8A62', borderRadius: 4, borderWidth: 1.1, height: 7, left: 4, position: 'absolute', width: 7 }, userBody: { borderColor: '#9B8A62', borderRadius: 7, borderWidth: 1.1, bottom: 0, height: 7, position: 'absolute', width: 15 }, iconBars: { alignItems: 'flex-end', flexDirection: 'row', gap: 2, height: 14, width: 15 }, bar: { backgroundColor: '#B08A3D', width: 3 }, iconChevron: { borderRightColor: '#AA9B78', borderRightWidth: 1, borderTopColor: '#AA9B78', borderTopWidth: 1, height: 6, transform: [{ rotate: '45deg' }], width: 6 }, activityArrow: { borderLeftColor: '#25A05A', borderLeftWidth: 1.2, borderTopColor: '#25A05A', borderTopWidth: 1.2, height: 6, position: 'absolute', transform: [{ rotate: '-45deg' }], width: 6 }, activityArrowReverse: { transform: [{ rotate: '135deg' }] }, activityArrowGold: { borderLeftColor: '#B08A3D', borderTopColor: '#B08A3D' },
   feedback: { color: '#257746', fontSize: 10, lineHeight: 14, textAlign: 'center' },
