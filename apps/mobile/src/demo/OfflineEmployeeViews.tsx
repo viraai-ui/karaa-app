@@ -65,6 +65,7 @@ export function AttendanceView({ now = () => new Date(), holdDurationMs = 800 }:
   const [presentDay, setPresentDay] = useState<string | null>(null);
   const [activities, setActivities] = useState(INITIAL_ACTIVITY);
   const progress = useRef(new Animated.Value(0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
   const phaseRef = useRef(phase);
   const completedRef = useRef(false);
   phaseRef.current = phase;
@@ -95,35 +96,37 @@ export function AttendanceView({ now = () => new Date(), holdDurationMs = 800 }:
     completedRef.current = false;
     const next: AttendancePhase = checkedIn ? 'holding-check-out' : 'holding-check-in';
     phaseRef.current = next; setPhase(next); progress.setValue(0);
+    Animated.spring(pressScale, { friction: 8, tension: 170, toValue: .965, useNativeDriver: true }).start();
     Animated.timing(progress, { duration: holdDurationMs, toValue: 1, useNativeDriver: true }).start(({ finished }) => { if (finished) complete(); });
   };
+  const releasePressScale = () => Animated.spring(pressScale, { friction: 7, tension: 150, toValue: 1, useNativeDriver: true }).start();
   const cancelHold = () => {
     if (!phaseRef.current.startsWith('holding-') || completedRef.current) return;
-    progress.stopAnimation(); progress.setValue(0);
+    progress.stopAnimation(); progress.setValue(0); releasePressScale();
     const idle = phaseRef.current === 'holding-check-out' ? 'checked-in' : 'checked-out';
     phaseRef.current = idle; setPhase(idle);
   };
-  const finishHold = () => { if (!phaseRef.current.startsWith('holding-')) startHold(); complete(); };
+  const finishHold = () => { if (!phaseRef.current.startsWith('holding-')) startHold(); complete(); releasePressScale(); };
   const today = presentDay ?? WEEKDAYS[new Date().getDay()];
   const presentDays = presentDay ? 4 : 3;
   const displayedWorkedMs = workedMs;
   const action = checkedIn ? 'Check out' : 'Check in';
-  const stateTitle = holding ? `Hold to ${checkedIn ? 'check out' : 'check in'}…` : checkedIn ? 'Checked in' : 'Ready to check in';
+  const completedCheckout = !checkedIn && feedback.startsWith('Checked out successfully');
+  const stateTitle = holding ? (checkedIn ? 'Checking out' : 'Checking in') : checkedIn ? 'Checked in' : completedCheckout ? 'Checked out' : 'Ready to check in';
   return <View style={styles.attendancePage} testID="employee-attendance-page">
-    <View style={styles.headingBlock}><Text style={styles.eyebrow}>FIELD EMPLOYEE</Text><Text style={styles.attendanceTitle}>Attendance</Text><Text style={styles.attendanceSubtitle}>Check in, verify your location and manage your day on site.</Text></View>
+    <Text style={styles.attendanceTitle}>Attendance</Text>
     <View style={[styles.checkCard, narrow && styles.checkCardNarrow, compact && styles.checkCardCompact]}>
       <Text style={styles.category}>TODAY · ON SITE</Text>
       <Text accessibilityLiveRegion="polite" style={styles.checkTitle} testID="attendance-state">{stateTitle}</Text>
       <View style={styles.siteLine}><LineIcon name="pin" /><Text style={styles.siteName}>Amaravati Solar Commons</Text><View style={styles.dividerVertical} /><Text style={styles.time}>{displayTime}</Text></View>
       <View style={styles.verifiedRow}><View style={styles.checkDot}><Text style={styles.checkDotText}>✓</Text></View><Text style={styles.verified}>Location verified</Text></View>
       <View style={styles.rule} />
-      <View style={styles.checkControlRow}><ArrowSet reverse={false} /><Pressable accessibilityActions={[{ name: 'activate', label: action }]} accessibilityHint={`Hold for ${holdDurationMs} milliseconds to ${action.toLowerCase()}`} accessibilityLabel={`Long press to ${action.toLowerCase()}`} accessibilityRole="button" delayLongPress={holdDurationMs} onAccessibilityAction={({ nativeEvent }) => { if (nativeEvent.actionName === 'activate') finishHold(); }} onLongPress={finishHold} onPressIn={startHold} onPressOut={cancelHold} style={[styles.checkControl, checkedIn && styles.checkControlDone]} testID="attendance-check-in-control"><View style={styles.checkRing}>{checkedIn ? <Text style={styles.doneMark}>✓</Text> : <HandIcon />}</View>{holding ? <View pointerEvents="none" style={styles.progressSweep} testID="attendance-progress-ring">{HOLD_RING_SEGMENTS.map(({ index, left, top, rotation }) => <Animated.View key={index} style={[styles.progressSegment, { left, opacity: progress.interpolate({ inputRange: [index / 24, Math.min(1, (index + 1) / 24)], outputRange: [.14, 1], extrapolate: 'clamp' }), top, transform: [{ rotate: rotation }] }]} />)}<Animated.View style={[styles.progressCapOrbit, { transform: [{ rotate: progress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }]}><View style={styles.progressCap} /></Animated.View></View> : null}</Pressable><ArrowSet reverse /></View>
-      <Text style={[styles.longPressLabel, checkedIn && styles.checkedInLabel]}>{holding ? 'Keep holding…' : `Long press to ${action.toLowerCase()}`}</Text>
-      <View style={[styles.noteRow, feedback ? styles.successNoteRow : null]}><LineIcon name="shield" /><Text accessibilityLiveRegion="polite" style={[styles.verificationNote, feedback ? styles.successNote : null]} testID={feedback ? 'attendance-feedback' : undefined}>{feedback || 'Photo verification and live location will be confirmed after check-in.'}</Text></View>
+      <View style={styles.checkControlRow}><Animated.View style={[styles.checkControlHalo, holding && styles.checkControlHaloActive, { transform: [{ scale: pressScale }] }]}><Pressable accessibilityActions={[{ name: 'activate', label: action }]} accessibilityHint={`Hold for ${holdDurationMs} milliseconds to ${action.toLowerCase()}`} accessibilityLabel={`Long press to ${action.toLowerCase()}`} accessibilityRole="button" delayLongPress={holdDurationMs} onAccessibilityAction={({ nativeEvent }) => { if (nativeEvent.actionName === 'activate') finishHold(); }} onLongPress={finishHold} onPressIn={startHold} onPressOut={cancelHold} style={[styles.checkControl, checkedIn && styles.checkControlDone, completedCheckout && styles.checkControlCheckedOut]} testID="attendance-check-in-control"><View style={[styles.checkRing, checkedIn && styles.checkRingDone]}><AttendanceActionIcon checkedIn={checkedIn} completedCheckout={completedCheckout} holding={holding} /><Text style={[styles.controlAction, holding && styles.controlActionHolding, checkedIn && styles.controlActionDone]}>{holding ? 'KEEP HOLDING' : action.toUpperCase()}</Text><Text style={[styles.controlDuration, checkedIn && styles.controlDurationDone]}>{holding ? 'RELEASE TO CANCEL' : 'HOLD 0.8 SEC'}</Text></View>{holding ? <View pointerEvents="none" style={styles.progressSweep} testID="attendance-progress-ring">{HOLD_RING_SEGMENTS.map(({ index, left, top, rotation }) => <Animated.View key={index} style={[styles.progressSegment, checkedIn && styles.progressSegmentOut, { left, opacity: progress.interpolate({ inputRange: [index / 24, Math.min(1, (index + 1) / 24)], outputRange: [.12, 1], extrapolate: 'clamp' }), top, transform: [{ rotate: rotation }] }]} />)}<Animated.View style={[styles.progressCapOrbit, { transform: [{ rotate: progress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }]}><View style={[styles.progressCap, checkedIn && styles.progressCapOut]} /></Animated.View></View> : null}</Pressable></Animated.View></View>
+      {feedback && !holding ? <View style={[styles.noteRow, styles.successNoteRow]}><LineIcon name="shield" /><Text accessibilityLiveRegion="polite" style={[styles.verificationNote, styles.successNote]} testID="attendance-feedback">{feedback}</Text></View> : null}
     </View>
     <View style={styles.twoColumn}>
       <Pressable accessibilityLabel="Detected location details" accessibilityRole="button" onPress={() => announce('You are within the allowed Amaravati Solar Commons site area.')} style={[styles.halfCard, narrow && styles.halfCardNarrow, compact && styles.halfCardCompact]}>
-        <View style={styles.headingRow}><LineIcon name="pin" /><Text style={styles.cardHeading}>Detected location</Text></View><Text style={styles.locationName}>Amaravati Solar Commons</Text><View style={styles.geofence}><LineIcon name="shield" /><Text style={styles.geofenceText}>Geofence active</Text></View><Text style={styles.smallMuted}>You are within the allowed site area.</Text>
+        <View style={styles.headingRow}><LineIcon name="pin" /><Text style={styles.cardHeading}>Detected location</Text></View><Text style={styles.locationName}>Amaravati Solar Commons</Text><View style={styles.geofence}><LineIcon name="shield" /><Text style={styles.geofenceText}>Geofence active</Text></View>
       </Pressable>
       <Pressable accessibilityLabel="Today’s attendance details" accessibilityRole="button" onPress={() => announce('Today’s shift is 09:00 to 18:00, reporting to Arjun Mehta.')} style={[styles.halfCard, narrow && styles.halfCardNarrow, compact && styles.halfCardCompact]}>
         <View style={styles.headingRow}><LineIcon name="calendar" /><Text style={styles.cardHeading}>Today’s details</Text></View><DetailRow icon="clock" label="Shift" value="09:00 – 18:00" /><DetailRow icon="user" label="Reporting manager" value="Arjun Mehta" /><DetailRow icon="shield" label="Attendance mode" value="Selfie + GPS" />
@@ -146,8 +149,12 @@ function LineIcon({ name }: { name: AttendanceIcon }) {
   if (name === 'bars') return <View importantForAccessibility="no" style={styles.iconBars}><View style={[styles.bar, { height: 7 }]} /><View style={[styles.bar, { height: 12 }]} /><View style={[styles.bar, { height: 9 }]} /></View>;
   return <View importantForAccessibility="no" style={styles.iconChevron} />;
 }
-function ArrowSet({ reverse }: { reverse: boolean }) { return <View style={[styles.arrowSet, reverse && { transform: [{ rotate: '180deg' }] }]}>{[0,1,2].map(i => <View key={i} style={styles.arrowPrimitive} />)}</View>; }
-function HandIcon() { return <View style={styles.hand}><View style={styles.fingerTip} /><View style={styles.handPalm} /><View style={styles.handThumb} /><View style={styles.fingerprint1} /><View style={styles.fingerprint2} /></View>; }
+function AttendanceActionIcon({ checkedIn, completedCheckout, holding }: { checkedIn: boolean; completedCheckout: boolean; holding: boolean }) {
+  const outgoing = checkedIn;
+  return <View importantForAccessibility="no" style={[styles.attendanceActionIcon, outgoing && styles.attendanceActionIconOut]}>
+    {completedCheckout && !holding ? <View style={styles.actionCheck}><View style={styles.actionCheckStem} /><View style={styles.actionCheckArm} /></View> : <View style={[styles.actionArrow, outgoing && styles.actionArrowOut]}><View style={styles.actionArrowShaft} /><View style={styles.actionArrowHead} /></View>}
+  </View>;
+}
 function DetailRow({ icon, label, value }: { icon: AttendanceIcon; label: string; value: string }) { return <View style={styles.detailRow}><LineIcon name={icon} /><Text style={styles.detailRowLabel}>{label}</Text><Text style={styles.detailRowValue}>{value}</Text></View>; }
 function Metric({ label, value, suffix, gold }: { label: string; value: string; suffix?: string; gold?: boolean }) { return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={[styles.metricValue, gold && styles.goldMetric]}>{value}<Text style={styles.metricSuffix}>{suffix}</Text></Text></View>; }
 function ActivityRow({ date, detail, time, tone }: { date: string; detail: string; time: string; tone: 'green' | 'gold' }) { return <View accessible accessibilityLabel={`${date}, ${detail}, ${time}`} style={styles.activityRow}><View importantForAccessibility="no" style={[styles.activityIcon, tone === 'gold' && styles.activityIconGold]}><View style={[styles.activityArrow, tone === 'gold' && styles.activityArrowGold]} /><View style={[styles.activityArrow, styles.activityArrowReverse, tone === 'gold' && styles.activityArrowGold]} /></View><View importantForAccessibility="no" style={styles.activityCopy}><Text style={styles.activityDate}>{date}</Text><Text style={styles.smallMuted}>{detail}</Text></View><Text importantForAccessibility="no" style={styles.activityTime}>{time}</Text><LineIcon name="chevron" /></View>; }
@@ -165,11 +172,9 @@ function Detail({ label, value }: { label: string; value: string }) { return <Vi
 
 const styles = StyleSheet.create({
   attendancePage: { gap: 12 },
-  headingBlock: { gap: 0, height: 100 },
-  attendanceTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 38, fontWeight: '500', lineHeight: 44, marginTop: 7 },
-  attendanceSubtitle: { color: '#66635E', fontSize: 14, lineHeight: 20, marginTop: 5 },
-  checkCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 14, borderWidth: 1, height: 362, paddingHorizontal: 16, paddingTop: 20 },
-  checkCardNarrow: { height: 376 }, checkCardCompact: { height: 392 },
+  attendanceTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 38, fontWeight: '500', lineHeight: 44 },
+  checkCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 14, borderWidth: 1, minHeight: 326, paddingBottom: 12, paddingHorizontal: 16, paddingTop: 20 },
+  checkCardNarrow: { minHeight: 340 }, checkCardCompact: { minHeight: 356 },
   checkTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 27, fontWeight: '500', lineHeight: 32, marginTop: 11 },
   siteLine: { alignItems: 'center', flexDirection: 'row', marginTop: 7, minWidth: 0 },
   siteName: { color: colors.ink, flexShrink: 1, fontSize: 14, marginLeft: 9 },
@@ -177,14 +182,18 @@ const styles = StyleSheet.create({
   time: { color: '#696660', fontSize: 13 },
   verifiedRow: { alignItems: 'center', flexDirection: 'row', marginTop: 11 }, checkDot: { alignItems: 'center', backgroundColor: '#15904A', borderRadius: 7, height: 13, justifyContent: 'center', width: 13 }, checkDotText: { color: '#fff', fontSize: 9, fontWeight: '900', lineHeight: 10 }, verified: { color: '#168D4A', fontSize: 12, marginLeft: 8 },
   rule: { backgroundColor: '#E8E6E1', height: 1, marginTop: 18 },
-  checkControlRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 15 },
-  checkControl: { alignItems: 'center', backgroundColor: '#FCFAF5', borderColor: '#A9853F', borderRadius: 63, borderWidth: 1.2, height: 126, justifyContent: 'center', marginHorizontal: 30, shadowColor: '#8F6E2D', shadowOpacity: .15, shadowRadius: 5, width: 126 },
-  checkRing: { alignItems: 'center', borderColor: '#E4DCCB', borderRadius: 58, borderWidth: 3, height: 116, justifyContent: 'center', width: 116 }, checkControlDone: { backgroundColor: '#EDF7EF', borderColor: '#168D4A' }, doneMark: { color: '#168D4A', fontSize: 36 },
-  progressSweep: { height: 126, left: -1, position: 'absolute', top: -1, width: 126 }, progressSegment: { backgroundColor: '#B1842D', borderRadius: 2, height: 3, marginLeft: -4, marginTop: -1.5, position: 'absolute', width: 8 }, progressCapOrbit: { height: 126, left: 0, position: 'absolute', top: 0, width: 126 }, progressCap: { backgroundColor: '#B1842D', borderColor: '#FFFDF8', borderRadius: 5, borderWidth: 1, height: 9, left: 58.5, position: 'absolute', top: -1, width: 9 },
-  arrowSet: { flexDirection: 'row', gap: 4, width: 34 }, arrowPrimitive: { borderRightColor: '#C3AA70', borderRightWidth: 1.5, borderTopColor: '#C3AA70', borderTopWidth: 1.5, height: 9, transform: [{ rotate: '45deg' }], width: 9 },
-  hand: { height: 48, position: 'relative', width: 40 }, fingerTip: { borderColor: '#A67D25', borderRadius: 10, borderWidth: 1.7, height: 29, left: 16, position: 'absolute', top: 0, width: 12 }, handPalm: { borderBottomLeftRadius: 10, borderBottomRightRadius: 13, borderColor: '#A67D25', borderTopColor: 'transparent', borderWidth: 1.7, height: 28, left: 12, position: 'absolute', top: 19, width: 26 }, handThumb: { borderColor: '#A67D25', borderRadius: 8, borderWidth: 1.7, height: 22, left: 4, position: 'absolute', top: 21, transform: [{ rotate: '-35deg' }], width: 10 }, fingerprint1: { borderColor: '#A67D25', borderRadius: 8, borderWidth: 1.2, height: 15, left: 18, position: 'absolute', top: 5, width: 8 }, fingerprint2: { borderColor: '#A67D25', borderRadius: 5, borderWidth: 1, height: 9, left: 20, position: 'absolute', top: 8, width: 4 },
-  longPressLabel: { color: '#9A741F', fontSize: 13, fontWeight: '700', marginTop: 11, textAlign: 'center' }, checkedInLabel: { color: '#168D4A' },
-  noteRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 15, minHeight: 28, paddingHorizontal: 4 }, successNoteRow: { backgroundColor: '#F0F8F2', borderRadius: 8, marginTop: 8 }, verificationNote: { color: '#77736D', flexShrink: 1, fontSize: 10, lineHeight: 14, marginLeft: 7, textAlign: 'center' }, successNote: { color: '#257746', fontWeight: '700' },
+  checkControlRow: { alignItems: 'center', justifyContent: 'center', marginTop: 14 },
+  checkControlHalo: { alignItems: 'center', backgroundColor: 'rgba(177, 132, 45, .08)', borderRadius: 72, height: 144, justifyContent: 'center', shadowColor: '#8F6E2D', shadowOffset: { height: 5, width: 0 }, shadowOpacity: .18, shadowRadius: 14, width: 144 },
+  checkControlHaloActive: { backgroundColor: 'rgba(177, 132, 45, .15)', shadowOpacity: .28, shadowRadius: 20 },
+  checkControl: { alignItems: 'center', backgroundColor: '#FFFCF5', borderColor: '#B58A3A', borderRadius: 63, borderWidth: 1, height: 126, justifyContent: 'center', overflow: 'visible', width: 126 },
+  checkRing: { alignItems: 'center', borderColor: '#E8DDC7', borderRadius: 57, borderWidth: 1, height: 114, justifyContent: 'center', width: 114 },
+  checkControlDone: { backgroundColor: '#173F32', borderColor: '#2D6C55' }, checkRingDone: { borderColor: 'rgba(247, 235, 207, .28)' }, checkControlCheckedOut: { backgroundColor: '#F8F4E9', borderColor: '#9E7A34' },
+  attendanceActionIcon: { alignItems: 'center', backgroundColor: '#B58A3A', borderRadius: 16, height: 31, justifyContent: 'center', marginBottom: 7, width: 31 }, attendanceActionIconOut: { backgroundColor: '#F2DCAD' },
+  actionArrow: { height: 18, transform: [{ rotate: '90deg' }], width: 18 }, actionArrowOut: { transform: [{ rotate: '-90deg' }] }, actionArrowShaft: { backgroundColor: '#FFFDF8', height: 1.8, left: 3, position: 'absolute', top: 8, width: 12 }, actionArrowHead: { borderRightColor: '#FFFDF8', borderRightWidth: 1.8, borderTopColor: '#FFFDF8', borderTopWidth: 1.8, height: 7, position: 'absolute', right: 2, top: 5, transform: [{ rotate: '45deg' }], width: 7 },
+  actionCheck: { height: 18, transform: [{ rotate: '-45deg' }], width: 18 }, actionCheckStem: { backgroundColor: '#FFFDF8', bottom: 3, height: 8, left: 4, position: 'absolute', width: 2 }, actionCheckArm: { backgroundColor: '#FFFDF8', bottom: 3, height: 2, left: 4, position: 'absolute', width: 12 },
+  controlAction: { color: '#6F5118', fontSize: 12, fontWeight: '900', letterSpacing: 1.25 }, controlActionHolding: { fontSize: 10, letterSpacing: .9 }, controlActionDone: { color: '#FFF6E1' }, controlDuration: { color: '#9D8250', fontSize: 8, fontWeight: '700', letterSpacing: .8, marginTop: 4 }, controlDurationDone: { color: '#C7B992' },
+  progressSweep: { height: 126, left: -1, position: 'absolute', top: -1, width: 126 }, progressSegment: { backgroundColor: '#B1842D', borderRadius: 3, height: 4, marginLeft: -4, marginTop: -2, position: 'absolute', width: 8 }, progressSegmentOut: { backgroundColor: '#F1D28D' }, progressCapOrbit: { height: 126, left: 0, position: 'absolute', top: 0, width: 126 }, progressCap: { backgroundColor: '#B1842D', borderColor: '#FFFDF8', borderRadius: 5, borderWidth: 1.5, height: 10, left: 58, position: 'absolute', top: -1.5, width: 10 }, progressCapOut: { backgroundColor: '#F1D28D', borderColor: '#173F32' },
+  noteRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', marginTop: 10, minHeight: 28, paddingHorizontal: 4 }, successNoteRow: { backgroundColor: '#F0F8F2', borderRadius: 8 }, verificationNote: { color: '#77736D', flexShrink: 1, fontSize: 10, lineHeight: 14, marginLeft: 7, textAlign: 'center' }, successNote: { color: '#257746', fontWeight: '700' },
   twoColumn: { flexDirection: 'row', gap: 10 },
   halfCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 13, borderWidth: 1, flex: 1, height: 170, padding: 14 },
   halfCardNarrow: { height: 180 }, halfCardCompact: { height: 190 },

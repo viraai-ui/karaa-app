@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineAppShell } from '../src/demo/OfflineAppShell';
+import { DemoBottomNavigation } from '../src/demo/OfflineDemoPrimitives';
 import { CUSTOMER_NAV_INACTIVE } from '../src/demo/CustomerNavIcons';
 import { SENIOR_MANAGEMENT_NAV_INACTIVE } from '../src/demo/SeniorManagementNavIcons';
 import { colors } from '../src/theme/tokens';
@@ -110,8 +111,19 @@ describe('canonical role bottom navigation', () => {
   it.each(['customer', 'employee', 'management'] as const)('keeps the %s canvas and footer role-scoped', (role) => {
     const screen = render(<Shell role={role} />);
     expect(screen.getByTestId('demo-content-viewport')).toHaveStyle({ backgroundColor: '#FFFFFF' });
-    expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: role === 'employee' ? 11 : 8 });
+    expect(screen.getByTestId('demo-bottom-navigation')).toHaveStyle({ backgroundColor: '#FFFFFF', marginHorizontal: 8 });
     expect(StyleSheet.flatten(screen.getByTestId('demo-bottom-navigation').props.style).overflow).toBeUndefined();
+  });
+
+  it('uses the exact shared footer geometry for Employee and Management', () => {
+    const screen = render(<SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, right: 0, bottom: 0, left: 0 } }}>
+      <DemoBottomNavigation onSelect={jest.fn()} role="employee" selectedTab="attendance" tabs={offlineRoleTabs.employee} />
+      <DemoBottomNavigation onSelect={jest.fn()} role="management" selectedTab="power" tabs={offlineRoleTabs.management} />
+    </SafeAreaProvider>);
+    const [employee, management] = screen.getAllByTestId('demo-bottom-navigation');
+    const employeeStyle = StyleSheet.flatten(employee.props.style);
+    const managementStyle = StyleSheet.flatten(management.props.style);
+    expect(employeeStyle).toEqual(managementStyle);
   });
 
   it('resets every stale customer nested route field from each canonical tab', () => {

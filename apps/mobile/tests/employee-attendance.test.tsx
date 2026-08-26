@@ -14,9 +14,14 @@ function shell(width = 480) {
 describe('Employee attendance screenshot surface', () => {
   it('renders the target content and real employee shell navigation', () => {
     const rendered = shell();
-    expect(rendered.getByText('FIELD EMPLOYEE')).toBeTruthy();
+    expect(rendered.getAllByText('Attendance')).toHaveLength(2);
+    expect(rendered.queryByText('FIELD EMPLOYEE')).toBeNull();
     expect(rendered.getByText('Ready to check in')).toBeTruthy();
-    expect(rendered.getByText('Check in, verify your location and manage your day on site.')).toBeTruthy();
+    expect(rendered.queryByText('Check in, verify your location and manage your day on site.')).toBeNull();
+    expect(rendered.queryByText('Photo verification and live location will be confirmed after check-in.')).toBeNull();
+    expect(rendered.queryByText('You are within the allowed site area.')).toBeNull();
+    expect(rendered.getByText('CHECK IN')).toBeTruthy();
+    expect(rendered.getByText('HOLD 0.8 SEC')).toBeTruthy();
     expect(rendered.getAllByText('Amaravati Solar Commons').length).toBeGreaterThanOrEqual(2);
     expect(rendered.getByText(/Geofence active/)).toBeTruthy();
     expect(rendered.getByText(/Today’s details/)).toBeTruthy();
@@ -39,7 +44,8 @@ describe('Employee attendance screenshot surface', () => {
     expect(rendered.getByText('Ready to check in')).toBeTruthy();
     fireEvent(control, 'pressIn');
     expect(rendered.getByTestId('attendance-progress-ring')).toBeTruthy();
-    expect(rendered.getByText('Hold to check in…')).toBeTruthy();
+    expect(rendered.getByText('Checking in')).toBeTruthy();
+    expect(rendered.getByText('KEEP HOLDING')).toBeTruthy();
     fireEvent(control, 'pressOut');
     expect(rendered.queryByTestId('attendance-progress-ring')).toBeNull();
     expect(rendered.getByText('Ready to check in')).toBeTruthy();
@@ -68,7 +74,7 @@ describe('Employee attendance screenshot surface', () => {
     expect(rendered.getByTestId('attendance-weekly-summary')).toBeTruthy();
     expect(rendered.getAllByText('✓').length).toBeGreaterThanOrEqual(4);
     fireEvent(rendered.getByTestId('attendance-check-in-control'), 'longPress');
-    expect(rendered.getByText('Ready to check in')).toBeTruthy();
+    expect(rendered.getAllByText('Checked out').length).toBeGreaterThanOrEqual(1);
     expect(rendered.getByText('08h 31m')).toBeTruthy();
     const activity = rendered.getByTestId('attendance-recent-activity');
     const labels = activity.findAll(node => typeof node.props.accessibilityLabel === 'string').map(node => node.props.accessibilityLabel as string);
