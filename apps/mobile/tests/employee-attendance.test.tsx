@@ -13,8 +13,9 @@ function shell(width = 480) {
 
 describe('Employee attendance screenshot surface', () => {
   it('renders the target content and real employee shell navigation', () => {
-    const rendered = shell();
-    expect(rendered.getAllByText('Attendance')).toHaveLength(2);
+    const rendered = shell(390);
+    expect(rendered.getAllByText('Attendance')).toHaveLength(1);
+    expect(rendered.queryByRole('heading', { name: 'Attendance' })).toBeNull();
     expect(rendered.queryByText('FIELD EMPLOYEE')).toBeNull();
     expect(rendered.getByText('Ready to check in')).toBeTruthy();
     expect(rendered.queryByText('Check in, verify your location and manage your day on site.')).toBeNull();

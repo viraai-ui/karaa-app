@@ -114,7 +114,6 @@ export function AttendanceView({ now = () => new Date(), holdDurationMs = 800 }:
   const completedCheckout = !checkedIn && feedback.startsWith('Checked out successfully');
   const stateTitle = holding ? (checkedIn ? 'Checking out' : 'Checking in') : checkedIn ? 'Checked in' : completedCheckout ? 'Checked out' : 'Ready to check in';
   return <View style={styles.attendancePage} testID="employee-attendance-page">
-    <Text style={styles.attendanceTitle}>Attendance</Text>
     <View style={[styles.checkCard, narrow && styles.checkCardNarrow, compact && styles.checkCardCompact]}>
       <Text style={styles.category}>TODAY · ON SITE</Text>
       <Text accessibilityLiveRegion="polite" style={styles.checkTitle} testID="attendance-state">{stateTitle}</Text>
@@ -172,7 +171,6 @@ function Detail({ label, value }: { label: string; value: string }) { return <Vi
 
 const styles = StyleSheet.create({
   attendancePage: { gap: 12 },
-  attendanceTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 38, fontWeight: '500', lineHeight: 44 },
   checkCard: { backgroundColor: '#FFFFFF', borderColor: '#DEDCD6', borderRadius: 14, borderWidth: 1, minHeight: 326, paddingBottom: 12, paddingHorizontal: 16, paddingTop: 20 },
   checkCardNarrow: { minHeight: 340 }, checkCardCompact: { minHeight: 356 },
   checkTitle: { color: colors.ink, fontFamily: 'serif', fontSize: 27, fontWeight: '500', lineHeight: 32, marginTop: 11 },
