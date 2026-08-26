@@ -83,11 +83,17 @@ describe('canonical role bottom navigation', () => {
 
   it('routes every Employee tab to its named surface and keeps exactly one active tab', () => {
     const screen = render(<Shell role="employee" />);
+    const surfaceMarkers = {
+      Attendance: () => screen.getByTestId('employee-attendance-page'),
+      'My Projects': () => screen.getByText('ASSIGNED PORTFOLIO'),
+      'My Tasks': () => screen.getByTestId('employee-my-tasks'),
+      Chat: () => screen.getByTestId('chat-search-shell'),
+    } as const;
     for (const label of canonical.employee) {
       fireEvent.press(screen.getByRole('tab', { name: label }));
       expect(screen.getByRole('tab', { name: label }).props.accessibilityState.selected).toBe(true);
       expect(bottomTabs(screen).filter((tab) => tab.props.accessibilityState.selected)).toHaveLength(1);
-      if (label !== 'Chat') expect(screen.getAllByText(label).length).toBeGreaterThan(1);
+      expect(surfaceMarkers[label]()).toBeTruthy();
     }
   });
 

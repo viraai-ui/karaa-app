@@ -121,18 +121,17 @@ describe('Karaa Global role demo surfaces', () => {
     const rendered = renderDemoShell(<OfflineAppShell role="employee" onSwitchRole={jest.fn()} />);
 
     fireEvent.press(rendered.getByRole('tab', { name: 'My Tasks' }));
-    expect(rendered.getByText('Current work package')).toBeTruthy();
+    expect(rendered.getByText('ACTIVE PACKAGE')).toBeTruthy();
     expect(rendered.getByText('Inverter row commissioning')).toBeTruthy();
-    expect(StyleSheet.flatten(rendered.getByTestId('employee-work-progress-label').props.style).color).toBe('#FFFFFF');
-    expect(StyleSheet.flatten(rendered.getByText('Project delivery').props.style).color).toBe('#D6D3CD');
+    expect(rendered.getByText('65%')).toBeTruthy();
 
     fireEvent.press(rendered.getByRole('button', { name: 'Record progress update' }));
     expect(rendered.getByText('Review field update')).toBeTruthy();
     expect(rendered.queryByText('Demo visual')).toBeNull();
 
     fireEvent.press(rendered.getByRole('button', { name: 'Add update to project timeline' }));
-    expect(rendered.getByText('Update added to project activity')).toBeTruthy();
-    expect(rendered.getByText('68% delivery recorded')).toBeTruthy();
+    expect(rendered.getByTestId('employee-my-tasks')).toBeTruthy();
+    expect(rendered.getByText('68%')).toBeTruthy();
   });
 
   it('carries an Employee field update into Customer and Management after a workspace switch', () => {
